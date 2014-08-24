@@ -2,7 +2,7 @@
 
 A blog REST API server developed by Boris HUISGEN <bhuisgen@hbis.fr>
 
-Under GNU GPL licence.
+Under GNU GPL licence
 
 ## Building
 
@@ -22,7 +22,7 @@ Edit these files:
 
 ## Running
 
-You need to initialize your blog instance before adding any content :
+You need to initialize your blog instance before adding any content:
 
 	$ node bin/shell init
 

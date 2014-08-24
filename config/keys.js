@@ -6,7 +6,7 @@ var config = {
             facebook: {
                 clientID: '123456',
                 clientSecret: 'secret',
-                callbackURL: 'https://127.0.0.1:3002/api/auth/facebook/callback'
+                callbackURL: 'https://127.0.0.1:3000/api/auth/facebook/callback'
             },
             github: {
                 clientID: '123456',
