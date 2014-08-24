@@ -7,15 +7,16 @@
     var passport = require('passport');
     var uuid = require('node-uuid');
 
-    var FacebookStrategy = require('passport-facebook').Strategy;
+    var Schema = require('jugglingdb-model-loader');
+
     var LocalStrategy = require('passport-local').Strategy;
+    var FacebookStrategy = require('passport-facebook').Strategy;
     var GitHubStrategy = require('passport-github').Strategy;
     var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
     var LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
     var OpenIDStrategy = require('passport-openid').Strategy;
     var TwitterStrategy = require('passport-twitter').Strategy;
 
-    var Schema = require('jugglingdb-model-loader');
 
     module.exports = function(config, router) {
         config.keys = require('../../../config/keys');

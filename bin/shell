@@ -1265,10 +1265,7 @@
                         return callback(new Error('Role doesn\'t exist'));
                     }
 
-                    group.role(role);
-
-                    console.log(group);
-                    console.log(role);
+                    group.roleId = role.id;
 
                     group.save(function(err) {
                         if (err) {
@@ -1297,9 +1294,9 @@
             }
         });
 
-        var Role = schema.loadDefinition('Role');
+        var Group = schema.loadDefinition('Group');
 
-        prompt.message = 'Role';
+        prompt.message = 'Group';
 
         var promptConfig = {
             properties: {
@@ -1319,20 +1316,20 @@
         prompt.start();
 
         prompt.get(promptConfig, function(err, result) {
-            Role.findOne({
+            Group.findOne({
                 where: {
                     name: result.name
                 }
-            }, function(err, role) {
+            }, function(err, group) {
                 if (err) {
                     return callback(err);
                 }
 
-                if (!role) {
-                    return callback(new Error('Role doesn\'t exist'));
+                if (!group) {
+                    return callback(new Error('Group doesn\'t exist'));
                 }
 
-                Role.findOne({
+                Group.findOne({
                     where: {
                         name: result.newname
                     }
@@ -1342,10 +1339,10 @@
                     }
 
                     if (object) {
-                        return callback(new Error('Role already exists'));
+                        return callback(new Error('Group already exists'));
                     }
-                    
-                    role.updateAttributes({
+
+                    group.updateAttributes({
                         name: result.newname
                     }, function(err) {
                         if (err) {
@@ -1953,6 +1950,7 @@
                     if (object) {
                         return callback(new Error('Role already exists'));
                     }
+
                     role.updateAttributes({
                         name: result.newname
                     }, function(err) {
@@ -2790,7 +2788,7 @@
             }
 
             if (options.passwd) {
-                userPassword(program.verbose, function(err) {
+                userPasswd(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
