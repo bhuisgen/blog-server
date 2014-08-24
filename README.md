@@ -4,12 +4,6 @@ A blog REST API server developed by Boris HUISGEN <bhuisgen@hbis.fr>
 
 Under GNU GPL licence.
 
-# Getting Started
-
-Getting blog-server
-
-The latest release and setup instructions are available at GitHub.
-
 ## Building
 
 	git clone https://github.com/bhuisgen/blog-server.git
