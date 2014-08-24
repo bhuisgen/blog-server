@@ -1,0 +1,3040 @@
+#!/usr/bin/env node
+
+(function() {
+    'use strict';
+
+    var fs = require('fs');
+    var path = require('path');
+    var async = require('async');
+    var fm = require('front-matter');
+    var program = require('commander');
+    var prompt = require('prompt');
+
+    var Schema = require('jugglingdb-model-loader');
+
+    var TAXONOMY_CATEGORIES = 'categories';
+    var TAXONOMY_TAGS = 'tags';
+
+    var Define = require('../app/define');
+
+    var config = {};
+    config.database = require('../config/database');
+    config.content = require('../config/content');
+
+    /*
+     * Init command
+     */
+
+    function init(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Permission = schema.loadDefinition('Permission');
+        var Collection = schema.loadDefinition('Collection');
+        var Role = schema.loadDefinition('Role');
+        var Group = schema.loadDefinition('Group');
+        var User = schema.loadDefinition('User');
+        var Role = schema.loadDefinition('Role');
+        var Key = schema.loadDefinition('Key');
+        var LocalAccount = schema.loadDefinition('LocalAccount');
+        var Key = schema.loadDefinition('Key');
+        var Taxonomy = schema.loadDefinition('Taxonomy');
+
+        var permissionShared;
+        var permissionPrivate;
+        var permissionReadOnly;
+        var permissionFull;
+        var collectionUsers;
+        var collectionGroups;
+        var collectionRoles;
+        var collectionKeys;
+        var collectionLocalAccounts;
+        var collectionExternAccounts;
+        var collectionPages;
+        var collectionPosts;
+        var collectionComments;
+        var roleAnonymous;
+        var roleAdministrator;
+        var roleAuthor;
+        var roleReader;
+        var groupAnonymous;
+        var groupAdministrators;
+        var groupAuthors;
+        var groupReaders;
+        var userAnonymous;
+        var keyAnonymous;
+        var userAdministrator;
+        var localAccountAdministrator;
+
+        async.series([
+
+            function(callback) {
+                User.count(function(err, count) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (count) {
+                        return callback(new Error('Instance already initialized'));
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating permission \'Shared\' ...');
+
+                permissionShared = new Permission({
+                    name: 'shared',
+                    level: Define.PERMISSION.SHARED
+                });
+
+                permissionShared.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating permission \'Private\' ...');
+
+                permissionPrivate = new Permission({
+                    level: Define.PERMISSION.PRIVATE
+                });
+
+                permissionPrivate.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating permission \'ReadOnly\' ...');
+
+                permissionReadOnly = new Permission({
+                    level: Define.PERMISSION.READONLY
+                });
+
+                permissionReadOnly.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating permission \'Full\' ...');
+
+                permissionFull = new Permission({
+                    level: Define.PERMISSION.FULL
+                });
+
+                permissionFull.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating collection \'Users\' ...');
+
+                collectionUsers = permissionShared.collections.build({
+                    name: 'Users'
+                });
+
+                collectionUsers.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating collection \'Groups\' ...');
+
+                collectionGroups = permissionShared.collections.build({
+                    name: 'Groups'
+                });
+
+                collectionGroups.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating collection \'Roles\' ...');
+
+                collectionRoles = permissionShared.collections.build({
+                    name: 'Roles'
+                });
+
+                collectionRoles.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating collection \'Keys\' ...');
+
+                collectionKeys = permissionPrivate.collections.build({
+                    name: 'Keys'
+                });
+
+                collectionKeys.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating collection \'LocalAccount\' ...');
+
+                collectionLocalAccounts = permissionPrivate.collections.build({
+                    name: 'LocalAccounts'
+                });
+
+                collectionLocalAccounts.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating collection \'ExternAccount\' ...');
+
+                collectionExternAccounts = permissionPrivate.collections.build({
+                    name: 'ExternAccounts'
+                });
+
+                collectionExternAccounts.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating collection \'Pages\' ...');
+
+                collectionPages = permissionShared.collections.build({
+                    name: 'Pages'
+                });
+
+                collectionPages.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating collection \'Posts\' ...');
+
+                collectionPosts = permissionShared.collections.build({
+                    name: 'Posts'
+                });
+
+                collectionPosts.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating collection \'Comments\' ...');
+
+                collectionComments = permissionShared.collections.build({
+                    name: 'Comments'
+                });
+
+                collectionComments.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating role \'Anonymous\' ...');
+
+                roleAnonymous = new Role({
+                    name: 'Anonymous',
+                    pagesRead: true,
+                    postsRead: true,
+                    commentsRead: true,
+                });
+
+                roleAnonymous.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating role \'Administrator\' ...');
+
+                roleAdministrator = new Role({
+                    name: 'Administrator',
+                    usersCreate: true,
+                    usersRead: true,
+                    usersUpdate: true,
+                    usersDelete: true,
+                    groupsCreate: true,
+                    groupsRead: true,
+                    groupsUpdate: true,
+                    groupsDelete: true,
+                    rolesCreate: true,
+                    rolesRead: true,
+                    rolesUpdate: true,
+                    rolesDelete: true,
+                    pagesPermission: 3,
+                    pagesCreate: true,
+                    pagesRead: true,
+                    pagesUpdate: true,
+                    pagesDelete: true,
+                    postsPermission: 3,
+                    postsCreate: true,
+                    postsRead: true,
+                    postsUpdate: true,
+                    postsDelete: true,
+                    commentsCreate: true,
+                    commentsRead: true,
+                    commentsUpdate: true,
+                    commentsDelete: true,
+                });
+
+                roleAdministrator.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating role \'Author\' ...');
+
+                roleAuthor = new Role({
+                    name: 'Author',
+                    usersRead: true,
+                    usersUpdate: true,
+                    groupsRead: true,
+                    pagesCreate: true,
+                    pagesRead: true,
+                    pagesUpdate: true,
+                    pagesDelete: true,
+                    postsCreate: true,
+                    postsRead: true,
+                    postsUpdate: true,
+                    postsDelete: true,
+                    commentsCreate: true,
+                    commentsRead: true,
+                    commentsUpdate: true,
+                    commentsDelete: true,
+                });
+
+                roleAuthor.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating role \'Reader\' ...');
+
+                roleReader = new Role({
+                    name: 'Reader',
+                    usersRead: true,
+                    usersUpdate: true,
+                    groupsRead: true,
+                    pagesRead: true,
+                    postsRead: true,
+                    commentsCreate: true,
+                    commentsRead: true,
+                    commentsUpdate: true,
+                    commentsDelete: true,
+                });
+
+                roleReader.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating group \'Anonymous\' ...');
+
+                groupAnonymous = roleAnonymous.groups.build({
+                    name: 'Anonymous'
+                });
+
+                groupAnonymous.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating group \'Administrators\' ...');
+
+                groupAdministrators = roleAdministrator.groups.build({
+                    name: 'Administrators'
+                });
+
+                groupAdministrators.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating group \'Authors\' ...');
+
+                groupAuthors = roleAuthor.groups.build({
+                    name: 'Authors'
+                });
+
+                groupAuthors.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating group \'Readers\' ...');
+
+                groupReaders = roleReader.groups.build({
+                    name: 'Readers'
+                });
+
+                groupReaders.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating user \'Anonymous\' ...');
+
+                userAnonymous = groupAnonymous.users.build({
+                    email: 'anonymous@localhost.localdomain',
+                    name: 'Anonymous',
+                    enabled: true
+                });
+
+                userAnonymous.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating authentication key for user \'Anonymous\' ...');
+
+                keyAnonymous = userAnonymous.keys.build({
+                    enabled: true
+                });
+
+                keyAnonymous.authkey = keyAnonymous.generateUUID();
+
+                keyAnonymous.save(function(err) {
+                    if (err) {
+                        return callback();
+                    }
+
+                    console.log('');
+                    console.log('Authentication key: ' + keyAnonymous.authkey);
+                    console.log('HTTP header: "Authorization: Basic ' + new Buffer(keyAnonymous.authkey).toString('base64') + '"');
+                    console.log('');
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating account for user \'Administrator\' ...');
+                console.log('');
+
+                prompt.message = 'Administrator';
+
+                var promptConfig = {
+                    properties: {
+                        login: {
+                            description: 'login',
+                            type: 'string',
+                            pattern: /^\S{4,}$/,
+                            message: 'Login must be at least 4 characters long',
+                            required: true
+                        },
+                        password: {
+                            description: 'password',
+                            type: 'string',
+                            pattern: /^\S{8,}$/,
+                            message: 'Password must be at least 8 characters long',
+                            required: true,
+                            hidden: true
+                        },
+                        name: {
+                            description: 'name',
+                            type: 'string',
+                            required: true
+                        },
+                        email: {
+                            description: 'email',
+                            type: 'string',
+                            pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                            message: 'Email must be valid',
+                            required: true
+                        },
+                    }
+                };
+
+                prompt.start();
+
+                prompt.get(promptConfig, function(err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    userAdministrator = groupAdministrators.users.build({
+                        email: result.email,
+                        name: result.name,
+                        enabled: true
+                    });
+
+                    userAdministrator.save(function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        localAccountAdministrator = userAdministrator.localAccounts.build({
+                            login: result.login
+                        });
+
+                        localAccountAdministrator.password = localAccountAdministrator.hashPassword(result.password);
+
+                        localAccountAdministrator.save(function(err) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            console.log('');
+
+                            return callback(null);
+                        });
+                    });
+                });
+            },
+            function(callback) {
+                console.log('Creating taxonomy \'Categories\' ...');
+
+                var categoriesTaxonomy = new Taxonomy({
+                    name: TAXONOMY_CATEGORIES
+                });
+
+                categoriesTaxonomy.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating taxonomy \'Tags\' ...');
+
+                var tagsTaxonomy = new Taxonomy({
+                    name: TAXONOMY_TAGS
+                });
+
+                tagsTaxonomy.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+        ], function(err, replies) {
+            schema.disconnect();
+
+            if (err) {
+                return callback(err);
+            }
+
+            console.log('Instance ready');
+
+            return callback(null);
+        });
+    }
+
+    /*
+     * Users management
+     */
+
+    function userAdd(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var User = schema.loadDefinition('User');
+        var Group = schema.loadDefinition('Group');
+        var LocalAccount = schema.loadDefinition('LocalAccount');
+
+        prompt.message = 'User';
+
+        var promptConfig = {
+            properties: {
+                email: {
+                    description: 'email',
+                    type: 'string',
+                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    message: 'Email must be valid',
+                    required: true
+                },
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                },
+                group: {
+                    description: 'group',
+                    type: 'string',
+                    required: true
+                },
+                login: {
+                    description: 'login',
+                    type: 'string',
+                    pattern: /^\S{4,}$/,
+                    message: 'Login must be at least 4 characters long',
+                    required: true
+                },
+                password: {
+                    description: 'password',
+                    type: 'string',
+                    pattern: /^\S{8,}$/,
+                    message: 'Password must be at least 8 characters long',
+                    required: true,
+                    hidden: true
+                },
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            if (err) {
+                return callback(err);
+            }
+
+            User.findOne({
+                where: {
+                    email: result.email
+                }
+            }, function(err, user) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (user) {
+                    return callback(new Error('User already exists'));
+                }
+
+                LocalAccount.findOne({
+                    where: {
+                        login: result.login
+                    }
+                }, function(err, localAccount) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (localAccount) {
+                        return callback(new Error('LocalAccount already exists'));
+                    }
+
+                    Group.findOne({
+                        where: {
+                            name: result.group
+                        }
+                    }, function(err, group) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        if (!group) {
+                            return callback(new Error('Group doesn\'t exist'));
+                        }
+
+                        user = group.users.build({
+                            email: result.email,
+                            name: result.name,
+                            enabled: true
+                        });
+
+                        user.save(function(err) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            localAccount = user.localAccounts.build({
+                                login: result.login,
+                            });
+
+                            localAccount.password = localAccount.hashPassword(result.password);
+
+                            localAccount.save(function(err) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                return callback(null);
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    }
+
+    function userRemove(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var User = schema.loadDefinition('User');
+
+        prompt.message = 'User';
+
+        var promptConfig = {
+            properties: {
+                email: {
+                    description: 'email',
+                    type: 'string',
+                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    message: 'Email must be valid',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            if (err) {
+                return callback(err);
+            }
+
+            User.findOne({
+                where: {
+                    email: result.email
+                }
+            }, function(err, user) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!user) {
+                    return callback(new Error('User doesn\'t exist'));
+                }
+
+                user.localAccounts(function(err, localAccounts) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    for (var i = 0; i < localAccounts.length; i++) {
+                        localAccounts[i].destroy();
+                    }
+
+                    user.externAccounts(function(err, externAccounts) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        for (var i = 0; i < externAccounts.length; i++) {
+                            externAccounts[i].destroy();
+                        }
+
+                        user.destroy(function(err) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            return callback(null);
+                        });
+                    });
+                });
+            });
+        });
+    }
+
+    function userList(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var User = schema.loadDefinition('User');
+
+        var data = {};
+
+        User.all(function(err, users) {
+            if (err) {
+                return callback(err);
+            }
+
+            if (!users) {
+                console.log(data);
+
+                return callback(null);
+            }
+
+            var pending = users.length;
+
+            function iterate(user) {
+                data[user.email] = [];
+
+                data[user.email].push(user);
+
+                user.group(function(err, group) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    data[user.email].push(group);
+
+                    user.keys(function(err, keys) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        data[user.email].push(keys);
+
+                        user.localAccounts(function(err, localAccounts) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            data[user.email].push(localAccounts);
+
+                            user.externAccounts(function(err, externAccounts) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                data[user.email].push(externAccounts);
+
+                                if (!--pending) {
+                                    console.log(data);
+
+                                    return callback(null);
+                                }
+                            });
+                        });
+                    });
+
+                });
+            }
+
+            for (var i = 0; i < users.length; i++) {
+                iterate(users[i]);
+            }
+        });
+    }
+
+    function userPasswd(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var LocalAccount = schema.loadDefinition('LocalAccount');
+
+        prompt.message = 'LocalAccount';
+
+        var promptConfig = {
+            properties: {
+                login: {
+                    description: 'login',
+                    type: 'string',
+                    pattern: /^\S{4,}$/,
+                    message: 'Login must be at least 4 characters long',
+                    required: true
+                },
+                password: {
+                    description: 'password',
+                    type: 'string',
+                    pattern: /^\S{8,}$/,
+                    message: 'Password must be at least 8 characters long',
+                    required: true,
+                    hidden: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            if (err) {
+                return callback(err);
+            }
+
+            LocalAccount.findOne({
+                where: {
+                    login: result.login
+                }
+            }, function(err, localAccount) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!localAccount) {
+                    return callback(new Error('LocalAccount doesn\'t exist'));
+                }
+
+                localAccount.password = localAccount.hashPassword(result.password);
+
+                localAccount.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    /*
+     * Groups management
+     */
+
+    function groupAdd(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Group = schema.loadDefinition('Group');
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Group';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                },
+                role: {
+                    description: 'role',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Group.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, group) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (group) {
+                    return callback(new Error('Group already exists'));
+                }
+
+                Role.findOne({
+                    where: {
+                        name: result.role
+                    }
+                }, function(err, role) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (!role) {
+                        return callback(new Error('Role doesn\'t exist'));
+                    }
+
+                    group = role.groups.build({
+                        name: result.name,
+                    });
+
+                    group.save(function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
+    function groupRemove(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Group = schema.loadDefinition('Group');
+
+        prompt.message = 'Group';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Group.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, group) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!group) {
+                    return callback(new Error('Group doesn\'t exist'));
+                }
+
+                group.users(function(err, users) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (users.length) {
+                        return callback(new Error('Group contains existent users'));
+                    }
+
+                    group.destroy(function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
+    function groupList(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Group = schema.loadDefinition('Group');
+
+        var data = {};
+
+        Group.all(function(err, groups) {
+            if (err) {
+                return callback(err);
+            }
+
+            if (!groups) {
+                console.log(data);
+
+                return callback(null);
+            }
+
+            var pending = groups.length;
+
+            function iterate(group) {
+                data[group.name] = [];
+
+                data[group.name].push(group);
+
+                group.users(function(err, users) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    data[group.name].push(users);
+
+                    if (!--pending) {
+                        console.log(data);
+
+                        return callback(null);
+                    }
+                });
+            }
+
+            for (var i = 0; i < groups.length; i++) {
+                iterate(groups[i]);
+            }
+        });
+    }
+
+    function groupModify(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Group = schema.loadDefinition('Group');
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Group';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                },
+                role: {
+                    description: 'role',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Group.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, group) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!group) {
+                    return callback(new Error('Group doesn\'t exist'));
+                }
+
+                Role.findOne({
+                    where: {
+                        name: result.role
+                    }
+                }, function(err, role) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (!role) {
+                        return callback(new Error('Role doesn\'t exist'));
+                    }
+
+                    group.role(role);
+
+                    console.log(group);
+                    console.log(role);
+
+                    group.save(function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
+    function groupRename(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Role';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'current name',
+                    type: 'string',
+                    required: true
+                },
+                newname: {
+                    description: 'new name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Role.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, role) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!role) {
+                    return callback(new Error('Role doesn\'t exist'));
+                }
+
+                Role.findOne({
+                    where: {
+                        name: result.newname
+                    }
+                }, function(err, object) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (object) {
+                        return callback(new Error('Role already exists'));
+                    }
+                    
+                    role.updateAttributes({
+                        name: result.newname
+                    }, function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
+    /*
+     * Roles management
+     */
+
+    function roleAdd(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Role';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                },
+                usersCreate: {
+                    description: 'usersCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                usersRead: {
+                    description: 'usersRead',
+                    type: 'boolean',
+                    required: true
+                },
+                usersUpdate: {
+                    description: 'usersUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                usersDelete: {
+                    description: 'usersDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsCreate: {
+                    description: 'groupsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsRead: {
+                    description: 'groupsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsUpdate: {
+                    description: 'groupsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsDelete: {
+                    description: 'groupsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesCreate: {
+                    description: 'rolesCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesRead: {
+                    description: 'rolesRead',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesUpdate: {
+                    description: 'rolesUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesDelete: {
+                    description: 'rolesDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesCreate: {
+                    description: 'pagesCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesRead: {
+                    description: 'pagesRead',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesUpdate: {
+                    description: 'pagesUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesDelete: {
+                    description: 'pagesDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                postsCreate: {
+                    description: 'postsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                postsRead: {
+                    description: 'postsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                postsUpdate: {
+                    description: 'postsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                postsDelete: {
+                    description: 'postsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsCreate: {
+                    description: 'commentsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsRead: {
+                    description: 'commentsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsUpdate: {
+                    description: 'commentsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsDelete: {
+                    description: 'commentsDelete',
+                    type: 'boolean',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Role.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, role) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (role) {
+                    return callback(new Error('Role already exists'));
+                }
+
+                role = new Role({
+                    name: result.name,
+                    usersCreate: result.usersCreate,
+                    usersRead: result.usersRead,
+                    usersUpdate: result.usersUpdate,
+                    usersDelete: result.usersDelete,
+                    groupsCreate: result.groupsCreate,
+                    groupsRead: result.groupsRead,
+                    groupsUpdate: result.groupsUpdate,
+                    groupsDelete: result.groupsDelete,
+                    rolesCreate: result.rolesCreate,
+                    rolesRead: result.rolesRead,
+                    rolesUpdate: result.rolesUpdate,
+                    rolesDelete: result.rolesDelete,
+                    pagesCreate: result.pagesCreate,
+                    pagesRead: result.pagesRead,
+                    pagesUpdate: result.pagesUpdate,
+                    pagesDelete: result.pagesDelete,
+                    postsCreate: result.postsCreate,
+                    postsRead: result.postsRead,
+                    postsUpdate: result.postsUpdate,
+                    postsDelete: result.postsDelete,
+                    commentsCreate: result.commentsCreate,
+                    commentsRead: result.commentsRead,
+                    commentsUpdate: result.commentsUpdate,
+                    commentsDelete: result.commentsDelete
+                });
+
+                role.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function roleRemove(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Role';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Role.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, role) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!role) {
+                    return callback(new Error('Role doesn\'t exist'));
+                }
+
+                role.groups(function(err, groups) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (groups.length) {
+                        return callback(new Error('Role contains existent groups'));
+                    }
+
+                    role.destroy(function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
+    function roleList(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Role = schema.loadDefinition('Role');
+
+        var data = {};
+
+        Role.all(function(err, roles) {
+            if (err) {
+                return callback(err);
+            }
+
+            if (!roles) {
+                console.log(data);
+
+                return callback(null);
+            }
+
+            var pending = roles.length;
+
+            function iterate(role) {
+                data[role.name] = [];
+
+                role.groups(function(err, groups) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    data[role.name].push(role);
+                    data[role.name].push(groups);
+
+                    if (!--pending) {
+                        console.log(data);
+
+                        return callback(null);
+                    }
+                });
+            }
+
+            for (var i = 0; i < roles.length; i++) {
+                iterate(roles[i]);
+            }
+        });
+    }
+
+    function roleModify(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Role';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                },
+                usersCreate: {
+                    description: 'usersCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                usersRead: {
+                    description: 'usersRead',
+                    type: 'boolean',
+                    required: true
+                },
+                usersUpdate: {
+                    description: 'usersUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                usersDelete: {
+                    description: 'usersDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsCreate: {
+                    description: 'groupsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsRead: {
+                    description: 'groupsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsUpdate: {
+                    description: 'groupsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsDelete: {
+                    description: 'groupsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesCreate: {
+                    description: 'rolesCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesRead: {
+                    description: 'rolesRead',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesUpdate: {
+                    description: 'rolesUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesDelete: {
+                    description: 'rolesDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesCreate: {
+                    description: 'pagesCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesRead: {
+                    description: 'pagesRead',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesUpdate: {
+                    description: 'pagesUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesDelete: {
+                    description: 'pagesDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                postsCreate: {
+                    description: 'postsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                postsRead: {
+                    description: 'postsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                postsUpdate: {
+                    description: 'postsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                postsDelete: {
+                    description: 'postsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsCreate: {
+                    description: 'commentsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsRead: {
+                    description: 'commentsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsUpdate: {
+                    description: 'commentsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsDelete: {
+                    description: 'commentsDelete',
+                    type: 'boolean',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Role.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, role) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!role) {
+                    return callback(new Error('Role doesn\'t exist'));
+                }
+
+                role.updateAttributes({
+                    usersCreate: result.usersCreate,
+                    usersRead: result.usersRead,
+                    usersUpdate: result.usersUpdate,
+                    usersDelete: result.usersDelete,
+                    groupsCreate: result.groupsCreate,
+                    groupsRead: result.groupsRead,
+                    groupsUpdate: result.groupsUpdate,
+                    groupsDelete: result.groupsDelete,
+                    rolesCreate: result.rolesCreate,
+                    rolesRead: result.rolesRead,
+                    rolesUpdate: result.rolesUpdate,
+                    rolesDelete: result.rolesDelete,
+                    pagesCreate: result.pagesCreate,
+                    pagesRead: result.pagesRead,
+                    pagesUpdate: result.pagesUpdate,
+                    pagesDelete: result.pagesDelete,
+                    postsCreate: result.postsCreate,
+                    postsRead: result.postsRead,
+                    postsUpdate: result.postsUpdate,
+                    postsDelete: result.postsDelete,
+                    commentsCreate: result.commentsCreate,
+                    commentsRead: result.commentsRead,
+                    commentsUpdate: result.commentsUpdate,
+                    commentsDelete: result.commentsDelete
+                }, function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function roleRename(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Role';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'current name',
+                    type: 'string',
+                    required: true
+                },
+                newname: {
+                    description: 'new name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Role.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, role) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!role) {
+                    return callback(new Error('Role doesn\'t exist'));
+                }
+
+                Role.findOne({
+                    where: {
+                        name: result.newname
+                    }
+                }, function(err, object) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (object) {
+                        return callback(new Error('Role already exists'));
+                    }
+                    role.updateAttributes({
+                        name: result.newname
+                    }, function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
+    /*
+     * Create command
+     */
+
+    function createPage(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var dir = path.resolve(config.content.root, config.content.pages.directory);
+
+    }
+
+    function createPost(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var dir = path.resolve(config.content.root, config.content.posts.directory);
+    }
+
+    /*
+     * Index command
+     */
+
+    function storePages(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Page = schema.loadDefinition('Page');
+        var User = schema.loadDefinition('User');
+
+        var dir = path.resolve(config.content.root, config.content.pages.directory);
+
+        loadPages(dir, function(err, pages) {
+            if (err) {
+                schema.disconnect();
+
+                return callback(err);
+            }
+
+            async.eachSeries(pages, function(item, callback) {
+                var page;
+                var user;
+
+                async.series([
+
+                    function(callback) {
+                        Page.findOne({
+                            where: {
+                                slug: item.slug
+                            }
+                        }, function(err, object) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            page = object;
+
+                            return callback(null);
+                        });
+                    },
+                    function(callback) {
+                        var match = item.author.match(/(.+) <(.+@.+)>/);
+                        if (!match) {
+                            return callback(new Error('User not found'));
+                        }
+
+                        User.findOne({
+                            where: {
+                                email: match[2]
+                            }
+                        }, function(err, object) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            if (!object) {
+                                return callback(new Error('User not found'));
+                            }
+
+                            user = object;
+
+                            return callback(null);
+                        });
+                    },
+                    function(callback) {
+                        if (page) {
+                            page.updateAttributes(item, function(err) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                return callback(null);
+                            });
+                        } else {
+                            page = user.pages.build(item);
+
+                            page.save(function(err) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                return callback(null);
+                            });
+                        }
+                    }
+                ], function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (verbose) {
+                        console.log(page);
+                    }
+
+                    return callback(null);
+                });
+
+            }, function(err) {
+                schema.disconnect();
+
+                if (err) {
+                    return callback(err);
+                }
+
+                return callback(null);
+            });
+        });
+    }
+
+    function purgePages(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.database,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Page = schema.loadDefinition('Page');
+
+        Page.destroyAll(function(err) {
+            schema.disconnect();
+
+            if (err) {
+                return callback(err);
+            }
+
+            return callback(null);
+        });
+    }
+
+    function loadPages(dir, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var pages = [];
+
+        fs.readdir(dir, function(err, files) {
+            if (err) {
+                return callback(err, null);
+            }
+
+            if (!files.length) {
+                return callback(null, pages);
+            }
+
+            var pending = files.length;
+            if (!pending) {
+                return callback(null, pages);
+            }
+
+            files.forEach(function(file) {
+                file = path.join(dir, file);
+
+                fs.stat(file, function(err, stats) {
+                    if (err) {
+                        return callback(err, null);
+                    }
+
+                    if (stats.isDirectory()) {
+                        loadPages(file, function(err, items) {
+                            if (err) {
+                                return callback(err, null);
+                            }
+
+                            if (items) {
+                                pages = pages.concat(items);
+                            }
+
+                            if (!--pending) {
+                                return callback(null, pages);
+                            }
+                        });
+                    } else {
+                        loadPage(file, stats, function(err, page) {
+                            if (err) {
+                                return callback(err, null);
+                            }
+
+                            if (page) {
+                                pages.push(page);
+                            }
+
+                            if (!--pending) {
+                                return callback(null, pages);
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    }
+
+    function loadPage(file, stats, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        if (/^\./.test(file) || !/^\.(markdown|md)$/.test(path.extname(file))) {
+            return callback(null, null);
+        }
+
+        fs.readFile(file, 'utf-8', function(err, data) {
+            if (err) {
+                return callback(err, null);
+            }
+
+            var parsed;
+
+            parsed = fm(data);
+
+            if (!parsed.body) {
+                return callback(null, null);
+            }
+
+            if (!parsed.attributes.layout || (parsed.attributes.layout === 'false')) {
+                return callback(null, null);
+            }
+
+            if (!parsed.attributes.slug) {
+                return callback(new Error('Invalid page, header field \'slug\' not present (file=' + file + ')'), null);
+            }
+
+            if (!parsed.attributes.slug.match(/^\S+$/)) {
+                return callback(new Error('Invalid page, header field \'slug\' format invalid (file=' + file + ')'));
+            }
+
+            if (!parsed.attributes.title) {
+                return callback(new Error('Invalid page, header field \'title\' not present (file=' + file + ')'), null);
+            }
+
+            if (!parsed.attributes.author) {
+                return callback(new Error('Invalid page, header field \'author\' not present (file=' + file + ')'), null);
+            }
+
+            if (!parsed.attributes.author.match(/^(.+) <(.+@.+)>$/)) {
+                return callback(new Error('Invalid page, header field \'author\' format invalid (file=' + file + ')'));
+            }
+
+            if (!parsed.attributes.created) {
+                return callback(new Error('Invalid page, header field \'created\' not present (file=' + file + ')'), null);
+            }
+
+            var page = {
+                slug: parsed.attributes.slug,
+                title: parsed.attributes.title,
+                author: parsed.attributes.author,
+                layout: parsed.attributes.layout,
+                content: parsed.body,
+                created: new Date(parsed.attributes.created)
+            };
+
+            if (parsed.attributes.image) {
+                page.image = parsed.attributes.image;
+            }
+
+            if (parsed.attributes.published) {
+                page.published = parsed.attributes.published;
+            }
+
+            return callback(null, page);
+        });
+    }
+
+    function storePosts(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Post = schema.loadDefinition('Post');
+        var User = schema.loadDefinition('User');
+        var Taxonomy = schema.loadDefinition('Taxonomy');
+        var Term = schema.loadDefinition('Term');
+
+        var dir = path.resolve(config.content.root, config.content.posts.directory);
+
+        loadPosts(dir, function(err, posts) {
+            if (err) {
+                schema.disconnect();
+
+                return callback(err);
+            }
+
+            async.eachSeries(posts, function(item, callback) {
+                var post;
+                var user;
+                var categoriesTaxonomy;
+                var tagsTaxonomy;
+
+                async.series([
+
+                    function(callback) {
+                        Post.findOne({
+                            where: {
+                                slug: item.slug
+                            }
+                        }, function(err, object) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            post = object;
+
+                            return callback(null);
+                        });
+                    },
+                    function(callback) {
+                        var match = item.author.match(/(.+) <(.+@.+)>/);
+                        if (!match) {
+                            return callback(new Error('User not found'));
+                        }
+
+                        User.findOne({
+                            where: {
+                                email: match[2]
+                            }
+                        }, function(err, object) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            if (!object) {
+                                return callback(new Error('User not found'));
+                            }
+
+                            user = object;
+
+                            return callback(null);
+                        });
+                    },
+                    function(callback) {
+                        Taxonomy.findOne({
+                            where: {
+                                name: TAXONOMY_CATEGORIES
+                            }
+                        }, function(err, object) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            if (!object) {
+                                return callback(new Error('Taxonomy not found'));
+                            }
+
+                            categoriesTaxonomy = object;
+
+                            return callback(null);
+                        });
+                    },
+                    function(callback) {
+                        Taxonomy.findOne({
+                            where: {
+                                name: TAXONOMY_TAGS
+                            }
+                        }, function(err, object) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            if (!object) {
+                                return callback(new Error('Taxonomy not found'));
+                            }
+
+                            tagsTaxonomy = object;
+
+                            return callback(null);
+                        });
+                    },
+                    function(callback) {
+                        if (post) {
+                            post.updateAttributes(item, function(err) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                return callback(null);
+                            });
+                        } else {
+                            post = user.posts.build(item);
+
+                            post.save(function(err) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                return callback(null);
+                            });
+                        }
+                    },
+                    function(callback) {
+                        if (!item.categories) {
+                            return callback(null);
+                        }
+
+                        async.eachSeries(item.categories, function(item, callback) {
+                            Term.findOne({
+                                where: {
+                                    name: item,
+                                    taxonomyId: categoriesTaxonomy.id
+                                }
+                            }, function(err, category) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                if (category) {
+                                    return callback(null);
+                                }
+
+                                category = categoriesTaxonomy.terms.build({
+                                    name: item
+                                });
+
+                                category.save(function(err) {
+                                    if (err) {
+                                        return callback(err);
+                                    }
+
+                                    post.categories.create(category);
+                                    post.save(function(err) {
+                                        if (err) {
+                                            return callback(err);
+                                        }
+
+                                        return callback(null);
+                                    });
+                                });
+                            });
+                        }, function(err) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            return callback(null);
+                        });
+                    },
+                    function(callback) {
+                        if (!item.tags) {
+                            return callback(null);
+                        }
+
+                        async.eachSeries(item.tags, function(item, callback) {
+                            Term.findOne({
+                                where: {
+                                    name: item,
+                                    taxonomyId: tagsTaxonomy.id
+                                }
+                            }, function(err, tag) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                if (tag) {
+                                    return callback(null);
+                                }
+
+                                tag = tagsTaxonomy.terms.build({
+                                    name: item
+                                });
+
+                                tag.save(function(err) {
+                                    if (err) {
+                                        return callback(err);
+                                    }
+
+                                    post.tags.create(tag);
+                                    post.save(function(err) {
+                                        if (err) {
+                                            return callback(err);
+                                        }
+
+                                        return callback(null);
+                                    });
+                                });
+                            });
+                        }, function(err) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            return callback(null);
+                        });
+                    }
+                ], function(err, replies) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (verbose) {
+                        console.log(post);
+                    }
+
+                    return callback(null);
+                });
+
+            }, function(err) {
+                schema.disconnect();
+
+                if (err) {
+                    return callback(err);
+                }
+
+                return callback(null);
+            });
+        });
+    }
+
+    function purgePosts(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.database,
+            modelLoader: {
+                rootDirectory: config.database.root,
+                directory: 'app/models'
+            }
+        });
+
+        var Post = schema.loadDefinition('Post');
+
+        Post.destroyAll(function(err) {
+            if (err) {
+                schema.disconnect();
+
+                return callback(err);
+            }
+
+            schema.disconnect();
+
+            return callback(null);
+        });
+    }
+
+    function loadPosts(dir, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var posts = [];
+
+        fs.readdir(dir, function(err, files) {
+            if (err) {
+                return callback(err, null);
+            }
+
+            if (!files.length) {
+                return callback(null, posts);
+            }
+
+            var pending = files.length;
+            if (!pending) {
+                return callback(null, posts);
+            }
+
+            files.forEach(function(file) {
+                file = path.join(dir, file);
+
+                fs.stat(file, function(err, stats) {
+                    if (err) {
+                        return callback(err, null);
+                    }
+
+                    if (stats.isDirectory()) {
+                        loadPosts(file, function(err, items) {
+                            if (err) {
+                                return callback(err, null);
+                            }
+
+                            if (items) {
+                                posts = posts.concat(items);
+                            }
+
+                            if (!--pending) {
+                                return callback(null, posts);
+                            }
+                        });
+                    } else {
+                        loadPost(file, stats, function(err, post) {
+                            if (err) {
+                                return callback(err, null);
+                            }
+
+                            if (post) {
+                                posts.push(post);
+                            }
+
+                            if (!--pending) {
+                                return callback(null, posts);
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    }
+
+    function loadPost(file, stats, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        if (/^\./.test(file) || !/^\.(markdown|md)$/.test(path.extname(file))) {
+            return callback(null, null);
+        }
+
+        fs.readFile(file, 'utf-8', function(err, data) {
+            if (err) {
+                return callback(err, null);
+            }
+
+            var parsed;
+
+            parsed = fm(data);
+
+            var options = {
+                gfm: false,
+                pedantic: true,
+                sanitize: false,
+            };
+
+            if (!parsed.body) {
+                return callback(null, null);
+            }
+
+            if (!parsed.attributes.layout || (parsed.attributes.layout === 'false')) {
+                return callback(null, null);
+            }
+
+            if (!parsed.attributes.slug) {
+                return callback(new Error('Invalid post, header field \'slug\' not present (file=' + file + ')'));
+            }
+
+            if (!parsed.attributes.slug.match(/^\S+$/)) {
+                return callback(new Error('Invalid post, header field \'slug\' format invalid (file=' + file + ')'));
+            }
+
+            if (!parsed.attributes.title) {
+                return callback(new Error('Invalid post, header field \'title\' not present (file=' + file + ')'));
+            }
+
+            if (!parsed.attributes.author) {
+                return callback(new Error('Invalid post, header field \'author\' not present (file=' + file + ')'));
+            }
+
+            if (!parsed.attributes.author.match(/^(.+) <(.+@.+)>$/)) {
+                return callback(new Error('Invalid post, header field \'author\' format invalid (file=' + file + ')'));
+            }
+
+            if (!parsed.attributes.created) {
+                return callback(new Error('Invalid post, header field \'created\' not present (file=' + file + ')'));
+            }
+
+            var post = {
+                slug: parsed.attributes.slug,
+                title: parsed.attributes.title,
+                author: parsed.attributes.author,
+                layout: parsed.attributes.layout,
+                content: parsed.body,
+                created: new Date(parsed.attributes.created)
+            };
+
+            if (parsed.attributes.image) {
+                post.image = parsed.attributes.image;
+            }
+
+            if (config.content.posts.excerpt) {
+                var end = post.content.indexOf(config.content.posts.excerpt);
+                if (end === -1) {
+                    post.excerpt = post.content.substring(0, end);
+                    post.content = post.content.replace(new RegExp(config.content.posts.excerptMark, 'g'), '');
+                } else {
+                    post.excerpt = post.content;
+                }
+            }
+
+            if (parsed.attributes.published) {
+                post.published = parsed.attributes.published;
+            }
+
+            if (parsed.attributes.categories) {
+                post.categories = parsed.attributes.categories;
+            }
+
+            if (parsed.attributes.tags) {
+                post.tags = parsed.attributes.tags;
+            }
+
+            if (parsed.attributes.commentsEnabled) {
+                post.commentsEnabled = parsed.attributes.commentsEnabled;
+            }
+
+            if (parsed.attributes.commentsAllowed) {
+                post.commentsAllowed = parsed.attributes.commentsAllowed;
+            }
+
+            return callback(null, post);
+        });
+    }
+
+    /*
+     * Main
+     */
+
+    program
+        .version('0.1')
+        .usage('<command>')
+        .option('-v, --verbose', 'verbose output')
+        .option('-f, --force', 'force execution');
+
+    program
+        .command('init')
+        .description('initialize instance')
+        .action(function() {
+            init(program.verbose, function(err) {
+                if (err) {
+                    console.error(err);
+
+                    process.exit(1);
+                }
+
+                process.exit(0);
+            });
+        });
+
+    program
+        .command('user')
+        .description('users management')
+        .option('    --add', 'add user')
+        .option('    --remove', 'remove user')
+        .option('    --list', 'list users')
+        .option('    --passwd', 'change user password')
+        .action(function(options) {
+            if (options.add) {
+                userAdd(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.remove) {
+                userRemove(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.list) {
+                userList(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.passwd) {
+                userPassword(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+        });
+
+    program
+        .command('group')
+        .description('groups management')
+        .option('    --add', 'add group')
+        .option('    --remove', 'remove group')
+        .option('    --list', 'list groups')
+        .option('    --modify', 'modify group')
+        .option('    --rename', 'change the group name')
+        .action(function(options) {
+            if (options.add) {
+                groupAdd(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.remove) {
+                groupRemove(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.list) {
+                groupList(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.modify) {
+                groupModify(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.rename) {
+                groupRename(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+        });
+
+    program
+        .command('role')
+        .description('roles management')
+        .option('    --add', 'add role')
+        .option('    --remove', 'remove role')
+        .option('    --list', 'list roles')
+        .option('    --modify', 'modify role')
+        .option('    --rename', 'change the role name')
+        .action(function(options) {
+            if (options.add) {
+                roleAdd(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.remove) {
+                roleRemove(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.list) {
+                roleList(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.modify) {
+                roleModify(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.rename) {
+                roleRename(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+        });
+
+    program.command('create')
+        .description('create content')
+        .option('    --page', 'create new page')
+        .option('    --post', 'create new post')
+        .action(function(options) {
+            if (options.page) {
+                createPage(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.post) {
+                createPost(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+        });
+
+    program
+        .command('store')
+        .description('store content')
+        .option('    --all', 'all nodes')
+        .option('    --pages', 'pages only')
+        .option('    --posts', 'posts only')
+        .action(function(options) {
+            if (options.all || options.pages) {
+                storePages(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.all || options.posts) {
+                storePosts(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+        });
+
+    program
+        .command('purge')
+        .description('purge content')
+        .option('    --all', 'all nodes')
+        .option('    --pages', 'pages only')
+        .option('    --posts', 'posts only')
+        .action(function(options) {
+            if (options.all || options.pages) {
+                purgePages(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.all || options.posts) {
+                purgePosts(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+        });
+
+    program.parse(process.argv);
+}());
