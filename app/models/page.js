@@ -20,7 +20,8 @@
             },
             image: {
                 type: String,
-                length: 1024
+                length: 1024,
+                default: null
             },
             content: {
                 type: Schema.Text

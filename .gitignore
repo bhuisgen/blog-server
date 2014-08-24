@@ -1,5 +1,6 @@
 node_modules
 app/bower_components
-content/
+content/pages/*.markdown
+content/posts/*.markdown
 public/
 log/
