@@ -5,7 +5,7 @@ var env = process.env.NODE_ENV || 'development';
 var config = {
 	development: {
 		host: '127.0.0.1',
-		port: 3001,
+		port: 3000,
 
 		ssl: {
 			engine: true,
