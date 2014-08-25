@@ -90,13 +90,6 @@
                                 return next(err);
                             }
 
-                            if (permission.isReadOnly()) {
-                                err = new Error('Access forbidden');
-                                err.status = 403;
-
-                                return next(err);
-                            }
-
                             if ((permission.isShared() || permission.isPrivate()) && (req.params.id !== role.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
