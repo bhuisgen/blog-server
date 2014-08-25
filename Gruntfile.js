@@ -9,7 +9,13 @@ module.exports = function(grunt) {
     var reloadPort = 30000,
         files;
 
+    var gruntConfig = {
+        app: 'app',
+        bin: 'bin'
+    };
+
     grunt.initConfig({
+        grunt: gruntConfig,
         pkg: grunt.file.readJSON('package.json'),
         develop: {
             server: {
@@ -30,6 +36,17 @@ module.exports = function(grunt) {
                 ],
                 tasks: ['develop', 'delayed-livereload']
             }
+        },
+        jshint: {
+            options: {
+                jshintrc: '.jshintrc',
+                reporter: require('jshint-stylish')
+            },
+            all: [
+                'Gruntfile.js',
+                '<%= grunt.app %>/{,*/}*.js',
+                '<%= grunt.bin %>/{,*/}*',
+            ]
         }
     });
 
@@ -52,7 +69,18 @@ module.exports = function(grunt) {
         }, 500);
     });
 
-    grunt.registerTask('serve', ['develop', 'watch']);
+    grunt.registerTask('serve', function(target) {
+        grunt.task.run([
+            'develop',
+            'watch'
+        ]);
+    });
 
-    grunt.registerTask('default', 'serve');
+    grunt.registerTask('build', [
+        'jshint'
+    ]);
+
+    grunt.registerTask('default', [
+        'build'
+    ]);
 };
