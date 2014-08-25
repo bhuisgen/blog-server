@@ -7,9 +7,11 @@ Under GNU GPL licence
 ## Building
 
 	$ git clone https://github.com/bhuisgen/blog-server.git
+
 	$ cd blog-server
 	$ bower install
 	$ npm install
+	$ grunt build
 
 ## Configuration
 
@@ -31,13 +33,11 @@ This process will ask you the administrator credentials of the instance. It will
 To run the REST API server:
 
 	$ cd blog-server
-
 	$ grunt serve
 
 To create a new page:
 
 	$ node bin/shell create --page
-
 	$ vim content/pages/newpage.md
 
 To store/update pages in index:
