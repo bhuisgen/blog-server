@@ -119,6 +119,10 @@
                                             return next(err);
                                         }
 
+                                        if (!users) {
+                                            users = {};
+                                        }
+
                                         data.group = {
                                             id: group.id,
                                             name: group.name,
@@ -318,7 +322,7 @@
                                                 }
 
                                                 if (!users) {
-                                                    users =   {};
+                                                    users = {};
                                                 }
 
                                                 data.group.push({

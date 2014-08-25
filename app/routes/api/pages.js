@@ -2,8 +2,6 @@
     'use strict';
 
     var path = require('path');
-    var _ = require('lodash');
-
     var Schema = require('jugglingdb-model-loader');
 
     module.exports = function(config, router) {
@@ -105,40 +103,19 @@
                                     return next(err);
                                 }
 
-                                page.author(function(err, user) {
-                                    if (err) {
-                                        return next(err);
-                                    }
+                                data.page = {
+                                    id: page.id,
+                                    slug: page.slug,
+                                    layout: page.layout,
+                                    title: page.title,
+                                    image: page.image,
+                                    content: page.content,
+                                    created: page.created,
+                                    published: page.published,
+                                    user: page.userId
+                                };
 
-                                    if (!user) {
-                                        err = new Error('User not found');
-                                        err.status = 500;
-
-                                        return next(err);
-                                    }
-
-                                    data.page = {
-                                        id: page.id,
-                                        slug: page.slug,
-                                        layout: page.layout,
-                                        title: page.title,
-                                        image: page.image,
-                                        content: page.content,
-                                        created: page.created,
-                                        published: page.published,
-                                        user: page.userId
-                                    };
-
-                                    data.users = [{
-                                        id: user.id,
-                                        name: user.name,
-                                        email: user.email,
-                                        created: user.created,
-                                        enabled: user.enabled
-                                    }];
-
-                                    res.json(data);
-                                });
+                                res.json(data);
                             });
                         });
                     });
@@ -267,48 +244,25 @@
 
                                     var pending = pages.length;
                                     var items = [];
-                                    var users = {};
 
                                     var iterate = function(page) {
-                                        page.author(function(err, user) {
-                                            if (err) {
-                                                return next(err);
-                                            }
-
-                                            if (!user) {
-                                                err = new Error('User not found');
-                                                err.status = 404;
-
-                                                return next(err);
-                                            }
-
-                                            items.push({
-                                                id: page.id,
-                                                slug: page.slug,
-                                                layout: page.layout,
-                                                title: page.title,
-                                                image: page.image,
-                                                content: page.content,
-                                                created: page.created,
-                                                published: page.published,
-                                                user: page.userId
-                                            });
-
-                                            users[user.id] = {
-                                                id: user.id,
-                                                name: user.name,
-                                                email: user.email,
-                                                created: user.created,
-                                                enabled: user.enabled
-                                            };
-
-                                            if (!--pending) {
-                                                data.page = items;
-                                                data.users = _.values(users);
-
-                                                return res.json(data);
-                                            }
+                                        items.push({
+                                            id: page.id,
+                                            slug: page.slug,
+                                            layout: page.layout,
+                                            title: page.title,
+                                            image: page.image,
+                                            content: page.content,
+                                            created: page.created,
+                                            published: page.published,
+                                            user: page.userId
                                         });
+
+                                        if (!--pending) {
+                                            data.page = items;
+
+                                            return res.json(data);
+                                        }
                                     };
 
                                     for (var i = 0; i < pages.length; i++) {

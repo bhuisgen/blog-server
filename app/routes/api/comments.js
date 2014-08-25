@@ -106,7 +106,7 @@
                                 }
 
                                 data.comment = {
-                                    id: comment.id,                                    
+                                    id: comment.id,
                                     content: comment.content,
                                     author: comment.author,
                                     email: comment.email,
@@ -228,8 +228,7 @@
                                     return next(err);
                                 }
 
-                                data.post = [];
-                                data.users = [];
+                                data.comment = [];
 
                                 Comment.count(function(err, count) {
                                     if (err) {
@@ -240,62 +239,35 @@
                                         total: count
                                     };
 
-                                    if (!posts) {
+                                    if (!comments) {
                                         res.json(data);
                                     }
 
-                                    var pending = posts.length;
+                                    var pending = comments.length;
                                     var items = [];
-                                    var users = {};
 
-                                    var iterate = function(post) {
-                                        post.author(function(err, user) {
-                                            if (err) {
-                                                return next(err);
-                                            }
-
-                                            if (!user) {
-                                                err = new Error('User not found');
-                                                err.status = 404;
-
-                                                return next(err);
-                                            }
-
-                                            items.push({
-                                                id: post.id,
-                                                slug: post.slug,
-                                                layout: post.layout,
-                                                title: post.title,
-                                                image: post.image,
-                                                email: post.content,
-                                                created: post.created,
-                                                published: post.published,
-                                                commentsEnabled: post.commentsEnabled,
-                                                commentsAllowed: post.commentsAllowed,
-                                                user: post.userId,
-                                                comments: _.pluck(comments, 'id')
-                                            });
-
-                                            users[user.id] = {
-                                                id: user.id,
-                                                name: user.name,
-                                                email: user.email,
-                                                created: user.created,
-                                                enabled: user.enabled
-                                            };
-
-                                            if (!--pending) {
-                                                data.post = items;
-                                                data.users = _.values(users);
-
-                                                return res.json(data);
-                                            }
-
+                                    var iterate = function(comment) {
+                                        items.push({
+                                            id: comment.id,
+                                            content: comment.content,
+                                            author: comment.author,
+                                            email: comment.email,
+                                            ip: comment.ip,
+                                            created: comment.created,
+                                            validated: comment.validated,
+                                            post: comment.postId,
+                                            user: comment.userId,
                                         });
+
+                                        if (!--pending) {
+                                            data.comment = items;
+
+                                            return res.json(data);
+                                        }
                                     };
 
-                                    for (var i = 0; i < posts.length; i++) {
-                                        iterate(posts[i]);
+                                    for (var i = 0; i < comments.length; i++) {
+                                        iterate(comments[i]);
                                     }
                                 });
                             });

@@ -105,49 +105,32 @@
                                     return next(err);
                                 }
 
-                                post.author(function(err, user) {
+                                post.comments(function(err, comments) {
                                     if (err) {
                                         return next(err);
                                     }
 
-                                    if (!user) {
-                                        err = new Error('User not found');
-                                        err.status = 500;
-
-                                        return next(err);
+                                    if (!comments) {
+                                        comments = {};
                                     }
 
-                                    post.comments(function(err, comments) {
-                                        if (err) {
-                                            return next(err);
-                                        }
+                                    data.post = {
+                                        id: post.id,
+                                        slug: post.slug,
+                                        layout: post.layout,
+                                        title: post.title,
+                                        image: post.image,
+                                        content: post.content,
+                                        excerpt: post.excerpt,
+                                        created: post.created,
+                                        published: post.published,
+                                        commentsEnabled: post.commentsEnabled,
+                                        commentsAllowed: post.commentsAllowed,
+                                        user: post.userId,
+                                        comments: _.pluck(comments, 'id')
+                                    };
 
-                                        data.post = {
-                                            id: post.id,
-                                            slug: post.slug,
-                                            layout: post.layout,
-                                            title: post.title,
-                                            image: post.image,
-                                            content: post.content,
-                                            excerpt: post.excerpt,
-                                            created: post.created,
-                                            published: post.published,
-                                            commentsEnabled: post.commentsEnabled,
-                                            commentsAllowed: post.commentsAllowed,
-                                            user: post.userId,
-                                            comments: _.pluck(comments, 'id')
-                                        };
-
-                                        data.users = [{
-                                            id: user.id,
-                                            name: user.name,
-                                            email: user.email,
-                                            created: user.created,
-                                            enabled: user.enabled
-                                        }];
-
-                                        res.json(data);
-                                    });
+                                    res.json(data);
                                 });
                             });
                         });
@@ -277,19 +260,15 @@
 
                                     var pending = posts.length;
                                     var items = [];
-                                    var users = {};
 
                                     var iterate = function(post) {
-                                        post.author(function(err, user) {
+                                        post.comments(function(err, comments) {
                                             if (err) {
                                                 return next(err);
                                             }
 
-                                            if (!user) {
-                                                err = new Error('User not found');
-                                                err.status = 404;
-
-                                                return next(err);
+                                            if (!comments) {
+                                                comments = {};
                                             }
 
                                             items.push({
@@ -307,17 +286,8 @@
                                                 comments: _.pluck(comments, 'id')
                                             });
 
-                                            users[user.id] = {
-                                                id: user.id,
-                                                name: user.name,
-                                                email: user.email,
-                                                created: user.created,
-                                                enabled: user.enabled
-                                            };
-
                                             if (!--pending) {
                                                 data.post = items;
-                                                data.users = _.values(users);
 
                                                 return res.json(data);
                                             }
