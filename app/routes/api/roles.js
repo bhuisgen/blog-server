@@ -306,7 +306,7 @@
                                 };
 
                                 for (var i = 0; i < req.query.ids.length; i++) {
-                                    ìterate(req.query.ids[i]);
+                                    iterate(req.query.ids[i]);
                                 }
                             } else {
                                 var filter = {};
