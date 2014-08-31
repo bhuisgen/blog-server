@@ -2,7 +2,6 @@
     'use strict';
 
     var path = require('path');
-    var _ = require('lodash');
 
     var Schema = require('jugglingdb-model-loader');
 
@@ -18,7 +17,7 @@
         });
 
         var Collection = schema.loadDefinition('Collection');
-        var Group = schema.loadDefinition('Group');
+        var ExternAccount = schema.loadDefinition('ExternAccount');
 
         router.use(function checkUser(req, res, next) {
             var err;
@@ -34,25 +33,25 @@
 
             switch (req.method) {
                 case 'POST':
-                    if (req.role.groupsCreate) {
+                    if (req.role.externAccountsCreate) {
                         allow = true;
                     }
                     break;
 
                 case 'GET':
-                    if (req.role.groupsRead) {
+                    if (req.role.externAccountsRead) {
                         allow = true;
                     }
                     break;
 
                 case 'PUT':
-                    if (req.role.groupsUpdate) {
+                    if (req.role.externAccountsUpdate) {
                         allow = true;
                     }
                     break;
 
                 case 'DELETE':
-                    if (req.role.groupsDelete) {
+                    if (req.role.externAccountsDelete) {
                         allow = true;
                     }
                     break;
@@ -73,7 +72,7 @@
 
             Collection.findOne({
                 where: {
-                    name: 'Groups'
+                    name: 'ExternAccounts'
                 }
             }, function(err, collection) {
                 if (err) {
@@ -108,7 +107,7 @@
             });
         });
 
-        router.post('/groups', function createGroup(req, res, next) {
+        router.post('/externAccounts', function createExternAccount(req, res, next) {
             var err;
 
             if (req.permission.isReadOnly()) {
@@ -118,16 +117,16 @@
                 return next(err);
             }
 
-            var group = new Group(req.body.group);
+            var externAccount = new ExternAccount(req.body.externAccount);
 
-            if ((req.permission.isShared() || req.permission.isPrivate()) && (group.id !== req.group.id)) {
+            if ((req.permission.isShared() || req.permission.isPrivate()) && (externAccount.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
                 return next(err);
             }
 
-            group.save(function(err) {
+            externAccount.save(function(err) {
                 if (err) {
                     return next(err);
                 }
@@ -136,105 +135,81 @@
             });
         });
 
-        router.get('/groups/:id', function readGroup(req, res, next) {
+        router.get('/externAccounts/:id', function readExternAccount(req, res, next) {
             var data = {};
 
-            Group.find(req.params.id, function(err, group) {
+            ExternAccount.find(req.params.id, function(err, externAccount) {
                 if (err) {
                     return next(err);
                 }
 
-                if (req.permission.isPrivate() && group && (group.id !== req.group.id)) {
+                if (req.permission.isPrivate() && externAccount && (externAccount.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!group) {
-                    err = new Error('Group not found');
+                if (!externAccount) {
+                    err = new Error('ExternAccount not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                group.role(function(err, role) {
-                    if (err) {
-                        return next(err);
-                    }
+                data.externAccount = {
+                    id: externAccount.id,
+                    profiledId: externAccount.profileId,
+                    username: externAccount.username,
+                    displayName: externAccount.displayName,
+                    email: externAccount.email,
+                    user: externAccount.userId
+                };
 
-                    group.users(function(err, users) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        if (!users) {
-                            users = {};
-                        }
-
-                        data.group = {
-                            id: group.id,
-                            name: group.name,
-                            created: group.created,
-                            role: role.id,
-                            users: _.pluck(users, 'id')
-                        };
-
-                        return res.json(data);
-                    });
-                });
+                return res.json(data);
             });
         });
 
-        router.get('/groups', function readGroups(req, res, next) {
+        router.get('/externAccounts', function readExternAccounts(req, res, next) {
             var data = {};
 
             if (req.query.ids) {
                 var pending = req.query.ids.length;
 
-                data.group = [];
+                data.externAccount = [];
 
                 var iterate = function(id) {
-                    Group.find(id, function(err, group) {
+                    ExternAccount.find(id, function(err, externAccount) {
                         if (err) {
                             return next(err);
                         }
 
-                        if (req.permission.isPrivate() && group && (group.id !== req.group.id)) {
+                        if (req.permission.isPrivate() && externAccount && (externAccount.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
                             return next(err);
                         }
 
-                        if (!group) {
-                            err = new Error('Group not found');
+                        if (!externAccount) {
+                            err = new Error('ExternAccount not found');
                             err.status = 404;
 
                             return next(err);
                         }
 
-                        group.users(function(err, users) {
-                            if (err) {
-                                return next(err);
-                            }
-
-                            if (!users) {
-                                users = {};
-                            }
-
-                            data.group.push({
-                                id: group.id,
-                                name: group.name,
-                                created: group.created,
-                                role: group.roleId,
-                                users: _.pluck(users, 'id')
-                            });
-
-                            if (!--pending) {
-                                return res.json(data);
-                            }
+                        data.externAccount.push({
+                            id: externAccount.id,
+                            profiledId: externAccount.profileId,
+                            username: externAccount.username,
+                            displayName: externAccount.displayName,
+                            email: externAccount.email,
+                            user: externAccount.userId
                         });
+
+                        if (!--pending) {
+                            return res.json(data);
+                        }
                     });
                 };
 
@@ -245,15 +220,7 @@
                 var filter = {};
 
                 if (req.query.id) {
-                    filter.id = req.quqery.id;
-                }
-
-                if (req.query.name) {
-                    filter.name = req.query.name;
-                }
-
-                if (req.query.created) {
-                    filter.email = req.query.created;
+                    filter.id = req.query.id;
                 }
 
                 if (Object.keys(filter).length === 0) {
@@ -265,74 +232,64 @@
                 var offset = parseInt(req.query.offset, 10) || 0;
                 var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
 
-                Group.all({
+                ExternAccount.all({
                     where: filter,
                     order: order + ' ' + sort,
                     skip: offset,
                     limit: limit
-                }, function(err, groups) {
+                }, function(err, externAccounts) {
                     if (err) {
                         return next(err);
                     }
 
-                    Group.count(function(err, count) {
+                    ExternAccount.count(function(err, count) {
                         if (err) {
                             return next(err);
                         }
 
-                        data.group = [];
-                        data.users = [];
+                        data.externAccount = [];
 
                         data.meta = {
                             total: count
                         };
 
-                        if (!groups) {
+                        if (!externAccounts) {
                             return res.json(data);
                         }
 
-                        var pending = groups.length;
+                        var pending = externAccounts.length;
 
-                        var iterate = function(group) {
-                            if (req.permission.isPrivate() && (group.id !== req.group.id)) {
+                        var iterate = function(externAccount) {
+                            if (req.permission.isPrivate() && (externAccount.userId !== req.user.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
 
                                 return next(err);
                             }
 
-                            group.users(function(err, users) {
-                                if (err) {
-                                    return next(err);
-                                }
-
-                                if (!users) {
-                                    users = {};
-                                }
-
-                                data.group.push({
-                                    id: group.id,
-                                    name: group.name,
-                                    created: group.created,
-                                    role: group.roleId,
-                                    users: _.pluck(users, 'id')
-                                });
-
-                                if (!--pending) {
-                                    return res.json(data);
-                                }
+                            data.key.push({
+                                id: externAccount.id,
+                                profiledId: externAccount.profileId,
+                                username: externAccount.username,
+                                displayName: externAccount.displayName,
+                                email: externAccount.email,
+                                user: externAccount.userId
                             });
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
                         };
 
-                        for (var i = 0; i < groups.length; i++) {
-                            iterate(groups[i]);
+                        for (var i = 0; i < externAccounts.length; i++) {
+                            iterate(externAccounts[i]);
                         }
                     });
                 });
             }
         });
 
-        router.put('/groups/:id', function updateGroup(req, res, next) {
+        router.put('/externAccounts/:id', function updateExternAccount(req, res, next) {
             var err;
 
             if (req.permission.isReadOnly()) {
@@ -342,26 +299,26 @@
                 return next(err);
             }
 
-            Group.find(req.params.id, function(err, group) {
+            ExternAccount.find(req.params.id, function(err, externAccount) {
                 if (err) {
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && group && (group.id !== req.group.id)) {
+                if ((req.permission.isShared() || req.permission.isPrivate()) && externAccount && (externAccount.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!group) {
-                    err = new Error('Group not found');
+                if (!externAccount) {
+                    err = new Error('Key not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                group.update(req.body.group, function(err) {
+                externAccount.update(req.body.externAccount, function(err) {
                     if (err) {
                         return next(err);
                     }
@@ -371,7 +328,7 @@
             });
         });
 
-        router.delete('/groups/:id', function deleteGroup(req, res, next) {
+        router.delete('/externAccounts/:id', function deleteExternAccount(req, res, next) {
             var err;
 
             if (req.permission.isReadOnly()) {
@@ -381,26 +338,26 @@
                 return next(err);
             }
 
-            Group.find(req.params.id, function(err, group) {
+            ExternAccount.find(req.params.id, function(err, externAccount) {
                 if (err) {
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && group && (group.id !== req.group.id)) {
+                if ((req.permission.isShared() || req.permission.isPrivate()) && externAccount && (externAccount.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!group) {
-                    err = new Error('Group not found');
+                if (!externAccount) {
+                    err = new Error('ExternAccount not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                group.destroy(function(err) {
+                externAccount.destroy(function(err) {
                     if (err) {
                         return next(err);
                     }

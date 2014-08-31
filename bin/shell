@@ -309,24 +309,34 @@
 
                 roleAdministrator = new Role({
                     name: 'Administrator',
-                    usersCreate: true,
-                    usersRead: true,
-                    usersUpdate: true,
-                    usersDelete: true,
-                    groupsCreate: true,
-                    groupsRead: true,
-                    groupsUpdate: true,
-                    groupsDelete: true,
                     rolesCreate: true,
                     rolesRead: true,
                     rolesUpdate: true,
                     rolesDelete: true,
-                    pagesPermission: 3,
+                    groupsCreate: true,
+                    groupsRead: true,
+                    groupsUpdate: true,
+                    groupsDelete: true,
+                    usersCreate: true,
+                    usersRead: true,
+                    usersUpdate: true,
+                    usersDelete: true,
+                    keysCreate: true,
+                    keysRead: true,
+                    keysUpdate: true,
+                    keysDelete: true,
+                    localAccountsCreate: true,
+                    localAccountsRead: true,
+                    localAccountsUpdate: true,
+                    localAccountsDelete: true,
+                    externAccountsCreate: true,
+                    externAccountsRead: true,
+                    externAccountsUpdate: true,
+                    externAccountsDelete: true,
                     pagesCreate: true,
                     pagesRead: true,
                     pagesUpdate: true,
                     pagesDelete: true,
-                    postsPermission: 3,
                     postsCreate: true,
                     postsRead: true,
                     postsUpdate: true,
@@ -350,9 +360,14 @@
 
                 roleAuthor = new Role({
                     name: 'Author',
+                    groupsRead: true,
                     usersRead: true,
                     usersUpdate: true,
-                    groupsRead: true,
+                    localAccountsUpdate: true,
+                    externAccountsCreate: true,
+                    externAccountsRead: true,
+                    externAccountsUpdate: true,
+                    externAccountsDelete: true,
                     pagesCreate: true,
                     pagesRead: true,
                     pagesUpdate: true,
@@ -383,6 +398,11 @@
                     usersRead: true,
                     usersUpdate: true,
                     groupsRead: true,
+                    localAccountsUpdate: true,
+                    externAccountsCreate: true,
+                    externAccountsRead: true,
+                    externAccountsUpdate: true,
+                    externAccountsDelete: true,
                     pagesRead: true,
                     postsRead: true,
                     commentsCreate: true,
@@ -464,8 +484,7 @@
 
                 userAnonymous = groupAnonymous.users.build({
                     email: 'anonymous@localhost.localdomain',
-                    name: 'Anonymous',
-                    enabled: true
+                    name: 'Anonymous'
                 });
 
                 userAnonymous.save(function(err) {
@@ -502,7 +521,7 @@
                 console.log('Creating account for user \'Administrator\' ...');
                 console.log('');
 
-                prompt.message = 'Administrator';
+                prompt.message = 'Administrator user';
 
                 var promptConfig = {
                     properties: {
@@ -615,6 +634,1244 @@
         });
     }
 
+
+    /*
+     * Roles management
+     */
+
+    function roleAdd(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Add role';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                },
+                usersCreate: {
+                    description: 'usersCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                usersRead: {
+                    description: 'usersRead',
+                    type: 'boolean',
+                    required: true
+                },
+                usersUpdate: {
+                    description: 'usersUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                usersDelete: {
+                    description: 'usersDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsCreate: {
+                    description: 'groupsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsRead: {
+                    description: 'groupsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsUpdate: {
+                    description: 'groupsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsDelete: {
+                    description: 'groupsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesCreate: {
+                    description: 'rolesCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesRead: {
+                    description: 'rolesRead',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesUpdate: {
+                    description: 'rolesUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesDelete: {
+                    description: 'rolesDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                keysCreate: {
+                    description: 'keysCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                keysRead: {
+                    description: 'keysRead',
+                    type: 'boolean',
+                    required: true
+                },
+                keysUpdate: {
+                    description: 'keysUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                keysDelete: {
+                    description: 'keysDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                localAccountsCreate: {
+                    description: 'localAccountsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                localAccountsRead: {
+                    description: 'localAccountsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                localAccountsUpdate: {
+                    description: 'localAccountsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                localAccountsDelete: {
+                    description: 'localAccountsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                externAccountsCreate: {
+                    description: 'externAccountsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                externAccountsRead: {
+                    description: 'externAccountsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                externAccountsUpdate: {
+                    description: 'externAccountsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                externAccountsDelete: {
+                    description: 'externAccountsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesCreate: {
+                    description: 'pagesCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesRead: {
+                    description: 'pagesRead',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesUpdate: {
+                    description: 'pagesUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesDelete: {
+                    description: 'pagesDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                postsCreate: {
+                    description: 'postsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                postsRead: {
+                    description: 'postsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                postsUpdate: {
+                    description: 'postsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                postsDelete: {
+                    description: 'postsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsCreate: {
+                    description: 'commentsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsRead: {
+                    description: 'commentsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsUpdate: {
+                    description: 'commentsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsDelete: {
+                    description: 'commentsDelete',
+                    type: 'boolean',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Role.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, role) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (role) {
+                    return callback(new Error('Role already exists'));
+                }
+
+                role = new Role({
+                    name: result.name,
+                    usersCreate: result.usersCreate,
+                    usersRead: result.usersRead,
+                    usersUpdate: result.usersUpdate,
+                    usersDelete: result.usersDelete,
+                    groupsCreate: result.groupsCreate,
+                    groupsRead: result.groupsRead,
+                    groupsUpdate: result.groupsUpdate,
+                    groupsDelete: result.groupsDelete,
+                    rolesCreate: result.rolesCreate,
+                    rolesRead: result.rolesRead,
+                    rolesUpdate: result.rolesUpdate,
+                    rolesDelete: result.rolesDelete,
+                    keysCreate: result.keysCreate,
+                    keysRead: result.keysRead,
+                    keysUpdate: result.keysUpdate,
+                    keysDelete: result.keysDelete,
+                    localAccountsCreate: result.localAccountsCreate,
+                    localAccountsRead: result.localAccountsRead,
+                    localAccountsUpdate: result.localAccountsUpdate,
+                    localAccountsDelete: result.localAccountsDelete,
+                    externAccountsCreate: result.externAccountsCreate,
+                    externAccountsRead: result.externAccountsRead,
+                    externAccountsUpdate: result.externAccountsUpdate,
+                    externAccountsDelete: result.externAccountsDelete,
+                    pagesCreate: result.pagesCreate,
+                    pagesRead: result.pagesRead,
+                    pagesUpdate: result.pagesUpdate,
+                    pagesDelete: result.pagesDelete,
+                    postsCreate: result.postsCreate,
+                    postsRead: result.postsRead,
+                    postsUpdate: result.postsUpdate,
+                    postsDelete: result.postsDelete,
+                    commentsCreate: result.commentsCreate,
+                    commentsRead: result.commentsRead,
+                    commentsUpdate: result.commentsUpdate,
+                    commentsDelete: result.commentsDelete
+                });
+
+                role.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function roleRemove(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Remove role';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Role.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, role) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!role) {
+                    return callback(new Error('Role doesn\'t exist'));
+                }
+
+                role.groups(function(err, groups) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (groups.length) {
+                        return callback(new Error('Role contains existent groups'));
+                    }
+
+                    role.destroy(function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
+    function roleList(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Role = schema.loadDefinition('Role');
+
+        var data = {};
+
+        Role.all(function(err, roles) {
+            if (err) {
+                return callback(err);
+            }
+
+            if (!roles) {
+                console.log(data);
+
+                return callback(null);
+            }
+
+            var pending = roles.length;
+
+            function iterate(role) {
+                role.groups(function(err, groups) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    data[role.name] = [role, groups];
+
+                    if (!--pending) {
+                        console.log(data);
+
+                        return callback(null);
+                    }
+                });
+            }
+
+            for (var i = 0; i < roles.length; i++) {
+                iterate(roles[i]);
+            }
+        });
+    }
+
+    function roleShow(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Show role';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Role.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, role) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!role) {
+                    return callback(new Error('Role doesn\'t exist'));
+                }
+
+                role.groups(function(err, groups) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (!groups) {
+                        return callback(new Error('Group doesn\'t exist'));
+                    }
+
+                    console.log([role, groups]);
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function roleModify(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Modify role';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                },
+                usersCreate: {
+                    description: 'usersCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                usersRead: {
+                    description: 'usersRead',
+                    type: 'boolean',
+                    required: true
+                },
+                usersUpdate: {
+                    description: 'usersUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                usersDelete: {
+                    description: 'usersDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsCreate: {
+                    description: 'groupsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsRead: {
+                    description: 'groupsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsUpdate: {
+                    description: 'groupsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                groupsDelete: {
+                    description: 'groupsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesCreate: {
+                    description: 'rolesCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesRead: {
+                    description: 'rolesRead',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesUpdate: {
+                    description: 'rolesUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                rolesDelete: {
+                    description: 'rolesDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                keysCreate: {
+                    description: 'keysCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                keysRead: {
+                    description: 'keysRead',
+                    type: 'boolean',
+                    required: true
+                },
+                keysUpdate: {
+                    description: 'keysUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                keysDelete: {
+                    description: 'keysDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                localAccountsCreate: {
+                    description: 'localAccountsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                localAccountsRead: {
+                    description: 'localAccountsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                localAccountsUpdate: {
+                    description: 'localAccountsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                localAccountsDelete: {
+                    description: 'localAccountsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                externAccountsCreate: {
+                    description: 'externAccountsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                externAccountsRead: {
+                    description: 'externAccountsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                externAccountsUpdate: {
+                    description: 'externAccountsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                externAccountsDelete: {
+                    description: 'externAccountsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesCreate: {
+                    description: 'pagesCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesRead: {
+                    description: 'pagesRead',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesUpdate: {
+                    description: 'pagesUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                pagesDelete: {
+                    description: 'pagesDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                postsCreate: {
+                    description: 'postsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                postsRead: {
+                    description: 'postsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                postsUpdate: {
+                    description: 'postsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                postsDelete: {
+                    description: 'postsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsCreate: {
+                    description: 'commentsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsRead: {
+                    description: 'commentsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsUpdate: {
+                    description: 'commentsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsDelete: {
+                    description: 'commentsDelete',
+                    type: 'boolean',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Role.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, role) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!role) {
+                    return callback(new Error('Role doesn\'t exist'));
+                }
+
+                role.updateAttributes({
+                    usersCreate: result.usersCreate,
+                    usersRead: result.usersRead,
+                    usersUpdate: result.usersUpdate,
+                    usersDelete: result.usersDelete,
+                    groupsCreate: result.groupsCreate,
+                    groupsRead: result.groupsRead,
+                    groupsUpdate: result.groupsUpdate,
+                    groupsDelete: result.groupsDelete,
+                    rolesCreate: result.rolesCreate,
+                    rolesRead: result.rolesRead,
+                    rolesUpdate: result.rolesUpdate,
+                    rolesDelete: result.rolesDelete,
+                    keysCreate: result.keysCreate,
+                    keysRead: result.keysRead,
+                    keysUpdate: result.keysUpdate,
+                    keysDelete: result.keysDelete,
+                    localAccountsCreate: result.localAccountsCreate,
+                    localAccountsRead: result.localAccountsRead,
+                    localAccountsUpdate: result.localAccountsUpdate,
+                    localAccountsDelete: result.localAccountsDelete,
+                    externAccountsCreate: result.externAccountsCreate,
+                    externAccountsRead: result.externAccountsRead,
+                    externAccountsUpdate: result.externAccountsUpdate,
+                    externAccountsDelete: result.externAccountsDelete,
+                    pagesCreate: result.pagesCreate,
+                    pagesRead: result.pagesRead,
+                    pagesUpdate: result.pagesUpdate,
+                    pagesDelete: result.pagesDelete,
+                    postsCreate: result.postsCreate,
+                    postsRead: result.postsRead,
+                    postsUpdate: result.postsUpdate,
+                    postsDelete: result.postsDelete,
+                    commentsCreate: result.commentsCreate,
+                    commentsRead: result.commentsRead,
+                    commentsUpdate: result.commentsUpdate,
+                    commentsDelete: result.commentsDelete
+                }, function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function roleRename(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Rename role';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'current name',
+                    type: 'string',
+                    required: true
+                },
+                newname: {
+                    description: 'new name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Role.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, role) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!role) {
+                    return callback(new Error('Role doesn\'t exist'));
+                }
+
+                Role.findOne({
+                    where: {
+                        name: result.newname
+                    }
+                }, function(err, object) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (object) {
+                        return callback(new Error('Role already exists'));
+                    }
+
+                    role.updateAttributes({
+                        name: result.newname
+                    }, function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
+    /*
+     * Groups management
+     */
+
+    function groupAdd(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Group = schema.loadDefinition('Group');
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Add group';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                },
+                role: {
+                    description: 'role',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Group.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, group) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (group) {
+                    return callback(new Error('Group already exists'));
+                }
+
+                Role.findOne({
+                    where: {
+                        name: result.role
+                    }
+                }, function(err, role) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (!role) {
+                        return callback(new Error('Role doesn\'t exist'));
+                    }
+
+                    group = role.groups.build({
+                        name: result.name,
+                    });
+
+                    group.save(function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
+    function groupRemove(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Group = schema.loadDefinition('Group');
+
+        prompt.message = 'Remove group';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Group.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, group) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!group) {
+                    return callback(new Error('Group doesn\'t exist'));
+                }
+
+                group.users(function(err, users) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (users.length) {
+                        return callback(new Error('Group contains existent users'));
+                    }
+
+                    group.destroy(function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
+    function groupList(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Group = schema.loadDefinition('Group');
+
+        var data = {};
+
+        Group.all(function(err, groups) {
+            if (err) {
+                return callback(err);
+            }
+
+            if (!groups) {
+                console.log(data);
+
+                return callback(null);
+            }
+
+            var pending = groups.length;
+
+            function iterate(group) {
+                group.role(function(err, role) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    group.users(function(err, users) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        data[group.name] = [group, role, users];
+
+                        if (!--pending) {
+                            console.log(data);
+
+                            return callback(null);
+                        }
+                    });
+                });
+            }
+
+            for (var i = 0; i < groups.length; i++) {
+                iterate(groups[i]);
+            }
+        });
+    }
+
+    function groupShow(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Group = schema.loadDefinition('Group');
+
+        prompt.message = 'Show group';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Group.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, group) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!group) {
+                    return callback(new Error('Group doesn\'t exist'));
+                }
+
+                group.role(function(err, role) {
+                    group.users(function(err, users) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        console.log([group, role, users]);
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
+    function groupModify(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Group = schema.loadDefinition('Group');
+        var Role = schema.loadDefinition('Role');
+
+        prompt.message = 'Modify group';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                },
+                role: {
+                    description: 'new role',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Group.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, group) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!group) {
+                    return callback(new Error('Group doesn\'t exist'));
+                }
+
+                Role.findOne({
+                    where: {
+                        name: result.role
+                    }
+                }, function(err, role) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (!role) {
+                        return callback(new Error('Role doesn\'t exist'));
+                    }
+
+                    group.updateAttributes({
+                        roleId: role.id
+                    }, function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
+    function groupRename(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Group = schema.loadDefinition('Group');
+
+        prompt.message = 'Rename group';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'name',
+                    type: 'string',
+                    required: true
+                },
+                newname: {
+                    description: 'new name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Group.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, group) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!group) {
+                    return callback(new Error('Group doesn\'t exist'));
+                }
+
+                Group.findOne({
+                    where: {
+                        name: result.newname
+                    }
+                }, function(err, object) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (object) {
+                        return callback(new Error('Group already exists'));
+                    }
+
+                    group.updateAttributes({
+                        name: result.newname
+                    }, function(err) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+                });
+            });
+        });
+    }
+
     /*
      * Users management
      */
@@ -638,7 +1895,7 @@
         var Group = schema.loadDefinition('Group');
         var LocalAccount = schema.loadDefinition('LocalAccount');
 
-        prompt.message = 'User';
+        prompt.message = 'Add user';
 
         var promptConfig = {
             properties: {
@@ -771,7 +2028,7 @@
 
         var User = schema.loadDefinition('User');
 
-        prompt.message = 'User';
+        prompt.message = 'Remove user';
 
         var promptConfig = {
             properties: {
@@ -869,37 +2126,27 @@
             var pending = users.length;
 
             function iterate(user) {
-                data[user.email] = [];
-
-                data[user.email].push(user);
-
                 user.group(function(err, group) {
                     if (err) {
                         return callback(err);
                     }
-
-                    data[user.email].push(group);
 
                     user.keys(function(err, keys) {
                         if (err) {
                             return callback(err);
                         }
 
-                        data[user.email].push(keys);
-
                         user.localAccounts(function(err, localAccounts) {
                             if (err) {
                                 return callback(err);
                             }
-
-                            data[user.email].push(localAccounts);
 
                             user.externAccounts(function(err, externAccounts) {
                                 if (err) {
                                     return callback(err);
                                 }
 
-                                data[user.email].push(externAccounts);
+                                data[user.email] = [user, group, keys, localAccounts, externAccounts];
 
                                 if (!--pending) {
                                     console.log(data);
@@ -909,13 +2156,90 @@
                             });
                         });
                     });
-
                 });
             }
 
             for (var i = 0; i < users.length; i++) {
                 iterate(users[i]);
             }
+        });
+    }
+
+    function userShow(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var User = schema.loadDefinition('User');
+
+        prompt.message = 'Show user';
+
+        var promptConfig = {
+            properties: {
+                email: {
+                    description: 'email',
+                    type: 'string',
+                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    message: 'Email must be valid',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            User.findOne({
+                where: {
+                    email: result.email
+                }
+            }, function(err, user) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!user) {
+                    return callback(new Error('User doesn\'t exist'));
+                }
+
+                user.group(function(err, group) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    user.keys(function(err, keys) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        user.localAccounts(function(err, localAccounts) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            user.externAccounts(function(err, externAccounts) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                console.log([user, group, keys, localAccounts, externAccounts]);
+
+                                return callback(null);
+                            });
+                        });
+                    });
+                });
+            });
         });
     }
 
@@ -937,7 +2261,7 @@
         var User = schema.loadDefinition('User');
         var Group = schema.loadDefinition('Group');
 
-        prompt.message = 'Group';
+        prompt.message = 'Modify user';
 
         var promptConfig = {
             properties: {
@@ -948,12 +2272,19 @@
                     message: 'Email must be valid',
                     required: true
                 },
-                name: {
+                newemail: {
+                    description: 'new email',
+                    type: 'string',
+                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    message: 'Email must be valid',
+                    required: true
+                },
+                newname: {
                     description: 'new name',
                     type: 'string',
                     required: true
                 },
-                group: {
+                newgroup: {
                     description: 'new group',
                     type: 'string',
                     required: true
@@ -977,31 +2308,164 @@
                     return callback(new Error('User doesn\'t exist'));
                 }
 
-                Group.findOne({
+                User.findOne({
                     where: {
-                        name: result.group
+                        email: result.newemail
                     }
-                }, function(err, group) {
+                }, function(err, object) {
                     if (err) {
                         return callback(err);
                     }
 
-                    if (!group) {
-                        return callback(new Error('Group doesn\'t exist'));
+                    if (object && (object.email !== result.email)) {
+                        return callback(new Error('New email already exist'));
                     }
 
-                    user.groupId = group.id;
-
-                    user.updateAttributes({
-                        name: result.name,
-                        groupId: group.id
-                    }, function(err) {
+                    Group.findOne({
+                        where: {
+                            name: result.newgroup
+                        }
+                    }, function(err, group) {
                         if (err) {
                             return callback(err);
                         }
 
-                        return callback(null);
+                        if (!group) {
+                            return callback(new Error('New group doesn\'t exist'));
+                        }
+
+                        user.updateAttributes({
+                            email: result.newemail,
+                            name: result.newname,
+                            groupId: group.id
+                        }, function(err) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            return callback(null);
+                        });
                     });
+                });
+            });
+        });
+    }
+
+    function userEnable(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var User = schema.loadDefinition('User');
+
+        prompt.message = 'Enable user';
+
+        var promptConfig = {
+            properties: {
+                email: {
+                    description: 'email',
+                    type: 'string',
+                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    message: 'Email must be valid',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            User.findOne({
+                where: {
+                    email: result.email
+                }
+            }, function(err, user) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!user) {
+                    return callback(new Error('User doesn\'t exist'));
+                }
+
+                user.updateAttributes({
+                    enabled: true
+                }, function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function userDisable(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var User = schema.loadDefinition('User');
+
+        prompt.message = 'Disable user';
+
+        var promptConfig = {
+            properties: {
+                email: {
+                    description: 'email',
+                    type: 'string',
+                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    message: 'Email must be valid',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            User.findOne({
+                where: {
+                    email: result.email
+                }
+            }, function(err, user) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!user) {
+                    return callback(new Error('User doesn\'t exist'));
+                }
+
+                user.updateAttributes({
+                    enabled: false
+                }, function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
                 });
             });
         });
@@ -1024,7 +2488,7 @@
 
         var LocalAccount = schema.loadDefinition('LocalAccount');
 
-        prompt.message = 'LocalAccount';
+        prompt.message = 'User password';
 
         var promptConfig = {
             properties: {
@@ -1080,10 +2544,10 @@
     }
 
     /*
-     * Groups management
+     * Keys management
      */
 
-    function groupAdd(verbose, callback) {
+    function keyAdd(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -1098,21 +2562,18 @@
             }
         });
 
-        var Group = schema.loadDefinition('Group');
-        var Role = schema.loadDefinition('Role');
+        var Key = schema.loadDefinition('Key');
+        var User = schema.loadDefinition('User');
 
-        prompt.message = 'Group';
+        prompt.message = 'Add key';
 
         var promptConfig = {
             properties: {
-                name: {
-                    description: 'name',
+                email: {
+                    description: 'email',
                     type: 'string',
-                    required: true
-                },
-                role: {
-                    description: 'role',
-                    type: 'string',
+                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    message: 'Email must be valid',
                     required: true
                 }
             }
@@ -1121,49 +2582,39 @@
         prompt.start();
 
         prompt.get(promptConfig, function(err, result) {
-            Group.findOne({
+            User.findOne({
                 where: {
-                    name: result.name
+                    email: result.email
                 }
-            }, function(err, group) {
+            }, function(err, user) {
                 if (err) {
                     return callback(err);
                 }
 
-                if (group) {
-                    return callback(new Error('Group already exists'));
+                if (!user) {
+                    return callback(new Error('User not found'));
                 }
 
-                Role.findOne({
-                    where: {
-                        name: result.role
-                    }
-                }, function(err, role) {
+                var key = user.keys.build({
+                    enabled: true
+                });
+
+                key.authkey = key.generateUUID();
+
+                key.save(function(err) {
                     if (err) {
                         return callback(err);
                     }
 
-                    if (!role) {
-                        return callback(new Error('Role doesn\'t exist'));
-                    }
+                    console.log(key);
 
-                    group = role.groups.build({
-                        name: result.name,
-                    });
-
-                    group.save(function(err) {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        return callback(null);
-                    });
+                    return callback(null);
                 });
             });
         });
     }
 
-    function groupRemove(verbose, callback) {
+    function keyRemove(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -1178,15 +2629,15 @@
             }
         });
 
-        var Group = schema.loadDefinition('Group');
+        var Key = schema.loadDefinition('Key');
 
-        prompt.message = 'Group';
+        prompt.message = 'Remove key';
 
         var promptConfig = {
             properties: {
-                name: {
-                    description: 'name',
-                    type: 'string',
+                id: {
+                    description: 'key id',
+                    type: 'number',
                     required: true
                 }
             }
@@ -1195,451 +2646,16 @@
         prompt.start();
 
         prompt.get(promptConfig, function(err, result) {
-            Group.findOne({
-                where: {
-                    name: result.name
-                }
-            }, function(err, group) {
+            Key.find(result.id, function(err, key) {
                 if (err) {
                     return callback(err);
                 }
 
-                if (!group) {
-                    return callback(new Error('Group doesn\'t exist'));
+                if (!key) {
+                    return callback(new Error('Key not found'));
                 }
 
-                group.users(function(err, users) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    if (users.length) {
-                        return callback(new Error('Group contains existent users'));
-                    }
-
-                    group.destroy(function(err) {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        return callback(null);
-                    });
-                });
-            });
-        });
-    }
-
-    function groupList(verbose, callback) {
-        callback = callback || function() {
-            return true;
-        };
-
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
-
-        var Group = schema.loadDefinition('Group');
-
-        var data = {};
-
-        Group.all(function(err, groups) {
-            if (err) {
-                return callback(err);
-            }
-
-            if (!groups) {
-                console.log(data);
-
-                return callback(null);
-            }
-
-            var pending = groups.length;
-
-            function iterate(group) {
-                data[group.name] = [];
-
-                data[group.name].push(group);
-
-                group.users(function(err, users) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    data[group.name].push(users);
-
-                    if (!--pending) {
-                        console.log(data);
-
-                        return callback(null);
-                    }
-                });
-            }
-
-            for (var i = 0; i < groups.length; i++) {
-                iterate(groups[i]);
-            }
-        });
-    }
-
-    function groupModify(verbose, callback) {
-        callback = callback || function() {
-            return true;
-        };
-
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
-
-        var Group = schema.loadDefinition('Group');
-        var Role = schema.loadDefinition('Role');
-
-        prompt.message = 'Group';
-
-        var promptConfig = {
-            properties: {
-                name: {
-                    description: 'name',
-                    type: 'string',
-                    required: true
-                },
-                role: {
-                    description: 'new role',
-                    type: 'string',
-                    required: true
-                }
-            }
-        };
-
-        prompt.start();
-
-        prompt.get(promptConfig, function(err, result) {
-            Group.findOne({
-                where: {
-                    name: result.name
-                }
-            }, function(err, group) {
-                if (err) {
-                    return callback(err);
-                }
-
-                if (!group) {
-                    return callback(new Error('Group doesn\'t exist'));
-                }
-
-                Role.findOne({
-                    where: {
-                        name: result.role
-                    }
-                }, function(err, role) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    if (!role) {
-                        return callback(new Error('Role doesn\'t exist'));
-                    }
-
-                    group.updateAttributes({
-                        roleId: role.id
-                    }, function(err) {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        return callback(null);
-                    });
-                });
-            });
-        });
-    }
-
-    function groupRename(verbose, callback) {
-        callback = callback || function() {
-            return true;
-        };
-
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
-
-        var Group = schema.loadDefinition('Group');
-
-        prompt.message = 'Group';
-
-        var promptConfig = {
-            properties: {
-                name: {
-                    description: 'name',
-                    type: 'string',
-                    required: true
-                },
-                newname: {
-                    description: 'new name',
-                    type: 'string',
-                    required: true
-                }
-            }
-        };
-
-        prompt.start();
-
-        prompt.get(promptConfig, function(err, result) {
-            Group.findOne({
-                where: {
-                    name: result.name
-                }
-            }, function(err, group) {
-                if (err) {
-                    return callback(err);
-                }
-
-                if (!group) {
-                    return callback(new Error('Group doesn\'t exist'));
-                }
-
-                Group.findOne({
-                    where: {
-                        name: result.newname
-                    }
-                }, function(err, object) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    if (object) {
-                        return callback(new Error('Group already exists'));
-                    }
-
-                    group.updateAttributes({
-                        name: result.newname
-                    }, function(err) {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        return callback(null);
-                    });
-                });
-            });
-        });
-    }
-
-    /*
-     * Roles management
-     */
-
-    function roleAdd(verbose, callback) {
-        callback = callback || function() {
-            return true;
-        };
-
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
-
-        var Role = schema.loadDefinition('Role');
-
-        prompt.message = 'Role';
-
-        var promptConfig = {
-            properties: {
-                name: {
-                    description: 'name',
-                    type: 'string',
-                    required: true
-                },
-                usersCreate: {
-                    description: 'usersCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                usersRead: {
-                    description: 'usersRead',
-                    type: 'boolean',
-                    required: true
-                },
-                usersUpdate: {
-                    description: 'usersUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                usersDelete: {
-                    description: 'usersDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                groupsCreate: {
-                    description: 'groupsCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                groupsRead: {
-                    description: 'groupsRead',
-                    type: 'boolean',
-                    required: true
-                },
-                groupsUpdate: {
-                    description: 'groupsUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                groupsDelete: {
-                    description: 'groupsDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                rolesCreate: {
-                    description: 'rolesCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                rolesRead: {
-                    description: 'rolesRead',
-                    type: 'boolean',
-                    required: true
-                },
-                rolesUpdate: {
-                    description: 'rolesUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                rolesDelete: {
-                    description: 'rolesDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                pagesCreate: {
-                    description: 'pagesCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                pagesRead: {
-                    description: 'pagesRead',
-                    type: 'boolean',
-                    required: true
-                },
-                pagesUpdate: {
-                    description: 'pagesUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                pagesDelete: {
-                    description: 'pagesDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                postsCreate: {
-                    description: 'postsCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                postsRead: {
-                    description: 'postsRead',
-                    type: 'boolean',
-                    required: true
-                },
-                postsUpdate: {
-                    description: 'postsUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                postsDelete: {
-                    description: 'postsDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                commentsCreate: {
-                    description: 'commentsCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                commentsRead: {
-                    description: 'commentsRead',
-                    type: 'boolean',
-                    required: true
-                },
-                commentsUpdate: {
-                    description: 'commentsUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                commentsDelete: {
-                    description: 'commentsDelete',
-                    type: 'boolean',
-                    required: true
-                }
-            }
-        };
-
-        prompt.start();
-
-        prompt.get(promptConfig, function(err, result) {
-            Role.findOne({
-                where: {
-                    name: result.name
-                }
-            }, function(err, role) {
-                if (err) {
-                    return callback(err);
-                }
-
-                if (role) {
-                    return callback(new Error('Role already exists'));
-                }
-
-                role = new Role({
-                    name: result.name,
-                    usersCreate: result.usersCreate,
-                    usersRead: result.usersRead,
-                    usersUpdate: result.usersUpdate,
-                    usersDelete: result.usersDelete,
-                    groupsCreate: result.groupsCreate,
-                    groupsRead: result.groupsRead,
-                    groupsUpdate: result.groupsUpdate,
-                    groupsDelete: result.groupsDelete,
-                    rolesCreate: result.rolesCreate,
-                    rolesRead: result.rolesRead,
-                    rolesUpdate: result.rolesUpdate,
-                    rolesDelete: result.rolesDelete,
-                    pagesCreate: result.pagesCreate,
-                    pagesRead: result.pagesRead,
-                    pagesUpdate: result.pagesUpdate,
-                    pagesDelete: result.pagesDelete,
-                    postsCreate: result.postsCreate,
-                    postsRead: result.postsRead,
-                    postsUpdate: result.postsUpdate,
-                    postsDelete: result.postsDelete,
-                    commentsCreate: result.commentsCreate,
-                    commentsRead: result.commentsRead,
-                    commentsUpdate: result.commentsUpdate,
-                    commentsDelete: result.commentsDelete
-                });
-
-                role.save(function(err) {
+                key.destroy(function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -1650,7 +2666,7 @@
         });
     }
 
-    function roleRemove(verbose, callback) {
+    function keyList(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -1665,99 +2681,38 @@
             }
         });
 
-        var Role = schema.loadDefinition('Role');
-
-        prompt.message = 'Role';
-
-        var promptConfig = {
-            properties: {
-                name: {
-                    description: 'name',
-                    type: 'string',
-                    required: true
-                }
-            }
-        };
-
-        prompt.start();
-
-        prompt.get(promptConfig, function(err, result) {
-            Role.findOne({
-                where: {
-                    name: result.name
-                }
-            }, function(err, role) {
-                if (err) {
-                    return callback(err);
-                }
-
-                if (!role) {
-                    return callback(new Error('Role doesn\'t exist'));
-                }
-
-                role.groups(function(err, groups) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    if (groups.length) {
-                        return callback(new Error('Role contains existent groups'));
-                    }
-
-                    role.destroy(function(err) {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        return callback(null);
-                    });
-                });
-            });
-        });
-    }
-
-    function roleList(verbose, callback) {
-        callback = callback || function() {
-            return true;
-        };
-
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
-
-        var Role = schema.loadDefinition('Role');
+        var Key = schema.loadDefinition('Key');
 
         var data = {};
 
-        Role.all(function(err, roles) {
+        Key.all(function(err, keys) {
             if (err) {
                 return callback(err);
             }
 
-            if (!roles) {
+            if (!keys) {
                 console.log(data);
 
                 return callback(null);
             }
 
-            var pending = roles.length;
+            var pending = keys.length;
 
-            function iterate(role) {
-                data[role.name] = [];
-
-                role.groups(function(err, groups) {
+            function iterate(key) {
+                key.user(function(err, user) {
                     if (err) {
-                        return callback(err);
+                        return callback(null);
                     }
 
-                    data[role.name].push(role);
-                    data[role.name].push(groups);
+                    if (!user) {
+                        return callback(new Error('User not found'));
+                    }
+
+                    if (!data[user.email]) {
+                        data[user.email] = [key];
+                    } else {
+                        data[user.email].push(key);
+                    }
 
                     if (!--pending) {
                         console.log(data);
@@ -1767,13 +2722,13 @@
                 });
             }
 
-            for (var i = 0; i < roles.length; i++) {
-                iterate(roles[i]);
+            for (var i = 0; i < keys.length; i++) {
+                iterate(keys[i]);
             }
         });
     }
 
-    function roleModify(verbose, callback) {
+    function keyShow(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -1788,135 +2743,18 @@
             }
         });
 
-        var Role = schema.loadDefinition('Role');
+        var Key = schema.loadDefinition('Key');
+        var User = schema.loadDefinition('User');
 
-        prompt.message = 'Role';
+        prompt.message = 'Show key';
 
         var promptConfig = {
             properties: {
-                name: {
-                    description: 'name',
+                email: {
+                    description: 'email',
                     type: 'string',
-                    required: true
-                },
-                usersCreate: {
-                    description: 'usersCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                usersRead: {
-                    description: 'usersRead',
-                    type: 'boolean',
-                    required: true
-                },
-                usersUpdate: {
-                    description: 'usersUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                usersDelete: {
-                    description: 'usersDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                groupsCreate: {
-                    description: 'groupsCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                groupsRead: {
-                    description: 'groupsRead',
-                    type: 'boolean',
-                    required: true
-                },
-                groupsUpdate: {
-                    description: 'groupsUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                groupsDelete: {
-                    description: 'groupsDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                rolesCreate: {
-                    description: 'rolesCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                rolesRead: {
-                    description: 'rolesRead',
-                    type: 'boolean',
-                    required: true
-                },
-                rolesUpdate: {
-                    description: 'rolesUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                rolesDelete: {
-                    description: 'rolesDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                pagesCreate: {
-                    description: 'pagesCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                pagesRead: {
-                    description: 'pagesRead',
-                    type: 'boolean',
-                    required: true
-                },
-                pagesUpdate: {
-                    description: 'pagesUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                pagesDelete: {
-                    description: 'pagesDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                postsCreate: {
-                    description: 'postsCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                postsRead: {
-                    description: 'postsRead',
-                    type: 'boolean',
-                    required: true
-                },
-                postsUpdate: {
-                    description: 'postsUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                postsDelete: {
-                    description: 'postsDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                commentsCreate: {
-                    description: 'commentsCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                commentsRead: {
-                    description: 'commentsRead',
-                    type: 'boolean',
-                    required: true
-                },
-                commentsUpdate: {
-                    description: 'commentsUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                commentsDelete: {
-                    description: 'commentsDelete',
-                    type: 'boolean',
+                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    message: 'Email must be valid',
                     required: true
                 }
             }
@@ -1925,44 +2763,83 @@
         prompt.start();
 
         prompt.get(promptConfig, function(err, result) {
-            Role.findOne({
+            User.findOne({
                 where: {
-                    name: result.name
+                    email: result.email
                 }
-            }, function(err, role) {
+            }, function(err, user) {
                 if (err) {
                     return callback(err);
                 }
 
-                if (!role) {
-                    return callback(new Error('Role doesn\'t exist'));
+                if (!user) {
+                    return callback(new Error('User not found'));
                 }
 
-                role.updateAttributes({
-                    usersCreate: result.usersCreate,
-                    usersRead: result.usersRead,
-                    usersUpdate: result.usersUpdate,
-                    usersDelete: result.usersDelete,
-                    groupsCreate: result.groupsCreate,
-                    groupsRead: result.groupsRead,
-                    groupsUpdate: result.groupsUpdate,
-                    groupsDelete: result.groupsDelete,
-                    rolesCreate: result.rolesCreate,
-                    rolesRead: result.rolesRead,
-                    rolesUpdate: result.rolesUpdate,
-                    rolesDelete: result.rolesDelete,
-                    pagesCreate: result.pagesCreate,
-                    pagesRead: result.pagesRead,
-                    pagesUpdate: result.pagesUpdate,
-                    pagesDelete: result.pagesDelete,
-                    postsCreate: result.postsCreate,
-                    postsRead: result.postsRead,
-                    postsUpdate: result.postsUpdate,
-                    postsDelete: result.postsDelete,
-                    commentsCreate: result.commentsCreate,
-                    commentsRead: result.commentsRead,
-                    commentsUpdate: result.commentsUpdate,
-                    commentsDelete: result.commentsDelete
+                user.keys(function(err, keys) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (!keys) {
+                        return callback(null);
+                    }
+
+                    console.log(keys);
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function keyEnable(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Key = schema.loadDefinition('Key');
+
+        prompt.message = 'Enable key';
+
+        var promptConfig = {
+            properties: {
+                key: {
+                    description: 'key',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Key.findOne({
+                where: {
+                    authkey: result.key
+                }
+            }, function(err, key) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!key) {
+                    return callback(new Error('Key doesn\'t exist'));
+                }
+
+                key.updateAttributes({
+                    enabled: true
                 }, function(err) {
                     if (err) {
                         return callback(err);
@@ -1974,7 +2851,7 @@
         });
     }
 
-    function roleRename(verbose, callback) {
+    function keyDisable(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -1989,19 +2866,14 @@
             }
         });
 
-        var Role = schema.loadDefinition('Role');
+        var Key = schema.loadDefinition('Key');
 
-        prompt.message = 'Role';
+        prompt.message = 'Disable key';
 
         var promptConfig = {
             properties: {
-                name: {
-                    description: 'current name',
-                    type: 'string',
-                    required: true
-                },
-                newname: {
-                    description: 'new name',
+                key: {
+                    description: 'key',
                     type: 'string',
                     required: true
                 }
@@ -2011,43 +2883,55 @@
         prompt.start();
 
         prompt.get(promptConfig, function(err, result) {
-            Role.findOne({
+            Key.findOne({
                 where: {
-                    name: result.name
+                    authkey: result.key
                 }
-            }, function(err, role) {
+            }, function(err, key) {
                 if (err) {
                     return callback(err);
                 }
 
-                if (!role) {
-                    return callback(new Error('Role doesn\'t exist'));
+                if (!key) {
+                    return callback(new Error('Key doesn\'t exist'));
                 }
 
-                Role.findOne({
-                    where: {
-                        name: result.newname
-                    }
-                }, function(err, object) {
+                key.updateAttributes({
+                    enabled: false
+                }, function(err) {
                     if (err) {
                         return callback(err);
                     }
 
-                    if (object) {
-                        return callback(new Error('Role already exists'));
-                    }
-
-                    role.updateAttributes({
-                        name: result.newname
-                    }, function(err) {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        return callback(null);
-                    });
+                    return callback(null);
                 });
             });
+        });
+    }
+
+    function keyEncode(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        prompt.message = 'Encode key';
+
+        var promptConfig = {
+            properties: {
+                key: {
+                    description: 'key',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            console.log('Base64 encoded key: ' + new Buffer(result.key).toString('base64'));
+
+            return callback(null);
         });
     }
 
@@ -2075,7 +2959,7 @@
 
         var dir = path.resolve(config.content.root, config.content.pages.directory);
 
-        prompt.message = 'Page';
+        prompt.message = 'Create page';
 
         var promptConfig = {
             properties: {
@@ -2185,7 +3069,7 @@
 
         var dir = path.resolve(config.content.root, config.content.posts.directory);
 
-        prompt.message = 'Post';
+        prompt.message = 'Create post';
 
         var promptConfig = {
             properties: {
@@ -3036,12 +3920,181 @@
         });
 
     program
-        .command('user')
+        .command('roles')
+        .description('roles management')
+        .option('    --add', 'add new role')
+        .option('    --remove', 'remove role')
+        .option('    --list', 'list all roles')
+        .option('    --show', 'show role ')
+        .option('    --modify', 'modify role')
+        .option('    --rename', 'rename role')
+        .action(function(options) {
+            if (options.add) {
+                roleAdd(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.remove) {
+                roleRemove(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.list) {
+                roleList(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.show) {
+                roleShow(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.modify) {
+                roleModify(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.rename) {
+                roleRename(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+        });
+
+    program
+        .command('groups')
+        .description('groups management')
+        .option('    --add', 'add group')
+        .option('    --remove', 'remove group')
+        .option('    --list', 'list groups')
+        .option('    --show', 'show group')
+        .option('    --modify', 'modify group')
+        .option('    --rename', 'rename group')
+        .action(function(options) {
+            if (options.add) {
+                groupAdd(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.remove) {
+                groupRemove(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.list) {
+                groupList(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.show) {
+                groupShow(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.modify) {
+                groupModify(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.rename) {
+                groupRename(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+        });
+
+    program
+        .command('users')
         .description('users management')
         .option('    --add', 'add user')
         .option('    --remove', 'remove user')
         .option('    --list', 'list users')
+        .option('    --show', 'show user')
         .option('    --modify', 'modify user')
+        .option('    --enable', 'enable user')
+        .option('    --disable', 'disable user')
         .option('    --passwd', 'change user password')
         .action(function(options) {
             if (options.add) {
@@ -3080,8 +4133,44 @@
                 });
             }
 
+            if (options.show) {
+                userShow(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
             if (options.modify) {
                 userModify(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.enable) {
+                userEnable(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.disable) {
+                userDisable(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -3106,16 +4195,18 @@
         });
 
     program
-        .command('group')
-        .description('groups management')
-        .option('    --add', 'add group')
-        .option('    --remove', 'remove group')
-        .option('    --list', 'list groups')
-        .option('    --modify', 'modify group')
-        .option('    --rename', 'change the group name')
+        .command('keys')
+        .description('keys management')
+        .option('    --add', 'add a key to user')
+        .option('    --remove', 'remove a user key')
+        .option('    --list', 'list keys')
+        .option('    --show', 'show key')
+        .option('    --enable', 'enable key')
+        .option('    --disable', 'disable key')
+        .option('    --encode', 'encode a key in base64')
         .action(function(options) {
             if (options.add) {
-                groupAdd(program.verbose, function(err) {
+                keyAdd(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -3127,7 +4218,7 @@
             }
 
             if (options.remove) {
-                groupRemove(program.verbose, function(err) {
+                keyRemove(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -3139,7 +4230,7 @@
             }
 
             if (options.list) {
-                groupList(program.verbose, function(err) {
+                keyList(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -3150,8 +4241,8 @@
                 });
             }
 
-            if (options.modify) {
-                groupModify(program.verbose, function(err) {
+            if (options.show) {
+                keyShow(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -3162,30 +4253,8 @@
                 });
             }
 
-            if (options.rename) {
-                groupRename(program.verbose, function(err) {
-                    if (err) {
-                        console.error(err);
-
-                        process.exit(1);
-                    }
-
-                    process.exit(0);
-                });
-            }
-        });
-
-    program
-        .command('role')
-        .description('roles management')
-        .option('    --add', 'add role')
-        .option('    --remove', 'remove role')
-        .option('    --list', 'list roles')
-        .option('    --modify', 'modify role')
-        .option('    --rename', 'change the role name')
-        .action(function(options) {
-            if (options.add) {
-                roleAdd(program.verbose, function(err) {
+            if (options.enable) {
+                keyEnable(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -3196,8 +4265,8 @@
                 });
             }
 
-            if (options.remove) {
-                roleRemove(program.verbose, function(err) {
+            if (options.disable) {
+                keyDisable(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -3208,32 +4277,8 @@
                 });
             }
 
-            if (options.list) {
-                roleList(program.verbose, function(err) {
-                    if (err) {
-                        console.error(err);
-
-                        process.exit(1);
-                    }
-
-                    process.exit(0);
-                });
-            }
-
-            if (options.modify) {
-                roleModify(program.verbose, function(err) {
-                    if (err) {
-                        console.error(err);
-
-                        process.exit(1);
-                    }
-
-                    process.exit(0);
-                });
-            }
-
-            if (options.rename) {
-                roleRename(program.verbose, function(err) {
+            if (options.encode) {
+                keyEncode(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 

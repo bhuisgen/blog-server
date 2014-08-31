@@ -16,7 +16,7 @@
                     return new Date();
                 },
                 index: true
-            },
+            }
         });
 
         Group.belongsTo(schema.loadDefinition('Role'), {

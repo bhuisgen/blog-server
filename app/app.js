@@ -40,20 +40,20 @@
     }
     app.use(bodyParser.json());
 
-    app.use(function(req, res, next) {
+    app.use(function cors(req, res, next) {
         res.header('Access-Control-Allow-Origin', '*');
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
         res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
         if ('OPTIONS' === req.method) {
-            res.send(200);
+            return res.send(200);
         }
 
-        next();
+        return next();
     });
 
-    app.use(function(req, res, next) {
-        req.setTimeout(config.server.responseTimeout, function() {
+    app.use(function requestTimeout(req, res, next) {
+        req.setTimeout(config.server.requestTimeout, function() {
             req.emit('timeout');
         });
 
@@ -62,34 +62,35 @@
                 return;
             }
 
-            var err = new Error('Response timeout');
+            var err = new Error('Request timeout');
             err.status = 408;
 
             return next(err);
         });
 
-        next();
+        return next();
     });
 
-    app.use('/status', status(config));
     app.use('/api', api(config));
+    app.use('/status', status(config));
 
     app.use(express.static(path.join(config.server.root, config.server.publicDirectory)));
 
-    app.use(function(req, res, next) {
+    app.use(function error404(req, res, next) {
         var err = new Error('Page not found');
         err.status = 404;
 
-        next(err);
+        return next(err);
     });
 
-    app.use(function(err, req, res, next) {
+    app.use(function errorHandler(err, req, res, next) {
         if (app.get('env') === 'development') {
             console.error(err.stack);
         }
 
         res.status(err.status || 500);
-        res.json({
+        
+        return res.json({
             success: false,
             message: err.message
         });

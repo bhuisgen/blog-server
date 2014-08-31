@@ -2,7 +2,6 @@
     'use strict';
 
     var path = require('path');
-    var _ = require('lodash');
 
     var Schema = require('jugglingdb-model-loader');
 
@@ -18,7 +17,7 @@
         });
 
         var Collection = schema.loadDefinition('Collection');
-        var Group = schema.loadDefinition('Group');
+        var LocalAccount = schema.loadDefinition('LocalAccount');
 
         router.use(function checkUser(req, res, next) {
             var err;
@@ -34,25 +33,25 @@
 
             switch (req.method) {
                 case 'POST':
-                    if (req.role.groupsCreate) {
+                    if (req.role.localAccountsCreate) {
                         allow = true;
                     }
                     break;
 
                 case 'GET':
-                    if (req.role.groupsRead) {
+                    if (req.role.localAccountsRead) {
                         allow = true;
                     }
                     break;
 
                 case 'PUT':
-                    if (req.role.groupsUpdate) {
+                    if (req.role.localAccountsUpdate) {
                         allow = true;
                     }
                     break;
 
                 case 'DELETE':
-                    if (req.role.groupsDelete) {
+                    if (req.role.localAccountsDelete) {
                         allow = true;
                     }
                     break;
@@ -73,7 +72,7 @@
 
             Collection.findOne({
                 where: {
-                    name: 'Groups'
+                    name: 'LocalAccounts'
                 }
             }, function(err, collection) {
                 if (err) {
@@ -108,7 +107,7 @@
             });
         });
 
-        router.post('/groups', function createGroup(req, res, next) {
+        router.post('/localAccounts', function createLocalAccount(req, res, next) {
             var err;
 
             if (req.permission.isReadOnly()) {
@@ -118,16 +117,16 @@
                 return next(err);
             }
 
-            var group = new Group(req.body.group);
+            var localAccount = new LocalAccount(req.body.localAccount);
 
-            if ((req.permission.isShared() || req.permission.isPrivate()) && (group.id !== req.group.id)) {
+            if ((req.permission.isShared() || req.permission.isPrivate()) && (localAccount.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
                 return next(err);
             }
 
-            group.save(function(err) {
+            localAccount.save(function(err) {
                 if (err) {
                     return next(err);
                 }
@@ -136,105 +135,75 @@
             });
         });
 
-        router.get('/groups/:id', function readGroup(req, res, next) {
+        router.get('/localAccounts/:id', function readLocalAccount(req, res, next) {
             var data = {};
 
-            Group.find(req.params.id, function(err, group) {
+            LocalAccount.find(req.params.id, function(err, localAccount) {
                 if (err) {
                     return next(err);
                 }
 
-                if (req.permission.isPrivate() && group && (group.id !== req.group.id)) {
+                if (req.permission.isPrivate() && localAccount && (localAccount.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!group) {
-                    err = new Error('Group not found');
+                if (!localAccount) {
+                    err = new Error('LocalAccount not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                group.role(function(err, role) {
-                    if (err) {
-                        return next(err);
-                    }
+                data.localAccount = {
+                    id: localAccount.id,
+                    login: localAccount.login,
+                    user: localAccount.userId
+                };
 
-                    group.users(function(err, users) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        if (!users) {
-                            users = {};
-                        }
-
-                        data.group = {
-                            id: group.id,
-                            name: group.name,
-                            created: group.created,
-                            role: role.id,
-                            users: _.pluck(users, 'id')
-                        };
-
-                        return res.json(data);
-                    });
-                });
+                return res.json(data);
             });
         });
 
-        router.get('/groups', function readGroups(req, res, next) {
+        router.get('/localAccounts', function readLocalAccounts(req, res, next) {
             var data = {};
 
             if (req.query.ids) {
                 var pending = req.query.ids.length;
 
-                data.group = [];
+                data.localAccount = [];
 
                 var iterate = function(id) {
-                    Group.find(id, function(err, group) {
+                    LocalAccount.find(id, function(err, localAccount) {
                         if (err) {
                             return next(err);
                         }
 
-                        if (req.permission.isPrivate() && group && (group.id !== req.group.id)) {
+                        if (req.permission.isPrivate() && localAccount && (localAccount.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
                             return next(err);
                         }
 
-                        if (!group) {
-                            err = new Error('Group not found');
+                        if (!localAccount) {
+                            err = new Error('LocalAccount not found');
                             err.status = 404;
 
                             return next(err);
                         }
 
-                        group.users(function(err, users) {
-                            if (err) {
-                                return next(err);
-                            }
-
-                            if (!users) {
-                                users = {};
-                            }
-
-                            data.group.push({
-                                id: group.id,
-                                name: group.name,
-                                created: group.created,
-                                role: group.roleId,
-                                users: _.pluck(users, 'id')
-                            });
-
-                            if (!--pending) {
-                                return res.json(data);
-                            }
+                        data.localAccount.push({
+                            id: localAccount.id,
+                            login: localAccount.login,
+                            user: localAccount.userId
                         });
+
+                        if (!--pending) {
+                            return res.json(data);
+                        }
                     });
                 };
 
@@ -245,15 +214,11 @@
                 var filter = {};
 
                 if (req.query.id) {
-                    filter.id = req.quqery.id;
+                    filter.id = req.query.id;
                 }
 
-                if (req.query.name) {
-                    filter.name = req.query.name;
-                }
-
-                if (req.query.created) {
-                    filter.email = req.query.created;
+                if (req.query.login) {
+                    filter.login = req.query.login;
                 }
 
                 if (Object.keys(filter).length === 0) {
@@ -265,74 +230,61 @@
                 var offset = parseInt(req.query.offset, 10) || 0;
                 var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
 
-                Group.all({
+                LocalAccount.all({
                     where: filter,
                     order: order + ' ' + sort,
                     skip: offset,
                     limit: limit
-                }, function(err, groups) {
+                }, function(err, localAccounts) {
                     if (err) {
                         return next(err);
                     }
 
-                    Group.count(function(err, count) {
+                    LocalAccount.count(function(err, count) {
                         if (err) {
                             return next(err);
                         }
 
-                        data.group = [];
-                        data.users = [];
+                        data.localAccount = [];
 
                         data.meta = {
                             total: count
                         };
 
-                        if (!groups) {
+                        if (!localAccounts) {
                             return res.json(data);
                         }
 
-                        var pending = groups.length;
+                        var pending = localAccounts.length;
 
-                        var iterate = function(group) {
-                            if (req.permission.isPrivate() && (group.id !== req.group.id)) {
+                        var iterate = function(localAccount) {
+                            if (req.permission.isPrivate() && (localAccount.userId !== req.user.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
 
                                 return next(err);
                             }
 
-                            group.users(function(err, users) {
-                                if (err) {
-                                    return next(err);
-                                }
-
-                                if (!users) {
-                                    users = {};
-                                }
-
-                                data.group.push({
-                                    id: group.id,
-                                    name: group.name,
-                                    created: group.created,
-                                    role: group.roleId,
-                                    users: _.pluck(users, 'id')
-                                });
-
-                                if (!--pending) {
-                                    return res.json(data);
-                                }
+                            data.key.push({
+                                id: localAccount.id,
+                                login: localAccount.login,
+                                user: localAccount.userId
                             });
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
                         };
 
-                        for (var i = 0; i < groups.length; i++) {
-                            iterate(groups[i]);
+                        for (var i = 0; i < localAccounts.length; i++) {
+                            iterate(localAccounts[i]);
                         }
                     });
                 });
             }
         });
 
-        router.put('/groups/:id', function updateGroup(req, res, next) {
+        router.put('/localAccounts/:id', function updateLocalAccount(req, res, next) {
             var err;
 
             if (req.permission.isReadOnly()) {
@@ -342,26 +294,26 @@
                 return next(err);
             }
 
-            Group.find(req.params.id, function(err, group) {
+            LocalAccount.find(req.params.id, function(err, localAccount) {
                 if (err) {
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && group && (group.id !== req.group.id)) {
+                if ((req.permission.isShared() || req.permission.isPrivate()) && localAccount && (localAccount.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!group) {
-                    err = new Error('Group not found');
+                if (!localAccount) {
+                    err = new Error('Key not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                group.update(req.body.group, function(err) {
+                localAccount.update(req.body.localAccount, function(err) {
                     if (err) {
                         return next(err);
                     }
@@ -371,7 +323,7 @@
             });
         });
 
-        router.delete('/groups/:id', function deleteGroup(req, res, next) {
+        router.delete('/localAccounts/:id', function deleteLocalAccount(req, res, next) {
             var err;
 
             if (req.permission.isReadOnly()) {
@@ -381,26 +333,26 @@
                 return next(err);
             }
 
-            Group.find(req.params.id, function(err, group) {
+            LocalAccount.find(req.params.id, function(err, localAccount) {
                 if (err) {
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && group && (group.id !== req.group.id)) {
+                if ((req.permission.isShared() || req.permission.isPrivate()) && localAccount && (localAccount.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!group) {
-                    err = new Error('Group not found');
+                if (!localAccount) {
+                    err = new Error('LocalAccount not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                group.destroy(function(err) {
+                localAccount.destroy(function(err) {
                     if (err) {
                         return next(err);
                     }

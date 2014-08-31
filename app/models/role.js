@@ -10,19 +10,19 @@
                 length: 256,
                 index: true
             },
-            usersCreate: {
+            rolesCreate: {
                 type: Boolean,
                 default: false
             },
-            usersRead: {
+            rolesRead: {
                 type: Boolean,
                 default: false
             },
-            usersUpdate: {
+            rolesUpdate: {
                 type: Boolean,
                 default: false
             },
-            usersDelete: {
+            rolesDelete: {
                 type: Boolean,
                 default: false
             },
@@ -42,19 +42,67 @@
                 type: Boolean,
                 default: false
             },
-            rolesCreate: {
+            usersCreate: {
                 type: Boolean,
                 default: false
             },
-            rolesRead: {
+            usersRead: {
                 type: Boolean,
                 default: false
             },
-            rolesUpdate: {
+            usersUpdate: {
                 type: Boolean,
                 default: false
             },
-            rolesDelete: {
+            usersDelete: {
+                type: Boolean,
+                default: false
+            },
+            keysCreate: {
+                type: Boolean,
+                default: false
+            },
+            keysRead: {
+                type: Boolean,
+                default: false
+            },
+            keysUpdate: {
+                type: Boolean,
+                default: false
+            },
+            keysDelete: {
+                type: Boolean,
+                default: false
+            },
+            localAccountsCreate: {
+                type: Boolean,
+                default: false
+            },
+            localAccountsRead: {
+                type: Boolean,
+                default: false
+            },
+            localAccountsUpdate: {
+                type: Boolean,
+                default: false
+            },
+            localAccountsDelete: {
+                type: Boolean,
+                default: false
+            },
+            externAccountsCreate: {
+                type: Boolean,
+                default: false
+            },
+            externAccountsRead: {
+                type: Boolean,
+                default: false
+            },
+            externAccountsUpdate: {
+                type: Boolean,
+                default: false
+            },
+            externAccountsDelete: {
                 type: Boolean,
                 default: false
             },

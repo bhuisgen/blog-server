@@ -17,11 +17,11 @@ var config = {
 
 		publicDirectory: 'public',
 
-		responseTimeout: 4000,
-
-		status: true,
+		requestTimeout: 4000,
 
 		api: {
+			enable: true,
+
 			vendor: 'hbis',
 			defaultVersion: 1,
 

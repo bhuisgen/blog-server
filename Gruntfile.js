@@ -69,8 +69,9 @@ module.exports = function(grunt) {
         }, 500);
     });
 
-    grunt.registerTask('serve', function(target) {
+    grunt.registerTask('serve', function() {
         grunt.task.run([
+            'build',
             'develop',
             'watch'
         ]);

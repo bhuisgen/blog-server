@@ -8,12 +8,8 @@
         strict: true
     });
 
-    module.exports = function(config) {
-        if (!config.server.status) {
-            return router;
-        }
-
-        router.use(function(req, res, next) {
+    module.exports = function(config) {      
+        router.use(function checkAccess(req, res, next) {
             if ((req.ip !== '127.0.0.1') && (req.ip !== '::1')) {
                 var err = new Error('Unauthorized access');
                 err.status = 403;
@@ -21,27 +17,26 @@
                 return next(err);
             }
 
-            next();
+            return next();
         });
 
-        router.get('/', function(req, res) {
+        router.get('/', function index(req, res) {
             var data = {};
 
             data.status = 'OK';
 
-            res.json(data);
+            return res.json(data);
         });
 
-        router.get('/process', function(req, res) {
+        router.get('/process', function process(req, res) {
             var data = {};
 
             data.name = process.title;
             data.pid = process.pid;
             data.uptime = process.uptime();
-
             data.memory = process.memoryUsage();
 
-            res.json(data);
+            return res.json(data);
         });
 
         return router;

@@ -33,6 +33,11 @@
                 type: Boolean,
                 default: false,
                 index: true
+            },
+            allowed: {
+                type: Boolean,
+                default: false,
+                index: true
             }
         });
 
