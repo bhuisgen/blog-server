@@ -11,17 +11,36 @@ Under GNU GPL licence
 
 ## Building
 
+Redis is needed to cache server data:
+
+	# apt-get install redis-server
+
+By default, Redis is used to store your blog content but you can use a different backend.
+
+To use PostgreSQL database:
+
+	# apt-get install postgresql-server-<VERSION> postgresql-server-dev-<VERSION>
+
+Install the dependencies:
+
 	$ bower install
 	$ npm install
+
+To use PostgreSQL install this backend storage:
+
+	$ npm install jugglingdb-postgres --save
+
+You can now build your instance:
+
 	$ grunt build
 
 ## Configuration
 
 Edit these files:
 
-- *config/content.js*: to configure static content directories
-- *config/database.js*: to configure your database storage settings
-- *config/keys.js*: to add your authentication keys of external authentication providers
+- *config/content.js*: to configure local content directories
+- *config/database.js*: to configure your backend storage
+- *config/keys.js*: to add your API keys for external authentication
 - *config/server.js*: to configure the REST API server
 
 ## Use

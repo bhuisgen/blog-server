@@ -1,37 +1,18 @@
 var path = require('path');
 
-var env = process.env.NODE_ENV || 'development';
-
 var config = {
-    development: {
-        root: path.normalize(__dirname + '/..'),
+    root: path.normalize(__dirname + '/..'),
 
-        pages: {
-            directory: 'content/pages/',
-            comments: true
-        },
-
-        posts: {
-            directory: 'content/posts/',
-            excerpt: '<!-- more -->',
-            comments: true
-        }
+    pages: {
+        directory: 'content/pages/',
+        comments: true
     },
 
-    production: {
-        root: path.normalize(__dirname + '/..'),
-
-        pages: {
-            directory: 'content/pages/',
-            comments: true
-        },
-
-        posts: {
-            directory: 'content/posts/',
-            excerpt: '<!-- more -->',
-            comments: true
-        }
+    posts: {
+        directory: 'content/posts/',
+        excerpt: '<!-- more -->',
+        comments: true
     }
 };
 
-module.exports = config[env];
+module.exports = config;

@@ -1,5 +1,7 @@
 node_modules
 app/bower_components
+config/database.js
+config/keys.js
 content/pages/*.markdown
 content/posts/*.markdown
 public/

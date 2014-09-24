@@ -1,112 +1,55 @@
 var path = require('path');
 
-var env = process.env.NODE_ENV || 'development';
-
 var config = {
-	development: {
-		host: '127.0.0.1',
-		port: 3000,
+	host: '127.0.0.1',
+	port: 3000,
 
-		ssl: {
-			enable: true,
+	ssl: {
+		enable: true,
 
-			certificateFile: 'config/ssl/localhost.crt',
-			keyFile: 'config/ssl/localhost.key'
-		},
-
-		root: path.normalize(__dirname + '/..'),
-		publicDirectory: 'public',
-		requestTimeout: 4000,
-
-		api: {
-			enable: true,
-
-			vendor: 'hbis',
-			defaultVersion: 1,
-
-			auth: {
-				redis: {
-					host: 'localhost',
-					port: 6379,
-					database: 0,
-					keyPrefix: 'blog-server:api:'
-				},
-
-				token: {
-					key: 'token:',
-					expireTime: 600
-				},
-
-				providers: {
-					local: true,
-
-					facebook: true,
-					github: true,
-					google: true,
-					linkedin: true,
-					openid: true,
-					twitter: true
-				}
-			},
-
-			maxItems: 10
-		}
+		certificateFile: 'config/ssl/localhost.crt',
+		keyFile: 'config/ssl/localhost.key'
 	},
 
-	production: {
-		port: 3000,
+	root: path.normalize(__dirname + '/..'),
 
-		ssl: {
-			enable: true,
+	publicDirectory: 'public',
+	
+	requestTimeout: 4000,
 
-			certificateFile: 'config/ssl/localhost.crt',
-			keyFile: 'config/ssl/localhost.key'
-		},
+	api: {
+		enable: true,
 
-		root: path.normalize(__dirname + '/..'),
-		publicDirectory: 'public',
-		requestTimeout: 4000,
+		vendor: 'hbis',
+		defaultVersion: 1,
 
-		logger: {
-			enable: false,
-
-			file: 'log/server.log'
-		},
-
-		api: {
-			enable: true,
-
-			vendor: 'hbis',
-			defaultVersion: 1,
-
-			auth: {
-				redis: {
-					host: 'localhost',
-					port: 6379,
-					database: 1,
-					keyPrefix: 'blog-server:api:'
-				},
-
-				token: {
-					key: 'token:',
-					expireTime: 600
-				},
-
-				providers: {
-					local: true,
-
-					facebook: true,
-					github: true,
-					google: true,
-					linkedin: true,
-					openid: true,
-					twitter: true
-				}
+		auth: {
+			redis: {
+				host: 'localhost',
+				port: 6379,
+				database: 0,
+				keyPrefix: 'blog-server:api:'
 			},
 
-			maxItems: 10
-		}
+			token: {
+				key: 'token:',
+				expireTime: 600
+			},
+
+			providers: {
+				local: true,
+
+				facebook: true,
+				github: true,
+				google: true,
+				linkedin: true,
+				openid: true,
+				twitter: true
+			}
+		},
+
+		maxItems: 10
 	}
 };
 
-module.exports = config[env];
+module.exports = config;
