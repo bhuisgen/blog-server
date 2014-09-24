@@ -163,6 +163,26 @@
 
         Role.validatesPresenceOf('name');
 
+        Role.beforeSave = function(next, data) {
+            var BlacklistName = schema.loadDefinition('BlacklistName');
+
+            BlacklistName.findOne({
+                where: {
+                    name: data.name
+                }
+            }, function(err, object) {
+                if (err) {
+                    return next(err);
+                }
+
+                if (object) {
+                    return next(new Error('Name is blacklisted'));
+                }
+
+                return next();
+            });
+        };
+
         return Role;
     };
 }());

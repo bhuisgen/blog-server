@@ -3,19 +3,19 @@
 
     var path = require('path');
     var _ = require('lodash');
+    var async = require('async');
 
     var Schema = require('jugglingdb-model-loader');
 
     module.exports = function(config, router) {
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/../../..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/../../..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Collection = schema.loadDefinition('Collection');
         var Post = schema.loadDefinition('Post');
@@ -108,7 +108,6 @@
             });
         });
 
-
         router.post('/posts', function createPost(req, res, next) {
             var err;
 
@@ -159,30 +158,67 @@
                     return next(err);
                 }
 
-                post.comments(function(err, comments) {
+                async.series([
+
+                    function(callback) {
+                        post.comments(function(err, comments) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            if (!comments) {
+                                comments = {};
+                            }
+
+                            data.post = {
+                                id: post.id,
+                                slug: post.slug,
+                                layout: post.layout,
+                                title: post.title,
+                                image: post.image,
+                                content: post.content,
+                                excerpt: post.excerpt,
+                                created: post.created,
+                                published: post.published,
+                                commentsEnabled: post.commentsEnabled,
+                                commentsAllowed: post.commentsAllowed,
+                                user: post.userId,
+                                comments: _.pluck(comments, 'id')
+                            };
+
+                            return callback(null);
+                        });
+                    },
+                    function(callback) {
+                        post.categories(function(err, categories) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            if (categories) {
+                                data.post.categories = _.pluck(categories, 'name');
+                            }
+
+                            return callback(null);
+                        });
+                    },
+                    function(callback) {
+                        post.tags(function(err, tags) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            if (tags) {
+                                data.post.tags = _.pluck(tags, 'name');
+                            }
+
+                            return callback(null);
+                        });
+                    }
+                ], function(err, results) {
                     if (err) {
                         return next(err);
                     }
-
-                    if (!comments) {
-                        comments = {};
-                    }
-
-                    data.post = {
-                        id: post.id,
-                        slug: post.slug,
-                        layout: post.layout,
-                        title: post.title,
-                        image: post.image,
-                        content: post.content,
-                        excerpt: post.excerpt,
-                        created: post.created,
-                        published: post.published,
-                        commentsEnabled: post.commentsEnabled,
-                        commentsAllowed: post.commentsAllowed,
-                        user: post.userId,
-                        comments: _.pluck(comments, 'id')
-                    };
 
                     return res.json(data);
                 });

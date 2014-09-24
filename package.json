@@ -8,18 +8,18 @@
   "dependencies": {
     "async": "~0.9.0",
     "bcrypt": "^0.8.0",
-    "body-parser": "~1.6.5",
+    "body-parser": "~1.8.3",
     "commander": "~2.3.0",
-    "express": "~4.8.5",
+    "express": "~4.9.4",
     "front-matter": "~0.2.0",
     "hiredis": "~0.1.17",
-    "jugglingdb": "~0.2.14",
+    "jugglingdb": "~0.3.0",
     "jugglingdb-model-loader": "~0.0.3",
     "jugglingdb-redis": "~0.0.2-2",
     "lodash": "^2.4.1",
-    "morgan": "~1.2.3",
+    "morgan": "~1.3.1",
     "node-uuid": "~1.4.1",
-    "passport": "~0.2.0",
+    "passport": "~0.2.1",
     "passport-facebook": "^1.0.3",
     "passport-github": "^0.1.5",
     "passport-google-oauth": "^0.1.5",
@@ -27,7 +27,7 @@
     "passport-local": "~1.0.0",
     "passport-openid": "^0.3.1",
     "passport-twitter": "^1.0.2",
-    "prompt": "~0.2.13",
+    "prompt": "~0.2.14",
     "redis": "~0.12.1"
   },
   "devDependencies": {
@@ -35,9 +35,9 @@
     "grunt-contrib-jshint": "^0.10.0",
     "grunt-contrib-watch": "~0.6.1",
     "grunt-develop": "~0.4.0",
-    "jshint-stylish": "^0.4.0",
+    "jshint-stylish": "^1.0.0",
     "load-grunt-tasks": "~0.6.0",
-    "request": "~2.40.0",
+    "request": "~2.44.0",
     "time-grunt": "~1.0.0"
   }
 }

@@ -6,15 +6,14 @@
     var Schema = require('jugglingdb-model-loader');
 
     module.exports = function(config, router) {
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/../../..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/../../..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Collection = schema.loadDefinition('Collection');
         var LocalAccount = schema.loadDefinition('LocalAccount');

@@ -8,15 +8,14 @@ var config = {
 		port: 3000,
 
 		ssl: {
-			engine: true,
+			enable: true,
+
 			certificateFile: 'config/ssl/localhost.crt',
 			keyFile: 'config/ssl/localhost.key'
 		},
 
 		root: path.normalize(__dirname + '/..'),
-
 		publicDirectory: 'public',
-
 		requestTimeout: 4000,
 
 		api: {
@@ -40,7 +39,62 @@ var config = {
 
 				providers: {
 					local: true,
-					
+
+					facebook: true,
+					github: true,
+					google: true,
+					linkedin: true,
+					openid: true,
+					twitter: true
+				}
+			},
+
+			maxItems: 10
+		}
+	},
+
+	production: {
+		port: 3000,
+
+		ssl: {
+			enable: true,
+
+			certificateFile: 'config/ssl/localhost.crt',
+			keyFile: 'config/ssl/localhost.key'
+		},
+
+		root: path.normalize(__dirname + '/..'),
+		publicDirectory: 'public',
+		requestTimeout: 4000,
+
+		logger: {
+			enable: false,
+
+			file: 'log/server.log'
+		},
+
+		api: {
+			enable: true,
+
+			vendor: 'hbis',
+			defaultVersion: 1,
+
+			auth: {
+				redis: {
+					host: 'localhost',
+					port: 6379,
+					database: 1,
+					keyPrefix: 'blog-server:api:'
+				},
+
+				token: {
+					key: 'token:',
+					expireTime: 600
+				},
+
+				providers: {
+					local: true,
+
 					facebook: true,
 					github: true,
 					google: true,

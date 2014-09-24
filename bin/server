@@ -23,7 +23,7 @@
         process.exit(1);
     });
 
-    if (config.server.ssl && config.server.ssl.engine) {
+    if (config.server.ssl && config.server.ssl.enable) {
         var opts = {
             cert: fs.readFileSync(path.resolve(config.server.root, config.server.ssl.certificateFile)),
             key: fs.readFileSync(path.resolve(config.server.root, config.server.ssl.keyFile))

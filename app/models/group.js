@@ -31,6 +31,26 @@
 
         Group.validatesPresenceOf('name');
 
+        Group.beforeSave = function(next, data) {
+            var BlacklistName = schema.loadDefinition('BlacklistName');
+
+            BlacklistName.findOne({
+                where: {
+                    name: data.name
+                }
+            }, function(err, object) {
+                if (err) {
+                    return next(err);
+                }
+
+                if (object) {
+                    return next(new Error('Name is blacklisted'));
+                }
+
+                return next();
+            });
+        };
+
         return Group;
     };
 }());

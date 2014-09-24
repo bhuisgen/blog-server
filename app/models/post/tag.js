@@ -1,11 +1,11 @@
 (function() {
-    'use strict';
+	'use strict';
 
-    var Schema = require('jugglingdb').Schema;
+	var Schema = require('jugglingdb').Schema;
 
-    module.exports = function(schema) {
-        var PostTag = schema.define('PostTag', {});
+	module.exports = function(schema) {
+		var PostTag = schema.define('PostTag', {});
 
-        return PostTag;
-    };
+		return PostTag;
+	};
 }());

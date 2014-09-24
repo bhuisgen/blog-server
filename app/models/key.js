@@ -32,8 +32,10 @@
 
         Key.validatesPresenceOf('authkey');
 
-        Key.prototype.generateUUID = function() {
-            return uuid.v4();
+        Key.beforeCreate = function(next, data) {
+            data.authkey = uuid.v4();
+
+            return next();
         };
 
         return Key;

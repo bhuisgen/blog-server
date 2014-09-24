@@ -33,16 +33,16 @@
 
         config.database = require('../../config/database');
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/../..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+        
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/../..'),
+            directory: 'app/models'
+        };
 
+        var schema = new Schema(config.database.type, options);
+
+        var BlacklistIP = schema.loadDefinition('BlacklistIp');
         var Key = schema.loadDefinition('Key');
         var User = schema.loadDefinition('User');
 
@@ -87,6 +87,25 @@
             req.api = ret[1];
 
             return next();
+        });
+
+        router.use(function checkIP(req, res, next) {
+            BlacklistIP.findOne({
+                where: {
+                    ip: req.ip
+                }
+            }, function(err, object) {
+                if (err || object) {
+                    res.status(403);
+
+                    return res.json({
+                        success: false,
+                        message: 'IP address is blacklisted'
+                    });
+                }
+
+                return next();
+            });
         });
 
         router.use(function checkAuthentication(req, res, next) {

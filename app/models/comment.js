@@ -56,6 +56,41 @@
         Comment.validatesPresenceOf('email');
         Comment.validatesPresenceOf('ip');
 
+        Comment.beforeSave = function(next, data) {
+            var BlacklistEmail = schema.loadDefinition('BlacklistEmail');
+            var BlacklistIP = schema.loadDefinition('BlacklistIp');
+
+            BlacklistEmail.findOne({
+                where: {
+                    email: data.email
+                }
+            }, function(err, object) {
+                if (err) {
+                    return next(err);
+                }
+
+                if (object) {
+                    return next(new Error('Email is blacklisted'));
+                }
+
+                BlacklistIP.findOne({
+                    where: {
+                        ip: data.ip
+                    }
+                }, function(err, object) {
+                    if (err) {
+                        return next(err);
+                    }
+
+                    if (object) {
+                        return next(new Error('IP address is blacklisted'));
+                    }
+
+                    return next();
+                });
+            });
+        };
+
         return Comment;
     };
 }());

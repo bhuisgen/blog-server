@@ -74,6 +74,12 @@ Command help:
 
 	$ node bin/shell keys --help
 
+### Blacklists management
+
+Command help:
+
+	$node bin/shell blacklists --help
+
 ### Content mangement
 
 #### Create new content
@@ -114,8 +120,8 @@ Command help:
 
 To purge all pages in database:
 
-	$ node bin/shell purge --pages --verbose
+	$ node bin/shell purge
 
 To purge all posts in database:
 
-	$ node bin/shell purge --posts --verbose
+	$ node bin/shell purge

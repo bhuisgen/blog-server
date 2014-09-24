@@ -21,6 +21,86 @@
     config.database = require('../config/database');
     config.content = require('../config/content');
 
+    function checkInstance(neededState, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var BlacklistEmail = schema.loadDefinition('BlacklistEmail');
+        var BlacklistIP = schema.loadDefinition('BlacklistIp');
+        var BlacklistName = schema.loadDefinition('BlacklistName');
+        var ExternAccount = schema.loadDefinition('ExternAccount');
+        var LocalAccount = schema.loadDefinition('LocalAccount');
+        var PostCategory = schema.loadDefinition('PostCategory');
+        var PostTag = schema.loadDefinition('PostTag');
+        var Collection = schema.loadDefinition('Collection');
+        var Comment = schema.loadDefinition('Comment');
+        var Group = schema.loadDefinition('Group');
+        var Key = schema.loadDefinition('Key');
+        var Page = schema.loadDefinition('Page');
+        var Permission = schema.loadDefinition('Permission');
+        var Post = schema.loadDefinition('Post');
+        var Role = schema.loadDefinition('Role');
+        var Taxonomy = schema.loadDefinition('Taxonomy');
+        var Term = schema.loadDefinition('Term');
+        var User = schema.loadDefinition('User');
+
+        async.series([
+
+            function(callback) {
+                schema.isActual(function(err, actual) {
+                    if (!actual) {
+                        schema.autoupdate(function(err) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            return callback(null);
+                        });
+                    } else {
+                        return callback(null);
+                    }
+                });
+            },
+            function(callback) {
+                var Collection = schema.loadDefinition('Collection');
+
+                Collection.count(function(err, count) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (neededState && !count) {
+                        return callback(new Error('Instance not initialized'));
+                    }
+
+                    if (!neededState && count) {
+                        return callback(new Error('Instance already initialized'));
+                    }
+
+                    return callback(null);
+                });
+            }
+        ], function(err, replies) {
+            schema.disconnect();
+
+            if (err) {
+                return callback(err);
+            }
+
+            return callback(null);
+        });
+    }
+
     /*
      * Init command
      */
@@ -30,15 +110,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Permission = schema.loadDefinition('Permission');
         var Collection = schema.loadDefinition('Collection');
@@ -78,13 +157,9 @@
         async.series([
 
             function(callback) {
-                User.count(function(err, count) {
+                checkInstance(false, function(err) {
                     if (err) {
                         return callback(err);
-                    }
-
-                    if (count) {
-                        return callback(new Error('Instance already initialized'));
                     }
 
                     return callback(null);
@@ -502,8 +577,6 @@
                     enabled: true
                 });
 
-                keyAnonymous.authkey = keyAnonymous.generateUUID();
-
                 keyAnonymous.save(function(err) {
                     if (err) {
                         return callback();
@@ -548,7 +621,7 @@
                         email: {
                             description: 'email',
                             type: 'string',
-                            pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                            format: 'email',
                             message: 'Email must be valid',
                             required: true
                         },
@@ -634,7 +707,6 @@
         });
     }
 
-
     /*
      * Roles management
      */
@@ -644,274 +716,296 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
 
-        var Role = schema.loadDefinition('Role');
-
-        prompt.message = 'Add role';
-
-        var promptConfig = {
-            properties: {
-                name: {
-                    description: 'name',
-                    type: 'string',
-                    required: true
-                },
-                usersCreate: {
-                    description: 'usersCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                usersRead: {
-                    description: 'usersRead',
-                    type: 'boolean',
-                    required: true
-                },
-                usersUpdate: {
-                    description: 'usersUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                usersDelete: {
-                    description: 'usersDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                groupsCreate: {
-                    description: 'groupsCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                groupsRead: {
-                    description: 'groupsRead',
-                    type: 'boolean',
-                    required: true
-                },
-                groupsUpdate: {
-                    description: 'groupsUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                groupsDelete: {
-                    description: 'groupsDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                rolesCreate: {
-                    description: 'rolesCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                rolesRead: {
-                    description: 'rolesRead',
-                    type: 'boolean',
-                    required: true
-                },
-                rolesUpdate: {
-                    description: 'rolesUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                rolesDelete: {
-                    description: 'rolesDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                keysCreate: {
-                    description: 'keysCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                keysRead: {
-                    description: 'keysRead',
-                    type: 'boolean',
-                    required: true
-                },
-                keysUpdate: {
-                    description: 'keysUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                keysDelete: {
-                    description: 'keysDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                localAccountsCreate: {
-                    description: 'localAccountsCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                localAccountsRead: {
-                    description: 'localAccountsRead',
-                    type: 'boolean',
-                    required: true
-                },
-                localAccountsUpdate: {
-                    description: 'localAccountsUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                localAccountsDelete: {
-                    description: 'localAccountsDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                externAccountsCreate: {
-                    description: 'externAccountsCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                externAccountsRead: {
-                    description: 'externAccountsRead',
-                    type: 'boolean',
-                    required: true
-                },
-                externAccountsUpdate: {
-                    description: 'externAccountsUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                externAccountsDelete: {
-                    description: 'externAccountsDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                pagesCreate: {
-                    description: 'pagesCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                pagesRead: {
-                    description: 'pagesRead',
-                    type: 'boolean',
-                    required: true
-                },
-                pagesUpdate: {
-                    description: 'pagesUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                pagesDelete: {
-                    description: 'pagesDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                postsCreate: {
-                    description: 'postsCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                postsRead: {
-                    description: 'postsRead',
-                    type: 'boolean',
-                    required: true
-                },
-                postsUpdate: {
-                    description: 'postsUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                postsDelete: {
-                    description: 'postsDelete',
-                    type: 'boolean',
-                    required: true
-                },
-                commentsCreate: {
-                    description: 'commentsCreate',
-                    type: 'boolean',
-                    required: true
-                },
-                commentsRead: {
-                    description: 'commentsRead',
-                    type: 'boolean',
-                    required: true
-                },
-                commentsUpdate: {
-                    description: 'commentsUpdate',
-                    type: 'boolean',
-                    required: true
-                },
-                commentsDelete: {
-                    description: 'commentsDelete',
-                    type: 'boolean',
-                    required: true
-                }
-            }
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
         };
 
-        prompt.start();
+        var schema = new Schema(config.database.type, options);
 
-        prompt.get(promptConfig, function(err, result) {
-            Role.findOne({
-                where: {
-                    name: result.name
-                }
-            }, function(err, role) {
-                if (err) {
-                    return callback(err);
-                }
+        var Role = schema.loadDefinition('Role');
+        var name;
 
-                if (role) {
-                    return callback(new Error('Role already exists'));
-                }
+        async.series([
 
-                role = new Role({
-                    name: result.name,
-                    usersCreate: result.usersCreate,
-                    usersRead: result.usersRead,
-                    usersUpdate: result.usersUpdate,
-                    usersDelete: result.usersDelete,
-                    groupsCreate: result.groupsCreate,
-                    groupsRead: result.groupsRead,
-                    groupsUpdate: result.groupsUpdate,
-                    groupsDelete: result.groupsDelete,
-                    rolesCreate: result.rolesCreate,
-                    rolesRead: result.rolesRead,
-                    rolesUpdate: result.rolesUpdate,
-                    rolesDelete: result.rolesDelete,
-                    keysCreate: result.keysCreate,
-                    keysRead: result.keysRead,
-                    keysUpdate: result.keysUpdate,
-                    keysDelete: result.keysDelete,
-                    localAccountsCreate: result.localAccountsCreate,
-                    localAccountsRead: result.localAccountsRead,
-                    localAccountsUpdate: result.localAccountsUpdate,
-                    localAccountsDelete: result.localAccountsDelete,
-                    externAccountsCreate: result.externAccountsCreate,
-                    externAccountsRead: result.externAccountsRead,
-                    externAccountsUpdate: result.externAccountsUpdate,
-                    externAccountsDelete: result.externAccountsDelete,
-                    pagesCreate: result.pagesCreate,
-                    pagesRead: result.pagesRead,
-                    pagesUpdate: result.pagesUpdate,
-                    pagesDelete: result.pagesDelete,
-                    postsCreate: result.postsCreate,
-                    postsRead: result.postsRead,
-                    postsUpdate: result.postsUpdate,
-                    postsDelete: result.postsDelete,
-                    commentsCreate: result.commentsCreate,
-                    commentsRead: result.commentsRead,
-                    commentsUpdate: result.commentsUpdate,
-                    commentsDelete: result.commentsDelete
-                });
-
-                role.save(function(err) {
+            function(callback) {
+                checkInstance(true, function(err) {
                     if (err) {
                         return callback(err);
                     }
 
                     return callback(null);
                 });
-            });
+            },
+            function(callback) {
+                prompt.message = 'Add role';
+
+                var promptConfig = {
+                    properties: {
+                        name: {
+                            description: 'name',
+                            type: 'string',
+                            required: true
+                        },
+                        usersCreate: {
+                            description: 'usersCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        usersRead: {
+                            description: 'usersRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        usersUpdate: {
+                            description: 'usersUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        usersDelete: {
+                            description: 'usersDelete',
+                            type: 'boolean',
+                            required: true
+                        },
+                        groupsCreate: {
+                            description: 'groupsCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        groupsRead: {
+                            description: 'groupsRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        groupsUpdate: {
+                            description: 'groupsUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        groupsDelete: {
+                            description: 'groupsDelete',
+                            type: 'boolean',
+                            required: true
+                        },
+                        rolesCreate: {
+                            description: 'rolesCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        rolesRead: {
+                            description: 'rolesRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        rolesUpdate: {
+                            description: 'rolesUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        rolesDelete: {
+                            description: 'rolesDelete',
+                            type: 'boolean',
+                            required: true
+                        },
+                        keysCreate: {
+                            description: 'keysCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        keysRead: {
+                            description: 'keysRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        keysUpdate: {
+                            description: 'keysUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        keysDelete: {
+                            description: 'keysDelete',
+                            type: 'boolean',
+                            required: true
+                        },
+                        localAccountsCreate: {
+                            description: 'localAccountsCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        localAccountsRead: {
+                            description: 'localAccountsRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        localAccountsUpdate: {
+                            description: 'localAccountsUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        localAccountsDelete: {
+                            description: 'localAccountsDelete',
+                            type: 'boolean',
+                            required: true
+                        },
+                        externAccountsCreate: {
+                            description: 'externAccountsCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        externAccountsRead: {
+                            description: 'externAccountsRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        externAccountsUpdate: {
+                            description: 'externAccountsUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        externAccountsDelete: {
+                            description: 'externAccountsDelete',
+                            type: 'boolean',
+                            required: true
+                        },
+                        pagesCreate: {
+                            description: 'pagesCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        pagesRead: {
+                            description: 'pagesRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        pagesUpdate: {
+                            description: 'pagesUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        pagesDelete: {
+                            description: 'pagesDelete',
+                            type: 'boolean',
+                            required: true
+                        },
+                        postsCreate: {
+                            description: 'postsCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        postsRead: {
+                            description: 'postsRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        postsUpdate: {
+                            description: 'postsUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        postsDelete: {
+                            description: 'postsDelete',
+                            type: 'boolean',
+                            required: true
+                        },
+                        commentsCreate: {
+                            description: 'commentsCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        commentsRead: {
+                            description: 'commentsRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        commentsUpdate: {
+                            description: 'commentsUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        commentsDelete: {
+                            description: 'commentsDelete',
+                            type: 'boolean',
+                            required: true
+                        }
+                    }
+                };
+
+                prompt.start();
+
+                prompt.get(promptConfig, function(err, result) {
+                    Role.findOne({
+                        where: {
+                            name: result.name
+                        }
+                    }, function(err, role) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        if (role) {
+                            return callback(new Error('Role already exists'));
+                        }
+
+                        role = new Role({
+                            name: result.name,
+                            usersCreate: result.usersCreate,
+                            usersRead: result.usersRead,
+                            usersUpdate: result.usersUpdate,
+                            usersDelete: result.usersDelete,
+                            groupsCreate: result.groupsCreate,
+                            groupsRead: result.groupsRead,
+                            groupsUpdate: result.groupsUpdate,
+                            groupsDelete: result.groupsDelete,
+                            rolesCreate: result.rolesCreate,
+                            rolesRead: result.rolesRead,
+                            rolesUpdate: result.rolesUpdate,
+                            rolesDelete: result.rolesDelete,
+                            keysCreate: result.keysCreate,
+                            keysRead: result.keysRead,
+                            keysUpdate: result.keysUpdate,
+                            keysDelete: result.keysDelete,
+                            localAccountsCreate: result.localAccountsCreate,
+                            localAccountsRead: result.localAccountsRead,
+                            localAccountsUpdate: result.localAccountsUpdate,
+                            localAccountsDelete: result.localAccountsDelete,
+                            externAccountsCreate: result.externAccountsCreate,
+                            externAccountsRead: result.externAccountsRead,
+                            externAccountsUpdate: result.externAccountsUpdate,
+                            externAccountsDelete: result.externAccountsDelete,
+                            pagesCreate: result.pagesCreate,
+                            pagesRead: result.pagesRead,
+                            pagesUpdate: result.pagesUpdate,
+                            pagesDelete: result.pagesDelete,
+                            postsCreate: result.postsCreate,
+                            postsRead: result.postsRead,
+                            postsUpdate: result.postsUpdate,
+                            postsDelete: result.postsDelete,
+                            commentsCreate: result.commentsCreate,
+                            commentsRead: result.commentsRead,
+                            commentsUpdate: result.commentsUpdate,
+                            commentsDelete: result.commentsDelete
+                        });
+
+                        role.save(function(err) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            return callback(null);
+                        });
+                    });
+                });
+            }
+        ], function(err, replies) {
+            schema.disconnect();
+
+            if (err) {
+                return callback(err);
+            }
+
+            return callback(null);
         });
     }
 
@@ -920,64 +1014,85 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Role = schema.loadDefinition('Role');
 
-        prompt.message = 'Remove role';
+        async.series([
 
-        var promptConfig = {
-            properties: {
-                name: {
-                    description: 'name',
-                    type: 'string',
-                    required: true
-                }
-            }
-        };
-
-        prompt.start();
-
-        prompt.get(promptConfig, function(err, result) {
-            Role.findOne({
-                where: {
-                    name: result.name
-                }
-            }, function(err, role) {
-                if (err) {
-                    return callback(err);
-                }
-
-                if (!role) {
-                    return callback(new Error('Role doesn\'t exist'));
-                }
-
-                role.groups(function(err, groups) {
+            function(callback) {
+                checkInstance(true, function(err) {
                     if (err) {
                         return callback(err);
                     }
 
-                    if (groups.length) {
-                        return callback(new Error('Role contains existent groups'));
-                    }
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                prompt.message = 'Remove role';
 
-                    role.destroy(function(err) {
+                var promptConfig = {
+                    properties: {
+                        name: {
+                            description: 'name',
+                            type: 'string',
+                            required: true
+                        }
+                    }
+                };
+
+                prompt.start();
+
+                prompt.get(promptConfig, function(err, result) {
+                    Role.findOne({
+                        where: {
+                            name: result.name
+                        }
+                    }, function(err, role) {
                         if (err) {
                             return callback(err);
                         }
 
-                        return callback(null);
+                        if (!role) {
+                            return callback(new Error('Role doesn\'t exist'));
+                        }
+
+                        role.groups(function(err, groups) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            if (groups.length) {
+                                return callback(new Error('Role contains existent groups'));
+                            }
+
+                            role.destroy(function(err) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                return callback(null);
+                            });
+                        });
                     });
                 });
-            });
+            }
+        ], function(err, replies) {
+            schema.disconnect();
+
+            if (err) {
+                return callback(err);
+            }
+
+            return callback(null);
         });
     }
 
@@ -986,52 +1101,74 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Role = schema.loadDefinition('Role');
 
-        var data = {};
+        async.series([
 
-        Role.all(function(err, roles) {
-            if (err) {
-                return callback(err);
-            }
-
-            if (!roles) {
-                console.log(data);
-
-                return callback(null);
-            }
-
-            var pending = roles.length;
-
-            function iterate(role) {
-                role.groups(function(err, groups) {
+            function(callback) {
+                checkInstance(true, function(err) {
                     if (err) {
                         return callback(err);
                     }
 
-                    data[role.name] = [role, groups];
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                var data = {};
 
-                    if (!--pending) {
+                Role.all(function(err, roles) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (!roles) {
                         console.log(data);
 
                         return callback(null);
                     }
+
+                    var pending = roles.length;
+
+                    function iterate(role) {
+                        role.groups(function(err, groups) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            data[role.name] = [role, groups];
+
+                            if (!--pending) {
+                                console.log(data);
+
+                                return callback(null);
+                            }
+                        });
+                    }
+
+                    for (var i = 0; i < roles.length; i++) {
+                        iterate(roles[i]);
+                    }
                 });
+
+            }
+        ], function(err, replies) {
+            schema.disconnect();
+
+            if (err) {
+                return callback(err);
             }
 
-            for (var i = 0; i < roles.length; i++) {
-                iterate(roles[i]);
-            }
+            return callback(null);
         });
     }
 
@@ -1040,60 +1177,81 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Role = schema.loadDefinition('Role');
 
-        prompt.message = 'Show role';
+        async.series([
 
-        var promptConfig = {
-            properties: {
-                name: {
-                    description: 'name',
-                    type: 'string',
-                    required: true
-                }
-            }
-        };
-
-        prompt.start();
-
-        prompt.get(promptConfig, function(err, result) {
-            Role.findOne({
-                where: {
-                    name: result.name
-                }
-            }, function(err, role) {
-                if (err) {
-                    return callback(err);
-                }
-
-                if (!role) {
-                    return callback(new Error('Role doesn\'t exist'));
-                }
-
-                role.groups(function(err, groups) {
+            function(callback) {
+                checkInstance(true, function(err) {
                     if (err) {
                         return callback(err);
                     }
 
-                    if (!groups) {
-                        return callback(new Error('Group doesn\'t exist'));
-                    }
-
-                    console.log([role, groups]);
-
                     return callback(null);
                 });
-            });
+            },
+            function(callback) {
+                prompt.message = 'Show role';
+
+                var promptConfig = {
+                    properties: {
+                        name: {
+                            description: 'name',
+                            type: 'string',
+                            required: true
+                        }
+                    }
+                };
+
+                prompt.start();
+
+                prompt.get(promptConfig, function(err, result) {
+                    Role.findOne({
+                        where: {
+                            name: result.name
+                        }
+                    }, function(err, role) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        if (!role) {
+                            return callback(new Error('Role doesn\'t exist'));
+                        }
+
+                        role.groups(function(err, groups) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            if (!groups) {
+                                return callback(new Error('Group doesn\'t exist'));
+                            }
+
+                            console.log([role, groups]);
+
+                            return callback(null);
+                        });
+                    });
+                });
+            }
+        ], function(err, replies) {
+            schema.disconnect();
+
+            if (err) {
+                return callback(err);
+            }
+
+            return callback(null);
         });
     }
 
@@ -1102,15 +1260,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Role = schema.loadDefinition('Role');
 
@@ -1375,15 +1532,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Role = schema.loadDefinition('Role');
 
@@ -1456,15 +1612,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Group = schema.loadDefinition('Group');
         var Role = schema.loadDefinition('Role');
@@ -1536,15 +1691,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Group = schema.loadDefinition('Group');
 
@@ -1602,15 +1756,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Group = schema.loadDefinition('Group');
 
@@ -1662,15 +1815,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Group = schema.loadDefinition('Group');
 
@@ -1722,15 +1874,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Group = schema.loadDefinition('Group');
         var Role = schema.loadDefinition('Role');
@@ -1800,15 +1951,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Group = schema.loadDefinition('Group');
 
@@ -1881,15 +2031,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var User = schema.loadDefinition('User');
         var Group = schema.loadDefinition('Group');
@@ -1902,7 +2051,7 @@
                 email: {
                     description: 'email',
                     type: 'string',
-                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    format: 'email',
                     message: 'Email must be valid',
                     required: true
                 },
@@ -2016,15 +2165,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var User = schema.loadDefinition('User');
 
@@ -2035,7 +2183,7 @@
                 email: {
                     description: 'email',
                     type: 'string',
-                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    format: 'email',
                     message: 'Email must be valid',
                     required: true
                 }
@@ -2098,15 +2246,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var User = schema.loadDefinition('User');
 
@@ -2170,15 +2317,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var User = schema.loadDefinition('User');
 
@@ -2189,7 +2335,7 @@
                 email: {
                     description: 'email',
                     type: 'string',
-                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    format: 'email',
                     message: 'Email must be valid',
                     required: true
                 }
@@ -2248,15 +2394,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var User = schema.loadDefinition('User');
         var Group = schema.loadDefinition('Group');
@@ -2268,14 +2413,14 @@
                 email: {
                     description: 'email',
                     type: 'string',
-                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    format: 'email',
                     message: 'Email must be valid',
                     required: true
                 },
                 newemail: {
                     description: 'new email',
                     type: 'string',
-                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    format: 'email',
                     message: 'Email must be valid',
                     required: true
                 },
@@ -2356,15 +2501,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var User = schema.loadDefinition('User');
 
@@ -2375,7 +2519,7 @@
                 email: {
                     description: 'email',
                     type: 'string',
-                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    format: 'email',
                     message: 'Email must be valid',
                     required: true
                 }
@@ -2416,15 +2560,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var User = schema.loadDefinition('User');
 
@@ -2435,7 +2578,7 @@
                 email: {
                     description: 'email',
                     type: 'string',
-                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    format: 'email',
                     message: 'Email must be valid',
                     required: true
                 }
@@ -2476,15 +2619,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var LocalAccount = schema.loadDefinition('LocalAccount');
 
@@ -2552,15 +2694,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Key = schema.loadDefinition('Key');
         var User = schema.loadDefinition('User');
@@ -2572,7 +2713,7 @@
                 email: {
                     description: 'email',
                     type: 'string',
-                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    format: 'email',
                     message: 'Email must be valid',
                     required: true
                 }
@@ -2599,8 +2740,6 @@
                     enabled: true
                 });
 
-                key.authkey = key.generateUUID();
-
                 key.save(function(err) {
                     if (err) {
                         return callback(err);
@@ -2619,15 +2758,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Key = schema.loadDefinition('Key');
 
@@ -2671,15 +2809,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Key = schema.loadDefinition('Key');
 
@@ -2733,15 +2870,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Key = schema.loadDefinition('Key');
         var User = schema.loadDefinition('User');
@@ -2753,7 +2889,7 @@
                 email: {
                     description: 'email',
                     type: 'string',
-                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    format: 'email',
                     message: 'Email must be valid',
                     required: true
                 }
@@ -2798,15 +2934,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Key = schema.loadDefinition('Key');
 
@@ -2856,15 +2991,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Key = schema.loadDefinition('Key');
 
@@ -2936,10 +3070,128 @@
     }
 
     /*
-     * Create command
+     * Backlist management
      */
 
-    function createPage(verbose, callback) {
+    function blacklistAddIP(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var BlacklistIP = schema.loadDefinition('BlacklistIp');
+
+        prompt.message = 'Add in blacklist';
+
+        var promptConfig = {
+            properties: {
+                ip: {
+                    description: 'IP',
+                    type: 'string',
+                    format: ['ip-address', 'ipv6'],
+                    message: 'IP address must be valid',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            BlacklistIP.findOne({
+                where: {
+                    ip: result.ip
+                }
+            }, function(err, blacklistIP) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (blacklistIP) {
+                    return callback(new Error('IP is already blacklisted'));
+                }
+
+                blacklistIP = new BlacklistIP({
+                    ip: result.ip
+                });
+
+                blacklistIP.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function blacklistRemoveIP(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var BlacklistIP = schema.loadDefinition('BlacklistIp');
+
+        prompt.message = 'Remove from blacklist';
+
+        var promptConfig = {
+            properties: {
+                ip: {
+                    description: 'IP',
+                    type: 'string',
+                    format: ['ip-address', 'ipv6'],
+                    message: 'IP address must be valid',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            BlacklistIP.findOne({
+                where: {
+                    ip: result.ip
+                }
+            }, function(err, blacklistIP) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!blacklistIP) {
+                    return callback(new Error('IP is not blacklisted'));
+                }
+
+                blacklistIP.destroy(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function blacklistListIP(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2953,6 +3205,330 @@
                 directory: 'app/models'
             }
         });
+
+        var BlacklistIP = schema.loadDefinition('BlacklistIp');
+
+        var data = {};
+
+        BlacklistIP.all(function(err, ips) {
+            if (err) {
+                return callback(err);
+            }
+
+            console.log(ips);
+
+            return callback(null);
+        });
+    }
+
+    function blacklistAddEmail(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var BlacklistEmail = schema.loadDefinition('BlacklistEmail');
+
+        prompt.message = 'Add in blacklist';
+
+        var promptConfig = {
+            properties: {
+                email: {
+                    description: 'Email',
+                    type: 'string',
+                    format: 'email',
+                    message: 'Email must be valid',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            BlacklistEmail.findOne({
+                where: {
+                    email: result.email
+                }
+            }, function(err, blacklistEmail) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (blacklistEmail) {
+                    return callback(new Error('Email is already blacklisted'));
+                }
+
+                blacklistEmail = new BlacklistEmail({
+                    email: result.email
+                });
+
+                blacklistEmail.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function blacklistRemoveEmail(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var BlacklistEmail = schema.loadDefinition('BlacklistEmail');
+
+        prompt.message = 'Remove from blacklist';
+
+        var promptConfig = {
+            properties: {
+                email: {
+                    description: 'Email',
+                    type: 'string',
+                    format: 'email',
+                    message: 'Email must be valid',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            BlacklistEmail.findOne({
+                where: {
+                    email: result.email
+                }
+            }, function(err, blacklistEmail) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!blacklistEmail) {
+                    return callback(new Error('Email is not blacklisted'));
+                }
+
+                blacklistEmail.destroy(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function blacklistListEmail(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var BlacklistEmail = schema.loadDefinition('BlacklistEmail');
+
+        var data = {};
+
+        BlacklistEmail.all(function(err, emails) {
+            if (err) {
+                return callback(err);
+            }
+
+            console.log(emails);
+
+            return callback(null);
+        });
+    }
+
+    function blacklistAddName(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var BlacklistName = schema.loadDefinition('BlacklistName');
+
+        prompt.message = 'Add in blacklist';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'Name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            BlacklistName.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, blacklistName) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (blacklistName) {
+                    return callback(new Error('Name is already blacklisted'));
+                }
+
+                blacklistName = new BlacklistName({
+                    name: result.name
+                });
+
+                blacklistName.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function blacklistRemoveName(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var BlacklistName = schema.loadDefinition('BlacklistName');
+
+        prompt.message = 'Remove from blacklist';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'Name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            BlacklistName.findOne({
+                where: {
+                    name: result.name
+                }
+            }, function(err, blacklistName) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!blacklistName) {
+                    return callback(new Error('Name is not blacklisted'));
+                }
+
+                blacklistName.destroy(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            });
+        });
+    }
+
+    function blacklistListName(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var BlacklistName = schema.loadDefinition('BlacklistName');
+
+        var data = {};
+
+        BlacklistName.all(function(err, names) {
+            if (err) {
+                return callback(err);
+            }
+
+            console.log(names);
+
+            return callback(null);
+        });
+    }
+
+    /*
+     * Create command
+     */
+
+    function createPage(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Page = schema.loadDefinition('Page');
         var User = schema.loadDefinition('User');
@@ -2976,7 +3552,7 @@
                 email: {
                     description: 'email',
                     type: 'string',
-                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    format: 'email',
                     message: 'Email must be valid',
                     required: true
                 }
@@ -3054,15 +3630,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Post = schema.loadDefinition('Post');
         var User = schema.loadDefinition('User');
@@ -3086,7 +3661,7 @@
                 email: {
                     description: 'email',
                     type: 'string',
-                    pattern: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    format: 'email',
                     message: 'Email must be valid',
                     required: true
                 }
@@ -3173,15 +3748,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Page = schema.loadDefinition('Page');
         var User = schema.loadDefinition('User');
@@ -3290,15 +3864,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.database,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Page = schema.loadDefinition('Page');
 
@@ -3452,15 +4025,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Post = schema.loadDefinition('Post');
         var User = schema.loadDefinition('User');
@@ -3594,31 +4166,40 @@
                                     taxonomyId: categoriesTaxonomy.id
                                 }
                             }, function(err, category) {
-                                if (err) {
-                                    return callback(err);
-                                }
+                                async.series([
 
-                                if (category) {
-                                    return callback(null);
-                                }
+                                    function(callback) {
+                                        if (category) {
+                                            return callback(null);
+                                        }
 
-                                category = categoriesTaxonomy.terms.build({
-                                    name: item
-                                });
+                                        category = categoriesTaxonomy.terms.build({
+                                            name: item
+                                        });
 
-                                category.save(function(err) {
+                                        category.save(function(err) {
+                                            if (err) {
+                                                return callback(err);
+                                            }
+
+                                            return callback(null);
+                                        });
+                                    },
+                                    function(callback) {
+                                        post.categories.add(category, function(err) {
+                                            if (err) {
+                                                return callback(err);
+                                            }
+
+                                            return callback(null);
+                                        });
+                                    }
+                                ], function(err, results) {
                                     if (err) {
                                         return callback(err);
                                     }
 
-                                    post.categories.create(category);
-                                    post.save(function(err) {
-                                        if (err) {
-                                            return callback(err);
-                                        }
-
-                                        return callback(null);
-                                    });
+                                    return callback(null);
                                 });
                             });
                         }, function(err) {
@@ -3641,31 +4222,40 @@
                                     taxonomyId: tagsTaxonomy.id
                                 }
                             }, function(err, tag) {
-                                if (err) {
-                                    return callback(err);
-                                }
+                                async.series([
 
-                                if (tag) {
-                                    return callback(null);
-                                }
+                                    function(callback) {
+                                        if (tag) {
+                                            return callback(null);
+                                        }
 
-                                tag = tagsTaxonomy.terms.build({
-                                    name: item
-                                });
+                                        tag = tagsTaxonomy.terms.build({
+                                            name: item
+                                        });
 
-                                tag.save(function(err) {
+                                        tag.save(function(err) {
+                                            if (err) {
+                                                return callback(err);
+                                            }
+
+                                            return callback(null);
+                                        });
+                                    },
+                                    function(callback) {
+                                        post.tags.add(tag, function(err) {
+                                            if (err) {
+                                                return callback(err);
+                                            }
+
+                                            return callback(null);
+                                        });
+                                    }
+                                ], function(err, results) {
                                     if (err) {
                                         return callback(err);
                                     }
 
-                                    post.tags.create(tag);
-                                    post.save(function(err) {
-                                        if (err) {
-                                            return callback(err);
-                                        }
-
-                                        return callback(null);
-                                    });
+                                    return callback(null);
                                 });
                             });
                         }, function(err) {
@@ -3675,7 +4265,7 @@
 
                             return callback(null);
                         });
-                    }
+                    },
                 ], function(err, replies) {
                     if (err) {
                         return callback(err);
@@ -3705,15 +4295,14 @@
             return true;
         };
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.database,
-            modelLoader: {
-                rootDirectory: config.database.root,
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var Post = schema.loadDefinition('Post');
 
@@ -4279,6 +4868,127 @@
 
             if (options.encode) {
                 keyEncode(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+        });
+
+    program.command('blacklists')
+        .description('blacklists management')
+        .option('    --add-ip', 'add IP in blacklist')
+        .option('    --remove-ip', 'remove IP in blacklist')
+        .option('    --list-ip', 'list blacklisted IP')
+        .option('    --add-email', 'add email in blacklist')
+        .option('    --remove-email', 'remove email in blacklist')
+        .option('    --list-email', 'list blacklisted emails')
+        .option('    --add-name', 'add name in blacklist')
+        .option('    --remove-name', 'remove name in blacklist')
+        .option('    --list-name', 'list blacklisted names')
+        .action(function(options) {
+            if (options.addIp) {
+                blacklistAddIP(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.removeIp) {
+                blacklistRemoveIP(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.listIp) {
+                blacklistListIP(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.addEmail) {
+                blacklistAddEmail(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.removeEmail) {
+                blacklistRemoveEmail(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.listEmail) {
+                blacklistListEmail(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.addName) {
+                blacklistAddName(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.removeName) {
+                blacklistRemoveName(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.listName) {
+                blacklistListName(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 

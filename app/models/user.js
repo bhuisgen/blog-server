@@ -66,6 +66,41 @@
         User.validatesPresenceOf('name');
         User.validatesPresenceOf('group');
 
+        User.beforeSave = function(next, data) {
+            var BlacklistEmail = schema.loadDefinition('BlacklistEmail');
+            var BlacklistName = schema.loadDefinition('BlacklistName');
+
+            BlacklistEmail.findOne({
+                where: {
+                    email: data.email
+                }
+            }, function(err, object) {
+                if (err) {
+                    return next(err);
+                }
+
+                if (object) {
+                    return next(new Error('Email is blacklisted'));
+                }
+
+                BlacklistName.findOne({
+                    where: {
+                        name: data.name
+                    }
+                }, function(err, object) {
+                    if (err) {
+                        return next(err);
+                    }
+
+                    if (object) {
+                        return next(new Error('Name is blacklisted'));
+                    }
+
+                    return next();
+                });
+            });
+        };
+
         return User;
     };
 }());

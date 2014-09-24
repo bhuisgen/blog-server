@@ -28,7 +28,7 @@
             return res.json(data);
         });
 
-        router.get('/process', function process(req, res) {
+        router.get('/process', function proc(req, res) {
             var data = {};
 
             data.name = process.title;

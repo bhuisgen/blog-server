@@ -16,6 +16,21 @@ var config = {
             excerpt: '<!-- more -->',
             comments: true
         }
+    },
+
+    production: {
+        root: path.normalize(__dirname + '/..'),
+
+        pages: {
+            directory: 'content/pages/',
+            comments: true
+        },
+
+        posts: {
+            directory: 'content/posts/',
+            excerpt: '<!-- more -->',
+            comments: true
+        }
     }
 };
 

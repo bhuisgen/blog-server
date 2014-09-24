@@ -18,8 +18,12 @@ module.exports = function(grunt) {
         grunt: gruntConfig,
         pkg: grunt.file.readJSON('package.json'),
         develop: {
-            server: {
+            release: {
                 file: 'bin/server'
+            },
+            debug: {
+                file: 'bin/server',
+                nodeArgs: ['--debug']
             }
         },
         watch: {
@@ -72,7 +76,15 @@ module.exports = function(grunt) {
     grunt.registerTask('serve', function() {
         grunt.task.run([
             'build',
-            'develop',
+            'develop:release',
+            'watch'
+        ]);
+    });
+
+    grunt.registerTask('serve-debug', function() {
+        grunt.task.run([
+            'build',
+            'develop:debug',
             'watch'
         ]);
     });

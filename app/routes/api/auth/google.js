@@ -12,15 +12,14 @@
     module.exports = function(config, router, r) {
         config.keys = require('../../../../config/keys');
 
-        var schema = new Schema(config.database.type, {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            modelLoader: {
-                rootDirectory: path.normalize(__dirname + '/../../../..'),
-                directory: 'app/models'
-            }
-        });
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/../../../..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
 
         var User = schema.loadDefinition('User');
         var ExternAccount = schema.loadDefinition('ExternAccount');
