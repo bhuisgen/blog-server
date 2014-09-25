@@ -25,13 +25,13 @@ Install the dependencies:
 
 For storing content in alternative storage:
 
-* for SQLite storage:
+- for SQLite storage:
 
-	$ npm install jugglingdb-sqlite3
+		$ npm install jugglingdb-sqlite3
 
-* for PostgreSQL storage:
+- for PostgreSQL storage:
 
-	$ npm install jugglingdb-postgres
+		$ npm install jugglingdb-postgres
 
 You can now build your instance:
 
@@ -142,8 +142,8 @@ Command help:
 
 To purge all pages in database:
 
-	$ node bin/shell purge
+	$ node bin/shell purge --pages
 
 To purge all posts in database:
 
-	$ node bin/shell purge
+	$ node bin/shell purge --posts
