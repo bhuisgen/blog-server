@@ -58,6 +58,10 @@
 
             function(callback) {
                 schema.isActual(function(err, actual) {
+                    if (err) {
+                        return callback(err);
+                    }
+
                     if (!actual) {
                         schema.autoupdate(function(err) {
                             if (err) {
