@@ -1,0 +1,19 @@
+var env = process.env.NODE_ENV || 'development';
+
+var config = {
+	development: {
+		type: 'sqlite3',
+		options: {
+			database: 'blog_development.sqlite'
+		}
+	},
+
+	production: {
+		type: 'sqlite3',
+		options: {
+			database: 'blog_production.sqlite'
+		}
+	}
+};
+
+module.exports = config[env];
