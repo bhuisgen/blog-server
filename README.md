@@ -7,28 +7,31 @@ Under GNU GPL licence
 ## Getting blog-server
 
 	$ git clone https://github.com/bhuisgen/blog-server.git
+
 	$ cd blog-server
 
 ## Building
 
-Redis is needed to cache server data:
+Redis is needed to cache local server data:
 
 	# apt-get install redis-server
 
-By default, Redis is used to store your blog content but you can use a different backend.
-
-To use PostgreSQL database:
-
-	# apt-get install postgresql-server-<VERSION> postgresql-server-dev-<VERSION>
+It is also used to store blog content but you can use a different storage like SQLite and PostgreSQL.
 
 Install the dependencies:
 
 	$ bower install
 	$ npm install
 
-To use PostgreSQL install this backend storage:
+For storing content in alternative storage:
 
-	$ npm install jugglingdb-postgres --save
+* for SQLite storage:
+
+	$ npm install jugglingdb-sqlite3
+
+* for PostgreSQL storage:
+
+	$ npm install jugglingdb-postgres
 
 You can now build your instance:
 
