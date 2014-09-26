@@ -39,12 +39,18 @@ You can now build your instance:
 
 ## Configuration
 
-Edit these files:
+You must choose one content storage backend and copy the corresponding template file into *config/database.js*.
 
-- *config/content.js*: to configure local content directories
-- *config/database.js*: to configure your backend storage
+For Redis storage:
+
+	$ cp config/database.redis.js config/database.js
+
+Available configuration files :
+- *config/content.js*: to configure your local content settings
+- *config/database.js*: to configure your content storage settings
+- *config/server.js*: to configure the REST API server settings
 - *config/keys.js*: to add your API keys for external authentication
-- *config/server.js*: to configure the REST API server
+
 
 ## Use
 
