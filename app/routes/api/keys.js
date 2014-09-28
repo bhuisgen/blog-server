@@ -103,7 +103,7 @@
         router.post('/keys', function createKey(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -112,7 +112,7 @@
 
             var key = new Key(req.body.key);
 
-            if ((req.permission.isShared() || req.permission.isPrivate()) && (key.userId !== req.user.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (key.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -136,7 +136,7 @@
                     return next(err);
                 }
 
-                if (req.permission.isPrivate() && key && (key.userId !== req.user.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && key && (key.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -176,7 +176,7 @@
                             return next(err);
                         }
 
-                        if (req.permission.isPrivate() && key && (key.userId !== req.user.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && key && (key.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
@@ -251,7 +251,7 @@
                         var pending = keys.length;
 
                         var iterate = function(key) {
-                            if (req.permission.isPrivate() && (key.userId !== req.user.id)) {
+                            if (!req.user.admin && req.permission.isPrivate() && (key.userId !== req.user.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
 
@@ -282,7 +282,7 @@
         router.put('/keys/:id', function updateKey(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -294,7 +294,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && key && (key.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && key && (key.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -321,7 +321,7 @@
         router.delete('/keys/:id', function deleteKey(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -333,7 +333,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && key && (key.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && key && (key.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 

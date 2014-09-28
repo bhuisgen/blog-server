@@ -110,7 +110,7 @@
         router.post('/roles', function createRole(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -119,7 +119,7 @@
 
             var role = new Role(req.body.role);
 
-            if ((req.permission.isShared() || req.permission.isPrivate()) && (role.id !== req.role.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (role.id !== req.role.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -143,7 +143,7 @@
                     return next(err);
                 }
 
-                if (req.permission.isPrivate() && role && (role.id !== req.role.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && role && (role.id !== req.role.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -223,7 +223,7 @@
                 data.role = [];
 
                 var iterate = function(id) {
-                    if (req.permission.isPrivate() && (id !== req.role.id)) {
+                    if (!req.user.admin && req.permission.isPrivate() && (id !== req.role.id)) {
                         err = new Error('Access forbidden');
                         err.status = 403;
 
@@ -235,7 +235,7 @@
                             return next(err);
                         }
 
-                        if (req.permission.isPrivate() && role && (role.id !== req.role.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && role && (role.id !== req.role.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
@@ -358,7 +358,7 @@
                         var pending = roles.length;
 
                         var iterate = function(role) {
-                            if (req.permission.isPrivate() && (role.id !== req.role.id)) {
+                            if (!req.user.admin && req.permission.isPrivate() && (role.id !== req.role.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
 
@@ -432,7 +432,7 @@
         router.put('/roles/:id', function updateRole(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -444,7 +444,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && role && (role.id !== req.role.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && role && (role.id !== req.role.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -471,7 +471,7 @@
         router.delete('/roles/:id', function deleteRole(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -483,7 +483,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && role && (role.id !== req.role.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && role && (role.id !== req.role.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 

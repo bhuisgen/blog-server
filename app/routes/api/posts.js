@@ -111,7 +111,7 @@
         router.post('/posts', function createPost(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -120,7 +120,7 @@
 
             var post = new Post(req.body.post);
 
-            if ((req.permission.isShared() || req.permission.isPrivate()) && (post.userId !== req.user.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (post.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -144,7 +144,7 @@
                     return next(err);
                 }
 
-                if (req.permission.isPrivate() && post && (post.userId !== req.user.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && post && (post.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -239,7 +239,7 @@
                             return next(err);
                         }
 
-                        if (req.permission.isPrivate() && post && (post.userId !== req.user.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && post && (post.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
@@ -386,7 +386,7 @@
         router.put('/posts/:id', function updatePost(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -398,7 +398,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && post && (post.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && post && (post.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -425,7 +425,7 @@
         router.delete('/posts/:id', function deletePost(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -437,7 +437,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && post && (post.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && post && (post.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 

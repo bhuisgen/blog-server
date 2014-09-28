@@ -110,7 +110,7 @@
         router.post('/groups', function createGroup(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -119,7 +119,7 @@
 
             var group = new Group(req.body.group);
 
-            if ((req.permission.isShared() || req.permission.isPrivate()) && (group.id !== req.group.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (group.id !== req.group.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -143,7 +143,7 @@
                     return next(err);
                 }
 
-                if (req.permission.isPrivate() && group && (group.id !== req.group.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && group && (group.id !== req.group.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -199,7 +199,7 @@
                             return next(err);
                         }
 
-                        if (req.permission.isPrivate() && group && (group.id !== req.group.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && group && (group.id !== req.group.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
@@ -293,7 +293,7 @@
                         var pending = groups.length;
 
                         var iterate = function(group) {
-                            if (req.permission.isPrivate() && (group.id !== req.group.id)) {
+                            if (!req.user.admin && req.permission.isPrivate() && (group.id !== req.group.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
 
@@ -334,7 +334,7 @@
         router.put('/groups/:id', function updateGroup(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -346,7 +346,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && group && (group.id !== req.group.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && group && (group.id !== req.group.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -373,7 +373,7 @@
         router.delete('/groups/:id', function deleteGroup(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -385,7 +385,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && group && (group.id !== req.group.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && group && (group.id !== req.group.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 

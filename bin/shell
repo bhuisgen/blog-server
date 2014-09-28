@@ -642,7 +642,8 @@
                     userAdministrator = groupAdministrators.users.build({
                         email: result.email,
                         name: result.name,
-                        enabled: true
+                        enabled: true,
+                        admin: true
                     });
 
                     userAdministrator.save(function(err) {
@@ -2069,6 +2070,11 @@
                     type: 'string',
                     required: true
                 },
+                admin: {
+                    description: 'administrator',
+                    type: 'boolean',
+                    required: true
+                },
                 login: {
                     description: 'login',
                     type: 'string',
@@ -2136,6 +2142,7 @@
                         user = group.users.build({
                             email: result.email,
                             name: result.name,
+                            admin: result.admin,
                             enabled: true
                         });
 

@@ -53,7 +53,7 @@
         });
 
         Post.belongsTo(schema.loadDefinition('User'), {
-            as: 'author',
+            as: 'user',
             foreignKey: 'userId'
         });
 

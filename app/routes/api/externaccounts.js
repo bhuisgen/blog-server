@@ -109,7 +109,7 @@
         router.post('/externAccounts', function createExternAccount(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -118,7 +118,7 @@
 
             var externAccount = new ExternAccount(req.body.externAccount);
 
-            if ((req.permission.isShared() || req.permission.isPrivate()) && (externAccount.userId !== req.user.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (externAccount.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -142,7 +142,7 @@
                     return next(err);
                 }
 
-                if (req.permission.isPrivate() && externAccount && (externAccount.userId !== req.user.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && externAccount && (externAccount.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -183,7 +183,7 @@
                             return next(err);
                         }
 
-                        if (req.permission.isPrivate() && externAccount && (externAccount.userId !== req.user.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && externAccount && (externAccount.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
@@ -259,7 +259,7 @@
                         var pending = externAccounts.length;
 
                         var iterate = function(externAccount) {
-                            if (req.permission.isPrivate() && (externAccount.userId !== req.user.id)) {
+                            if (!req.user.admin && req.permission.isPrivate() && (externAccount.userId !== req.user.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
 
@@ -291,7 +291,7 @@
         router.put('/externAccounts/:id', function updateExternAccount(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -303,7 +303,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && externAccount && (externAccount.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && externAccount && (externAccount.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -330,7 +330,7 @@
         router.delete('/externAccounts/:id', function deleteExternAccount(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -342,7 +342,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && externAccount && (externAccount.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && externAccount && (externAccount.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 

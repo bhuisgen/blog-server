@@ -110,7 +110,7 @@
         router.post('/comments', function createComment(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -119,7 +119,7 @@
 
             var comment = new Comment(req.body.comment);
 
-            if ((req.permission.isShared() || req.permission.isPrivate()) && (comment.userId !== req.user.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (comment.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -143,7 +143,7 @@
                     return next(err);
                 }
 
-                if (req.permission.isPrivate() && comment && (comment.userId !== req.user.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && comment && (comment.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -188,7 +188,7 @@
                             return next(err);
                         }
 
-                        if (req.permission.isPrivate() && comment && (comment.userId !== req.user.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && comment && (comment.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
@@ -280,7 +280,7 @@
                         var pending = comments.length;
 
                         var iterate = function(comment) {
-                            if (req.permission.isPrivate() && (comment.userId !== req.user.id)) {
+                            if (!req.user.admin && req.permission.isPrivate() && (comment.userId !== req.user.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
 
@@ -316,7 +316,7 @@
         router.put('/comments/:id', function updateComment(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -328,7 +328,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && comment && (comment.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment && (comment.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -355,7 +355,7 @@
         router.delete('/comments/:id', function deleteComment(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -367,7 +367,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && comment && (comment.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment && (comment.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 

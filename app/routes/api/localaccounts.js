@@ -109,7 +109,7 @@
         router.post('/localAccounts', function createLocalAccount(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -118,7 +118,7 @@
 
             var localAccount = new LocalAccount(req.body.localAccount);
 
-            if ((req.permission.isShared() || req.permission.isPrivate()) && (localAccount.userId !== req.user.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (localAccount.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -142,7 +142,7 @@
                     return next(err);
                 }
 
-                if (req.permission.isPrivate() && localAccount && (localAccount.userId !== req.user.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && localAccount && (localAccount.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -180,7 +180,7 @@
                             return next(err);
                         }
 
-                        if (req.permission.isPrivate() && localAccount && (localAccount.userId !== req.user.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && localAccount && (localAccount.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
@@ -257,7 +257,7 @@
                         var pending = localAccounts.length;
 
                         var iterate = function(localAccount) {
-                            if (req.permission.isPrivate() && (localAccount.userId !== req.user.id)) {
+                            if (!req.user.admin && req.permission.isPrivate() && (localAccount.userId !== req.user.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
 
@@ -286,7 +286,7 @@
         router.put('/localAccounts/:id', function updateLocalAccount(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -298,7 +298,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && localAccount && (localAccount.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && localAccount && (localAccount.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -325,7 +325,7 @@
         router.delete('/localAccounts/:id', function deleteLocalAccount(req, res, next) {
             var err;
 
-            if (req.permission.isReadOnly()) {
+            if (!req.user.admin && req.permission.isReadOnly()) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -337,7 +337,7 @@
                     return next(err);
                 }
 
-                if ((req.permission.isShared() || req.permission.isPrivate()) && localAccount && (localAccount.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && localAccount && (localAccount.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
