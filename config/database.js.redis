@@ -2,7 +2,7 @@ var env = process.env.NODE_ENV || 'development';
 
 var config = {
 	development: {
-		type: 'redis',
+		type: 'redis-hq',
 		options: {
 			socket: '/var/run/redis/redis.sock'
 			//host: '127.0.0.1',
@@ -12,7 +12,7 @@ var config = {
 	},
 
 	production: {
-		type: 'redis',
+		type: 'redis-hq',
 		options: {
 			socket: '/var/run/redis/redis.sock'
 			//host: '127.0.0.1',
