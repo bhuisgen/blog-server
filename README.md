@@ -23,7 +23,7 @@ Install the dependencies:
 	$ bower install
 	$ npm install
 
-For storing content in alternative storage:
+For storing content in alternative storage than Redis:
 
 - for SQLite storage:
 
@@ -33,24 +33,39 @@ For storing content in alternative storage:
 
 		$ npm install jugglingdb-postgres
 
+- for MySQL storage:
+
+		$ npm install jugglingdb-mysql
+
 You can now build your instance:
 
 	$ grunt build
 
 ## Configuration
 
-You must choose one content storage backend and copy the corresponding template file into *config/database.js*.
+Configuration files description:
+- *config/server.js*: server settings
+- *config/keys.js*: API keys of external providers authentication
+- *config/content.js*: local content settings
+- *config/database.js*: backend storage settings
 
-For Redis storage:
+You must choose one content storage backend and copy the corresponding template file into *config/database.js*:
 
-	$ cp config/database.redis.js config/database.js
+- for Redis storage:
 
-Available configuration files :
-- *config/content.js*: to configure your local content settings
-- *config/database.js*: to configure your content storage settings
-- *config/server.js*: to configure the REST API server settings
-- *config/keys.js*: to add your API keys for external authentication
+		$ cp config/database.redis.js config/database.js
 
+- for SQLite storage:
+
+		$ cp config/database.sqlite.js config/database.js
+
+- for PostgreSQL storage:
+
+		$ cp config/database.pgsql.js config/database.js
+
+- for MySQL storage:
+
+		$ cp config/database.mysql.js config/database.js
 
 ## Use
 

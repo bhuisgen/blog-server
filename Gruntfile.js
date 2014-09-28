@@ -23,7 +23,7 @@ module.exports = function(grunt) {
             },
             debug: {
                 file: 'bin/server',
-                nodeArgs: ['--debug']
+                nodeArgs: ['--debug-brk']
             }
         },
         watch: {

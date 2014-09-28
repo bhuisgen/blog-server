@@ -4,8 +4,9 @@ var config = {
 	development: {
 		type: 'redis',
 		options: {
-			host: '127.0.0.1',
-			port: 6379,
+			socket: '/var/run/redis/redis.sock'
+			//host: '127.0.0.1',
+			//port: 6379,
 			database: 1
 		}
 	},
@@ -13,8 +14,9 @@ var config = {
 	production: {
 		type: 'redis',
 		options: {
-			host: '127.0.0.1',
-			port: 6379,
+			socket: '/var/run/redis/redis.sock'
+			//host: '127.0.0.1',
+			//port: 6379,
 			database: 2
 		}
 	}

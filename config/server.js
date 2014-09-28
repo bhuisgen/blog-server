@@ -25,8 +25,11 @@ var config = {
 
 		auth: {
 			redis: {
-				host: 'localhost',
-				port: 6379,
+				socket: '/var/run/redis/redis.sock',
+				//host: 'localhost',
+				//port: 6379,
+				options: {},
+
 				database: 0,
 				keyPrefix: 'blog-server:api:'
 			},

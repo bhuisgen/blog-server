@@ -46,7 +46,12 @@
         var Key = schema.loadDefinition('Key');
         var User = schema.loadDefinition('User');
 
-        var r = redis.createClient(config.server.api.auth.redis.port, config.server.api.auth.redis.host);
+        var r;
+
+        if (config.server.api.auth.redis.socket)
+            r = redis.createClient(config.server.api.auth.redis.socket, config.server.api.auth.redis.options);
+        else
+            r = redis.createClient(config.server.api.auth.redis.port, config.server.api.auth.redis.host, config.server.api.auth.redis.options);
 
         r.auth(config.server.api.auth.redis.password);
 
