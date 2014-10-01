@@ -1,8 +1,19 @@
-# blog-server
+# Blog-server
 
-A blog REST API server developed by Boris HUISGEN <bhuisgen@hbis.fr>
+Blog-server is a blog REST API server developed by Boris HUISGEN.
 
-Under GNU GPL licence
+The project is under GNU GPL licence.
+
+## Features
+
+- Support pages and posts with comments, tags and categories
+- Content generated from static Markdown files or by API calls
+- Content indexed in database (Redis, SQLite, PostgreSQL, MySQL)
+- Client API authentication by keys or tokens
+- Local authentication by user credentials
+- External authentication through OAuth/OpenID providers (Facebook, GitHub, Google, LinkedIn, Twitter)
+- User permissions by groups and roles
+- Blacklist support (IP address, email, username)
 
 ## Getting blog-server
 
@@ -10,20 +21,16 @@ Under GNU GPL licence
 
 	$ cd blog-server
 
-## Building
-
-Redis is needed to cache local server data:
+## Dependencies
 
 	# apt-get install redis-server
 
-It is also used to store blog content but you can use a different storage like SQLite and PostgreSQL.
-
-Install the dependencies:
+## Building
 
 	$ bower install
 	$ npm install
 
-For storing content in alternative storage than Redis:
+To store content in alternative storage than Redis:
 
 - for SQLite storage:
 
@@ -37,19 +44,16 @@ For storing content in alternative storage than Redis:
 
 		$ npm install jugglingdb-mysql
 
-You can now build your instance:
-
 	$ grunt build
 
 ## Configuration
 
-Configuration files description:
 - *config/server.js*: server settings
 - *config/keys.js*: API keys of external providers authentication
 - *config/content.js*: local content settings
 - *config/database.js*: backend storage settings
 
-You must choose one content storage backend and copy the corresponding template file into *config/database.js*:
+You must choose one storage backend and copy the corresponding template file into *config/database.js*:
 
 - for Redis storage:
 
@@ -69,11 +73,13 @@ You must choose one content storage backend and copy the corresponding template 
 
 ## Use
 
-You need to initialize your blog instance before adding any content:
+You need to initialize your instance before adding any content:
 
 	$ node bin/shell init
 
-This process will ask you the administrator credentials. It will give you the API key of the user *anonymous* which is needed for the client application. 
+This process will ask you the administrator credentials.
+
+It will give you the API key of the user *Anonymous* which is needed for the client application. 
 
 ### Running
 
@@ -81,11 +87,17 @@ To run the REST API server:
 
 	$ grunt serve
 
-### Roles management
+### Shell command reference
+
+To show available commands:
+
+	$ node bin/shell --help
+
+#### Roles management
 
 Command help:
 
-	$ node bin/shell roles --help
+	$ node bin/shell --help
 
 To create a new role:
 
@@ -99,33 +111,33 @@ To display all existing roles:
 
 	$ node bin/shell roles --list
 
-### Groups management
+#### Groups management
 
 Command help:
 
 	$ node bin/shell groups --help
 
-### Users management
+#### Users management
 
 Command help:
 
 	$ node bin/shell users --help
 
-### Keys management
+#### Keys management
 
 Command help:
 
 	$ node bin/shell keys --help
 
-### Blacklists management
+#### Blacklists management
 
 Command help:
 
 	$node bin/shell blacklists --help
 
-### Content mangement
+#### Content mangement
 
-#### Create new content
+##### Create new content
 
 Command help:
 
@@ -141,7 +153,7 @@ To create a new post:
 	$ node bin/shell create --post
 	$ vim content/pages/newpost.md
 
-#### Store content in database
+##### Store content in database
 
 Command help:
 
@@ -155,7 +167,7 @@ To store/update all posts in database:
 
 	$ node bin/shell store --posts --verbose
 
-#### Purge content in database
+##### Purge content in database
 
 Command help:
 
