@@ -2,7 +2,6 @@
     'use strict';
 
     var path = require('path');
-    var _ = require('lodash');
 
     var Schema = require('jugglingdb-model-loader');
 
@@ -17,7 +16,7 @@
         var schema = new Schema(config.database.type, options);
 
         var Collection = schema.loadDefinition('Collection');
-        var Group = schema.loadDefinition('Group');
+        var Category = schema.loadDefinition('Category');
 
         router.use(function checkUser(req, res, next) {
             var err;
@@ -33,34 +32,28 @@
 
             switch (req.method) {
                 case 'POST':
-                    if (req.role.groupsCreate) {
+                    if (req.role.categoriesCreate) {
                         allow = true;
                     }
                     break;
 
                 case 'GET':
-                    if (req.role.groupsRead) {
+                    if (req.role.categoriesRead) {
                         allow = true;
                     }
                     break;
 
                 case 'PUT':
-                    if (req.role.groupsUpdate) {
+                    if (req.role.categoriesUpdate) {
                         allow = true;
                     }
                     break;
 
                 case 'DELETE':
-                    if (req.role.groupsDelete) {
+                    if (req.role.categoriesDelete) {
                         allow = true;
                     }
                     break;
-
-                default:
-                    err = new Error('Method not allowed');
-                    err.status = 405;
-
-                    return next(err);
             }
 
             if (!allow) {
@@ -72,7 +65,7 @@
 
             Collection.findOne({
                 where: {
-                    name: 'Groups'
+                    name: 'Categories'
                 }
             }, function(err, collection) {
                 if (err) {
@@ -107,7 +100,7 @@
             });
         });
 
-        router.post('/groups', function createGroup(req, res, next) {
+        router.post('/categories', function createCategory(req, res, next) {
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
@@ -117,16 +110,16 @@
                 return next(err);
             }
 
-            var group = new Group(req.body.group);
+            var category = new Category(req.body.category);
 
-            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (group.id !== req.group.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && category.userId && (category.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
                 return next(err);
             }
 
-            group.save(function(err) {
+            category.save(function(err) {
                 if (err) {
                     return next(err);
                 }
@@ -135,106 +128,74 @@
             });
         });
 
-        router.get('/groups/:id', function readGroup(req, res, next) {
+        router.get('/categories/:id', function readCategory(req, res, next) {
             var data = {};
 
-            Group.find(req.params.id, function(err, group) {
+            Category.find(req.params.id, function(err, category) {
                 if (err) {
                     return next(err);
                 }
 
-                if (!req.user.admin && req.permission.isPrivate() && group && (group.id !== req.group.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && category && category.userId && (category.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!group) {
-                    err = new Error('Group not found');
+                if (!category) {
+                    err = new Error('Category not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                group.role(function(err, role) {
-                    if (err) {
-                        return next(err);
-                    }
+                data.category = {
+                    id: category.id,
+                    name: category.name,
+                };
 
-                    group.users(function(err, users) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        if (!users) {
-                            users = {};
-                        }
-
-                        data.group = {
-                            id: group.id,
-                            name: group.name,
-                            created: group.created,
-                            role: role.id,
-                            users: _.pluck(users, 'id')
-                        };
-
-                        return res.json(data);
-                    });
-                });
+                return res.json(data);
             });
         });
 
-        router.get('/groups', function readGroups(req, res, next) {
+        router.get('/categories', function readCategories(req, res, next) {
             var data = {};
             var err;
 
             if (req.query.ids) {
                 var pending = req.query.ids.length;
 
-                data.group = [];
+                data.category = [];
 
                 var iterate = function(id) {
-                    Group.find(id, function(err, group) {
+                    Category.find(id, function(err, category) {
                         if (err) {
                             return next(err);
                         }
 
-                        if (!req.user.admin && req.permission.isPrivate() && group && (group.id !== req.group.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && category && category.userId && (category.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
                             return next(err);
                         }
 
-                        if (!group) {
-                            err = new Error('Group not found');
+                        if (!category) {
+                            err = new Error('Category not found');
                             err.status = 404;
 
                             return next(err);
                         }
 
-                        group.users(function(err, users) {
-                            if (err) {
-                                return next(err);
-                            }
-
-                            if (!users) {
-                                users = {};
-                            }
-
-                            data.group.push({
-                                id: group.id,
-                                name: group.name,
-                                created: group.created,
-                                role: group.roleId,
-                                users: _.pluck(users, 'id')
-                            });
-
-                            if (!--pending) {
-                                return res.json(data);
-                            }
+                        data.category.push({
+                            id: category.id,
+                            name: category.name,
                         });
+
+                        if (!--pending) {
+                            return res.json(data);
+                        }
                     });
                 };
 
@@ -245,15 +206,7 @@
                 var filter = {};
 
                 if (req.query.id) {
-                    filter.id = req.quqery.id;
-                }
-
-                if (req.query.name) {
-                    filter.name = req.query.name;
-                }
-
-                if (req.query.created) {
-                    filter.email = req.query.created;
+                    filter.id = req.query.id;
                 }
 
                 if (Object.keys(filter).length === 0) {
@@ -271,21 +224,21 @@
                     return next(err);
                 }
 
-                Group.all({
+                Category.all({
                     where: filter,
                     order: order + ' ' + sort,
                     skip: offset,
                     limit: limit
-                }, function(err, groups) {
+                }, function(err, categories) {
                     if (err) {
                         return next(err);
                     }
 
-                    Group.count(function(err, count) {
+                    Category.count(function(err, count) {
                         if (err) {
                             return next(err);
                         }
-
+                        
                         if (offset > count) {
                             err = new Error('Invalid parameter');
                             err.status = 422;
@@ -293,59 +246,45 @@
                             return next(err);
                         }
 
-                        data.group = [];
-                        data.users = [];
+                        data.category = [];
 
                         data.meta = {
                             total: count
                         };
 
-                        if (!groups) {
+                        if (!categories) {
                             return res.json(data);
                         }
 
-                        var pending = groups.length;
+                        var pending = categories.length;
 
-                        var iterate = function(group) {
-                            if (!req.user.admin && req.permission.isPrivate() && (group.id !== req.group.id)) {
+                        var iterate = function(category) {
+                            if (!req.user.admin && req.permission.isPrivate() && category.userId && (category.userId !== req.user.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
 
                                 return next(err);
                             }
 
-                            group.users(function(err, users) {
-                                if (err) {
-                                    return next(err);
-                                }
-
-                                if (!users) {
-                                    users = {};
-                                }
-
-                                data.group.push({
-                                    id: group.id,
-                                    name: group.name,
-                                    created: group.created,
-                                    role: group.roleId,
-                                    users: _.pluck(users, 'id')
-                                });
-
-                                if (!--pending) {
-                                    return res.json(data);
-                                }
+                            data.category.push({
+                                id: category.id,
+                                name: category.name
                             });
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
                         };
 
-                        for (var i = 0; i < groups.length; i++) {
-                            iterate(groups[i]);
+                        for (var i = 0; i < categories.length; i++) {
+                            iterate(categories[i]);
                         }
                     });
                 });
             }
         });
 
-        router.put('/groups/:id', function updateGroup(req, res, next) {
+        router.put('/categories/:id', function updateCategory(req, res, next) {
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
@@ -355,26 +294,26 @@
                 return next(err);
             }
 
-            Group.find(req.params.id, function(err, group) {
+            Category.find(req.params.id, function(err, category) {
                 if (err) {
                     return next(err);
                 }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && group && (group.id !== req.group.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && category && (category.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!group) {
-                    err = new Error('Group not found');
+                if (!category) {
+                    err = new Error('Category not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                group.updateAttributes(req.body.group, function(err) {
+                category.updateAttributes(req.body.category, function(err) {
                     if (err) {
                         return next(err);
                     }
@@ -384,7 +323,7 @@
             });
         });
 
-        router.delete('/groups/:id', function deleteGroup(req, res, next) {
+        router.delete('/categories/:id', function deleteCategory(req, res, next) {
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
@@ -394,26 +333,26 @@
                 return next(err);
             }
 
-            Group.find(req.params.id, function(err, group) {
+            Category.find(req.params.id, function(err, category) {
                 if (err) {
                     return next(err);
                 }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && group && (group.id !== req.group.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && category && category.userId && (category.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!group) {
-                    err = new Error('Group not found');
+                if (!category) {
+                    err = new Error('Category not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                group.destroy(function(err) {
+                category.destroy(function(err) {
                     if (err) {
                         return next(err);
                     }

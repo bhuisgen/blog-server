@@ -12,9 +12,6 @@
 
     var Schema = require('jugglingdb-model-loader');
 
-    var TAXONOMY_CATEGORIES = 'categories';
-    var TAXONOMY_TAGS = 'tags';
-
     var Define = require('../app/define');
 
     var config = {};
@@ -50,8 +47,8 @@
         var Permission = schema.loadDefinition('Permission');
         var Post = schema.loadDefinition('Post');
         var Role = schema.loadDefinition('Role');
-        var Taxonomy = schema.loadDefinition('Taxonomy');
-        var Term = schema.loadDefinition('Term');
+        var Category = schema.loadDefinition('Category');
+        var Tag = schema.loadDefinition('Tag');
         var User = schema.loadDefinition('User');
 
         async.series([
@@ -94,7 +91,7 @@
                     return callback(null);
                 });
             }
-        ], function(err, replies) {
+        ], function(err) {
             schema.disconnect();
 
             if (err) {
@@ -130,7 +127,6 @@
         var User = schema.loadDefinition('User');
         var Key = schema.loadDefinition('Key');
         var LocalAccount = schema.loadDefinition('LocalAccount');
-        var Taxonomy = schema.loadDefinition('Taxonomy');
 
         var permissionShared;
         var permissionPrivate;
@@ -145,6 +141,8 @@
         var collectionPages;
         var collectionPosts;
         var collectionComments;
+        var collectionCategories;
+        var collectionTags;
         var roleAnonymous;
         var roleAdministrator;
         var roleAuthor;
@@ -366,6 +364,36 @@
                 });
             },
             function(callback) {
+                console.log('Creating collection \'Categories\' ...');
+
+                collectionCategories = permissionShared.collections.build({
+                    name: 'Categories'
+                });
+
+                collectionCategories.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating collection \'Tags\' ...');
+
+                collectionTags = permissionShared.collections.build({
+                    name: 'Tags'
+                });
+
+                collectionTags.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
                 console.log('Creating role \'Anonymous\' ...');
 
                 roleAnonymous = new Role({
@@ -373,6 +401,8 @@
                     pagesRead: true,
                     postsRead: true,
                     commentsRead: true,
+                    categoriesRead: true,
+                    tagsRead: true
                 });
 
                 roleAnonymous.save(function(err) {
@@ -424,6 +454,14 @@
                     commentsRead: true,
                     commentsUpdate: true,
                     commentsDelete: true,
+                    categoriesCreate: true,
+                    categoriesRead: true,
+                    categoriesUpdate: true,
+                    categoriesDelete: true,
+                    tagsCreate: true,
+                    tagsRead: true,
+                    tagsUpdate: true,
+                    tagsDelete: true
                 });
 
                 roleAdministrator.save(function(err) {
@@ -459,6 +497,8 @@
                     commentsRead: true,
                     commentsUpdate: true,
                     commentsDelete: true,
+                    categoriesRead: true,
+                    tagsRead: true,
                 });
 
                 roleAuthor.save(function(err) {
@@ -488,6 +528,8 @@
                     commentsRead: true,
                     commentsUpdate: true,
                     commentsDelete: true,
+                    categoriesRead: true,
+                    tagsRead: true
                 });
 
                 roleReader.save(function(err) {
@@ -563,7 +605,8 @@
 
                 userAnonymous = groupAnonymous.users.build({
                     email: 'anonymous@localhost.localdomain',
-                    name: 'Anonymous'
+                    name: 'Anonymous',
+                    enabled: true
                 });
 
                 userAnonymous.save(function(err) {
@@ -668,38 +711,8 @@
                         });
                     });
                 });
-            },
-            function(callback) {
-                console.log('Creating taxonomy \'Categories\' ...');
-
-                var categoriesTaxonomy = new Taxonomy({
-                    name: TAXONOMY_CATEGORIES
-                });
-
-                categoriesTaxonomy.save(function(err) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    return callback(null);
-                });
-            },
-            function(callback) {
-                console.log('Creating taxonomy \'Tags\' ...');
-
-                var tagsTaxonomy = new Taxonomy({
-                    name: TAXONOMY_TAGS
-                });
-
-                tagsTaxonomy.save(function(err) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    return callback(null);
-                });
-            },
-        ], function(err, replies) {
+            }
+        ], function(err) {
             schema.disconnect();
 
             if (err) {
@@ -933,6 +946,46 @@
                             description: 'commentsDelete',
                             type: 'boolean',
                             required: true
+                        },
+                        categoriesCreate: {
+                            description: 'categoriesCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        categoriesRead: {
+                            description: 'categoriesRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        categoriesUpdate: {
+                            description: 'categoriesUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        categoriesDelete: {
+                            description: 'categoriesDelete',
+                            type: 'boolean',
+                            required: true
+                        },
+                        tagsCreate: {
+                            description: 'tagsCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        tagsRead: {
+                            description: 'tagsRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        tagsUpdate: {
+                            description: 'tagsUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        tagsDelete: {
+                            description: 'tagsDelete',
+                            type: 'boolean',
+                            required: true
                         }
                     }
                 };
@@ -990,7 +1043,15 @@
                             commentsCreate: result.commentsCreate,
                             commentsRead: result.commentsRead,
                             commentsUpdate: result.commentsUpdate,
-                            commentsDelete: result.commentsDelete
+                            commentsDelete: result.commentsDelete,
+                            categoriesCreate: result.categoriesCreate,
+                            categoriesRead: result.categoriesRead,
+                            categoriesUpdate: result.categoriesUpdate,
+                            categoriesDelete: result.categoriesDelete,
+                            tagsCreate: result.tagsCreate,
+                            tagsRead: result.tagsRead,
+                            tagsUpdate: result.tagsUpdate,
+                            tagsDelete: result.tagsDelete
                         });
 
                         role.save(function(err) {
@@ -1003,7 +1064,7 @@
                     });
                 });
             }
-        ], function(err, replies) {
+        ], function(err) {
             schema.disconnect();
 
             if (err) {
@@ -1090,7 +1151,7 @@
                     });
                 });
             }
-        ], function(err, replies) {
+        ], function(err) {
             schema.disconnect();
 
             if (err) {
@@ -1166,7 +1227,7 @@
                 });
 
             }
-        ], function(err, replies) {
+        ], function(err) {
             schema.disconnect();
 
             if (err) {
@@ -1249,7 +1310,7 @@
                     });
                 });
             }
-        ], function(err, replies) {
+        ], function(err) {
             schema.disconnect();
 
             if (err) {
@@ -1464,6 +1525,46 @@
                     description: 'commentsDelete',
                     type: 'boolean',
                     required: true
+                },
+                categoriesCreate: {
+                    description: 'categoriesCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                categoriesRead: {
+                    description: 'categoriesRead',
+                    type: 'boolean',
+                    required: true
+                },
+                categoriesUpdate: {
+                    description: 'categoriesUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                categoriesDelete: {
+                    description: 'categoriesDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                tagsCreate: {
+                    description: 'tagsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                tagsRead: {
+                    description: 'tagsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                tagsUpdate: {
+                    description: 'tagsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                tagsDelete: {
+                    description: 'tagsDelete',
+                    type: 'boolean',
+                    required: true
                 }
             }
         };
@@ -1520,7 +1621,15 @@
                     commentsCreate: result.commentsCreate,
                     commentsRead: result.commentsRead,
                     commentsUpdate: result.commentsUpdate,
-                    commentsDelete: result.commentsDelete
+                    commentsDelete: result.commentsDelete,
+                    categoriesCreate: result.categoriesCreate,
+                    categoriesRead: result.categoriesRead,
+                    categoriesUpdate: result.categoriesUpdate,
+                    categoriesDelete: result.categoriesDelete,
+                    tagsCreate: result.tagsCreate,
+                    tagsRead: result.tagsRead,
+                    tagsUpdate: result.tagsUpdate,
+                    tagsDelete: result.tagsDelete
                 }, function(err) {
                     if (err) {
                         return callback(err);
@@ -3751,7 +3860,7 @@
     }
 
     /*
-     * Index command
+     * Store command
      */
 
     function storePages(verbose, callback) {
@@ -3827,6 +3936,8 @@
                     },
                     function(callback) {
                         if (page) {
+                            item.updated = new Date();
+
                             page.updateAttributes(item, function(err) {
                                 if (err) {
                                     return callback(err);
@@ -3867,33 +3978,6 @@
 
                 return callback(null);
             });
-        });
-    }
-
-    function purgePages(verbose, callback) {
-        callback = callback || function() {
-            return true;
-        };
-
-        var options = config.database.options;
-
-        options.modelLoader = {
-            rootDirectory: path.normalize(__dirname + '/..'),
-            directory: 'app/models'
-        };
-
-        var schema = new Schema(config.database.type, options);
-
-        var Page = schema.loadDefinition('Page');
-
-        Page.destroyAll(function(err) {
-            schema.disconnect();
-
-            if (err) {
-                return callback(err);
-            }
-
-            return callback(null);
         });
     }
 
@@ -4047,8 +4131,8 @@
 
         var Post = schema.loadDefinition('Post');
         var User = schema.loadDefinition('User');
-        var Taxonomy = schema.loadDefinition('Taxonomy');
-        var Term = schema.loadDefinition('Term');
+        var Category = schema.loadDefinition('Category');
+        var Tag = schema.loadDefinition('Tag');
 
         var dir = path.resolve(config.content.root, config.content.posts.directory);
 
@@ -4062,8 +4146,6 @@
             async.eachSeries(posts, function(item, callback) {
                 var post;
                 var user;
-                var categoriesTaxonomy;
-                var tagsTaxonomy;
 
                 async.series([
 
@@ -4107,45 +4189,9 @@
                         });
                     },
                     function(callback) {
-                        Taxonomy.findOne({
-                            where: {
-                                name: TAXONOMY_CATEGORIES
-                            }
-                        }, function(err, object) {
-                            if (err) {
-                                return callback(err);
-                            }
-
-                            if (!object) {
-                                return callback(new Error('Taxonomy not found'));
-                            }
-
-                            categoriesTaxonomy = object;
-
-                            return callback(null);
-                        });
-                    },
-                    function(callback) {
-                        Taxonomy.findOne({
-                            where: {
-                                name: TAXONOMY_TAGS
-                            }
-                        }, function(err, object) {
-                            if (err) {
-                                return callback(err);
-                            }
-
-                            if (!object) {
-                                return callback(new Error('Taxonomy not found'));
-                            }
-
-                            tagsTaxonomy = object;
-
-                            return callback(null);
-                        });
-                    },
-                    function(callback) {
                         if (post) {
+                            item.updated = new Date();
+
                             post.updateAttributes(item, function(err) {
                                 if (err) {
                                     return callback(err);
@@ -4171,10 +4217,9 @@
                         }
 
                         async.eachSeries(item.categories, function(item, callback) {
-                            Term.findOne({
+                            Category.findOne({
                                 where: {
                                     name: item,
-                                    taxonomyId: categoriesTaxonomy.id
                                 }
                             }, function(err, category) {
                                 async.series([
@@ -4184,7 +4229,7 @@
                                             return callback(null);
                                         }
 
-                                        category = categoriesTaxonomy.terms.build({
+                                        category = new Category({
                                             name: item
                                         });
 
@@ -4227,10 +4272,9 @@
                         }
 
                         async.eachSeries(item.tags, function(item, callback) {
-                            Term.findOne({
+                            Tag.findOne({
                                 where: {
                                     name: item,
-                                    taxonomyId: tagsTaxonomy.id
                                 }
                             }, function(err, tag) {
                                 async.series([
@@ -4240,7 +4284,7 @@
                                             return callback(null);
                                         }
 
-                                        tag = tagsTaxonomy.terms.build({
+                                        tag = new Tag({
                                             name: item
                                         });
 
@@ -4277,7 +4321,7 @@
                             return callback(null);
                         });
                     },
-                ], function(err, replies) {
+                ], function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -4298,35 +4342,6 @@
 
                 return callback(null);
             });
-        });
-    }
-
-    function purgePosts(verbose, callback) {
-        callback = callback || function() {
-            return true;
-        };
-
-        var options = config.database.options;
-
-        options.modelLoader = {
-            rootDirectory: path.normalize(__dirname + '/..'),
-            directory: 'app/models'
-        };
-
-        var schema = new Schema(config.database.type, options);
-
-        var Post = schema.loadDefinition('Post');
-
-        Post.destroyAll(function(err) {
-            if (err) {
-                schema.disconnect();
-
-                return callback(err);
-            }
-
-            schema.disconnect();
-
-            return callback(null);
         });
     }
 
@@ -4491,6 +4506,66 @@
             }
 
             return callback(null, post);
+        });
+    }
+
+    /*
+     * Purge command
+     */
+
+    function purgePages(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var Page = schema.loadDefinition('Page');
+
+        Page.destroyAll(function(err) {
+            schema.disconnect();
+
+            if (err) {
+                return callback(err);
+            }
+
+            return callback(null);
+        });
+    }
+
+    function purgePosts(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var Post = schema.loadDefinition('Post');
+
+        Post.destroyAll(function(err) {
+            if (err) {
+                schema.disconnect();
+
+                return callback(err);
+            }
+
+            schema.disconnect();
+
+            return callback(null);
         });
     }
 

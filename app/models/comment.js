@@ -29,6 +29,13 @@
                 },
                 index: true
             },
+            updated: {
+                type: Date,
+                default: function() {
+                    return new Date();
+                },
+                index: true
+            },
             validated: {
                 type: Boolean,
                 default: false,

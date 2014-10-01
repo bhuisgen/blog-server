@@ -22,7 +22,7 @@
         router.use(function checkUser(req, res, next) {
             var err;
 
-            if (!req.user || !req.group || !req.role) {
+            if (!req.authenticated) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -205,6 +205,14 @@
                         commentsRead: role.commentsRead,
                         commentsUpdate: role.commentsUpdate,
                         commentsDelete: role.commentsDelete,
+                        categoriesCreate: role.categoriesCreate,
+                        categoriesRead: role.categoriesRead,
+                        categoriesUpdate: role.categoriesUpdate,
+                        categoriesDelete: role.categoriesDelete,
+                        tagsCreate: role.tagsCreate,
+                        tagsRead: role.tagsRead,
+                        tagsUpdate: role.tagsUpdate,
+                        tagsDelete: role.tagsDelete,
                         group: _.pluck(groups, 'id')
                     };
 
@@ -297,6 +305,14 @@
                                 commentsRead: role.commentsRead,
                                 commentsUpdate: role.commentsUpdate,
                                 commentsDelete: role.commentsDelete,
+                                categoriesCreate: role.categoriesCreate,
+                                categoriesRead: role.categoriesRead,
+                                categoriesUpdate: role.categoriesUpdate,
+                                categoriesDelete: role.categoriesDelete,
+                                tagsCreate: role.tagsCreate,
+                                tagsRead: role.tagsRead,
+                                tagsUpdate: role.tagsUpdate,
+                                tagsDelete: role.tagsDelete,
                                 group: _.pluck(groups, 'id')
                             };
 
@@ -329,6 +345,12 @@
                 var sort = (req.query.sort === 'false' ? 'DESC' : 'ASC');
                 var offset = parseInt(req.query.offset, 10) || 0;
                 var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
+                if ((offset < 0) || (limit < 0)) {
+                    err = new Error('Invalid parameter');
+                    err.status = 422;
+
+                    return next(err);
+                }
 
                 Role.all({
                     where: filter,
@@ -342,6 +364,13 @@
 
                     Role.count(function(err, count) {
                         if (err) {
+                            return next(err);
+                        }
+
+                        if (offset > count) {
+                            err = new Error('Invalid parameter');
+                            err.status = 422;
+
                             return next(err);
                         }
 
@@ -412,6 +441,14 @@
                                     commentsRead: role.commentsRead,
                                     commentsUpdate: role.commentsUpdate,
                                     commentsDelete: role.commentsDelete,
+                                    categoriesCreate: role.categoriesCreate,
+                                    categoriesRead: role.categoriesRead,
+                                    categoriesUpdate: role.categoriesUpdate,
+                                    categoriesDelete: role.categoriesDelete,
+                                    tagsCreate: role.tagsCreate,
+                                    tagsRead: role.tagsRead,
+                                    tagsUpdate: role.tagsUpdate,
+                                    tagsDelete: role.tagsDelete,
                                     group: _.pluck(groups, 'id')
                                 });
 
@@ -458,7 +495,7 @@
                     return next(err);
                 }
 
-                role.update(req.body.role, function(err) {
+                role.updateAttributes(req.body.role, function(err) {
                     if (err) {
                         return next(err);
                     }

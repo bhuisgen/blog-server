@@ -21,7 +21,7 @@
         router.use(function checkUser(req, res, next) {
             var err;
 
-            if (!req.user || !req.group || !req.role) {
+            if (!req.authenticated) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -164,6 +164,7 @@
 
         router.get('/keys', function readKeys(req, res, next) {
             var data = {};
+            var err;
 
             if (req.query.ids) {
                 var pending = req.query.ids.length;
@@ -222,6 +223,12 @@
                 var sort = (req.query.sort === 'false' ? 'DESC' : 'ASC');
                 var offset = parseInt(req.query.offset, 10) || 0;
                 var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
+                if ((offset < 0) || (limit < 0)) {
+                    err = new Error('Invalid parameter');
+                    err.status = 422;
+
+                    return next(err);
+                }
 
                 Key.all({
                     where: filter,
@@ -235,6 +242,13 @@
 
                     Key.count(function(err, count) {
                         if (err) {
+                            return next(err);
+                        }
+
+                        if (offset > count) {
+                            err = new Error('Invalid parameter');
+                            err.status = 422;
+
                             return next(err);
                         }
 
@@ -308,7 +322,7 @@
                     return next(err);
                 }
 
-                key.update(req.body.key, function(err) {
+                key.updateAttributes(req.body.key, function(err) {
                     if (err) {
                         return next(err);
                     }

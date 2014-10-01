@@ -32,10 +32,7 @@
             realm: config.keys.auth.openid.realm,
             identifierField: 'openidIdentifier',
             passReqToCallback: true
-        }, function(req, token, profile, done) {
-            console.log(token);
-            console.log(profile);
-
+        }, function(req, token, profile, done)  {
             if (!req.user) {
                 ExternAccount.findOne({
                     where: {
@@ -48,7 +45,23 @@
                     }
 
                     if (account) {
-                        return done(null, account.user());
+                        account.user(function(err, user) {
+                            if (err) {
+                                return done(err);
+                            }
+
+                            if (!user) {
+                                return done(null, false);
+                            }
+
+                            user.updateAttribute('lastLogin', new Date(), function(err) {
+                                if (err) {
+                                    return done(err);
+                                }
+
+                                return done(null, user);
+                            });
+                        });
                     }
 
                     User.findOne({
@@ -63,32 +76,33 @@
                         if (user) {
                             return done(null, false);
                         }
-                    });
 
-                    var user = new User({
-                        name: profile.displayName,
-                        email: profile.emails[0].value
-                    });
-
-                    user.save(function(err) {
-                        if (err) {
-                            return done(err);
-                        }
-
-                        account = user.externAccounts.build({
-                            provider: 'openid',
-                            profileId: profile.id,
-                            token: token,
-                            username: profile.username,
-                            displayName: profile.displayName
+                        user = new User({
+                            name: profile.displayName,
+                            email: profile.emails[0].value,
+                            lastLogin: new Date()
                         });
 
-                        account.save(function(err) {
+                        user.save(function(err) {
                             if (err) {
                                 return done(err);
                             }
 
-                            return done(null, user);
+                            account = user.externAccounts.build({
+                                provider: 'openid',
+                                profileId: profile.id,
+                                token: token,
+                                username: profile.username,
+                                displayName: profile.displayName
+                            });
+
+                            account.save(function(err) {
+                                if (err) {
+                                    return done(err);
+                                }
+
+                                return done(null, user);
+                            });
                         });
                     });
                 });
@@ -149,13 +163,13 @@
 
                 var token = uuid.v4();
 
-                r.set(config.server.api.auth.redis.keyPrefix + config.server.api.auth.token.key + token, user.id, 'EX',
-                    config.server.api.auth.token.expireTime, function(err)  {
+                r.set(config.server.api.auth.redis.keyPrefix + config.server.api.auth.tokens.key + ':' + token, user.id, 'EX',
+                    config.server.api.auth.tokens.expireTime, function(err)  {
                         if (err) {
                             return next(err);
                         }
 
-                        res.json({
+                        return res.json({
                             success: true,
                             message: 'User signin succeeded',
                             token: new Buffer(token).toString('base64')

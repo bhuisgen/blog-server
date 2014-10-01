@@ -34,9 +34,13 @@ var config = {
 				keyPrefix: 'blog-server:api:'
 			},
 
-			token: {
-				key: 'token:',
+			tokens: {
+				key: 'tokens',
 				expireTime: 600
+			},
+
+			users: {
+				key: 'users'
 			},
 
 			providers: {

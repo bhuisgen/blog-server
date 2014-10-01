@@ -22,7 +22,7 @@
         router.use(function checkUser(req, res, next) {
             var err;
 
-            if (!req.user || !req.group || !req.role) {
+            if (!req.authenticated) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -119,7 +119,7 @@
 
             var comment = new Comment(req.body.comment);
 
-            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (comment.userId !== req.user.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment.userId && (comment.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -143,7 +143,7 @@
                     return next(err);
                 }
 
-                if (!req.user.admin && req.permission.isPrivate() && comment && (comment.userId !== req.user.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && comment && comment.userId && (comment.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -164,6 +164,7 @@
                     email: comment.email,
                     ip: comment.ip,
                     created: comment.created,
+                    updated: comment.updated,
                     validated: comment.validated,
                     allowed: comment.allowed,
                     post: comment.postId,
@@ -176,6 +177,7 @@
 
         router.get('/comments', function readComments(req, res, next) {
             var data = {};
+            var err;
 
             if (req.query.ids) {
                 var pending = req.query.ids.length;
@@ -188,7 +190,7 @@
                             return next(err);
                         }
 
-                        if (!req.user.admin && req.permission.isPrivate() && comment && (comment.userId !== req.user.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && comment && comment.userId && (comment.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
@@ -209,6 +211,7 @@
                             email: comment.email,
                             ip: comment.ip,
                             created: comment.created,
+                            updated: comment.updated,
                             validated: comment.validated,
                             allowed: comment.allowed,
                             post: comment.postId,
@@ -243,6 +246,10 @@
                     filter.created = req.query.created;
                 }
 
+                if (req.query.updated) {
+                    filter.updated = req.query.updated;
+                }
+
                 if (Object.keys(filter).length === 0) {
                     filter = null;
                 }
@@ -251,6 +258,12 @@
                 var sort = (req.query.sort === 'false' ? 'DESC' : 'ASC');
                 var offset = parseInt(req.query.offset, 10) || 0;
                 var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
+                if ((offset < 0) || (limit < 0)) {
+                    err = new Error('Invalid parameter');
+                    err.status = 422;
+
+                    return next(err);
+                }
 
                 Comment.all({
                     where: filter,
@@ -267,6 +280,13 @@
                             return next(err);
                         }
 
+                        if (offset > count) {
+                            err = new Error('Invalid parameter');
+                            err.status = 422;
+
+                            return next(err);
+                        }
+
                         data.comment = [];
 
                         data.meta = {
@@ -280,7 +300,7 @@
                         var pending = comments.length;
 
                         var iterate = function(comment) {
-                            if (!req.user.admin && req.permission.isPrivate() && (comment.userId !== req.user.id)) {
+                            if (!req.user.admin && req.permission.isPrivate() && comment.userId && (comment.userId !== req.user.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
 
@@ -294,6 +314,7 @@
                                 email: comment.email,
                                 ip: comment.ip,
                                 created: comment.created,
+                                updated: comment.updated,
                                 validated: comment.validated,
                                 allowed: comment.allowed,
                                 post: comment.postId,
@@ -328,7 +349,7 @@
                     return next(err);
                 }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment && (comment.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment && comment.userId && (comment.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -342,7 +363,9 @@
                     return next(err);
                 }
 
-                comment.update(req.body.comment, function(err) {
+                req.body.comment.updated = new Date();
+
+                comment.updateAttributes(req.body.comment, function(err) {
                     if (err) {
                         return next(err);
                     }
@@ -367,7 +390,7 @@
                     return next(err);
                 }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment && (comment.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment && comment.userId && (comment.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 

@@ -4,7 +4,7 @@
     var Schema = require('jugglingdb').Schema;
 
     module.exports = function(schema) {
-        var Taxonomy = schema.define('Taxonomy', {
+        var Category = schema.define('Category', {
             name: {
                 type: String,
                 length: 256,
@@ -12,13 +12,8 @@
             }
         });
 
-        Taxonomy.hasMany(schema.loadDefinition('Term'), {
-            as: 'terms',
-            foreignKey: 'taxonomyId'
-        });
+        Category.validatesPresenceOf('name');
 
-        Taxonomy.validatesPresenceOf('name');
-
-        return Taxonomy;
+        return Category;
     };
 }());

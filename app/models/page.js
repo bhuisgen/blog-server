@@ -20,8 +20,7 @@
             },
             image: {
                 type: String,
-                length: 1024,
-                default: null
+                length: 1024
             },
             content: {
                 type: Schema.Text
@@ -33,10 +32,17 @@
                 },
                 index: true
             },
+            updated: {
+                type: Date
+            },
             published: {
                 type: Boolean,
                 default: false,
                 index: true
+            },
+            views: {
+                type: Number,
+                default: 0
             }
         });
 

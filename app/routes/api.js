@@ -8,6 +8,11 @@
 
     var express = require('express');
 
+    var router = express.Router({
+        caseSensitive: true,
+        strict: true
+    });
+
     var Schema = require('jugglingdb-model-loader');
 
     var auth = require('./api/auth');
@@ -20,11 +25,8 @@
     var pages = require('./api/pages');
     var posts = require('./api/posts');
     var comments = require('./api/comments');
-
-    var router = express.Router({
-        caseSensitive: true,
-        strict: true
-    });
+    var categories = require('./api/categories');
+    var tags = require('./api/tags');
 
     module.exports = function(config) {
         if (!config.server.api) {
@@ -34,7 +36,7 @@
         config.database = require('../../config/database');
 
         var options = config.database.options;
-        
+
         options.modelLoader = {
             rootDirectory: path.normalize(__dirname + '/../..'),
             directory: 'app/models'
@@ -48,10 +50,13 @@
 
         var r;
 
-        if (config.server.api.auth.redis.socket)
-            r = redis.createClient(config.server.api.auth.redis.socket, config.server.api.auth.redis.options);
-        else
-            r = redis.createClient(config.server.api.auth.redis.port, config.server.api.auth.redis.host, config.server.api.auth.redis.options);
+        if (config.server.api.auth.redis.socket) {
+            r = redis.createClient(config.server.api.auth.redis.socket,
+                config.server.api.auth.redis.options);
+        } else {
+            r = redis.createClient(config.server.api.auth.redis.port, config.server.api.auth.redis.host,
+                config.server.api.auth.redis.options);
+        }
 
         r.auth(config.server.api.auth.redis.password);
 
@@ -114,6 +119,21 @@
         });
 
         router.use(function checkAuthentication(req, res, next) {
+            function updateUsersList(user, callback) {
+                r.multi()
+                    .zadd(config.server.api.auth.redis.keyPrefix + config.server.api.auth.users.key,
+                        new Date().getTime(), user.id)
+                    .zremrangebyscore(config.server.api.auth.redis.keyPrefix + config.server.api.auth.users.key,
+                        new Date().getTime() + (config.server.api.auth.tokens.expireTime * 1000), '+inf')
+                    .exec(function(err, replies) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        return callback(null);
+                    });
+            }
+
             if (req.path.match(/^\/auth\//)) {
                 return next();
             }
@@ -199,87 +219,101 @@
                                     return next(err);
                                 }
 
-                                req.user = user;
-                                req.group = group;
-                                req.role = role;
-
-                                req.authenticated = true;
-                            });
-
-                            return next();
-                        });
-                    });
-                } else {
-                    r.get(config.server.api.auth.redis.keyPrefix + config.server.api.auth.token.key + token, function(err, id) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        if (!id) {
-                            err = new Error('Bad authorization token');
-                            err.status = 401;
-
-                            return next(err);
-                        }
-
-                        User.find(id, function(err, user) {
-                            if (err) {
-                                return next(err);
-                            }
-
-                            if (!user) {
-                                err = new Error('User not found');
-                                err.status = 401;
-
-                                return next(err);
-                            }
-
-                            if (!user.enabled) {
-                                err = new Error('User disabled');
-                                err.status = 403;
-
-                                return next(err);
-                            }
-
-                            user.group(function(err, group) {
-                                if (err) {
-                                    return next(err);
-                                }
-
-                                if (!group) {
-                                    err = new Error('Group not found');
-                                    err.status = 403;
-
-                                    return next(err);
-                                }
-
-                                group.role(function(err, role) {
+                                updateUsersList(user, function(err) {
                                     if (err) {
-                                        return next(err);
-                                    }
-
-                                    if (!role) {
-                                        err = new Error('Role not found');
-                                        err.status = 403;
-
                                         return next(err);
                                     }
 
                                     req.user = user;
                                     req.group = group;
                                     req.role = role;
+                                    req.authenticated = true;
 
-                                    r.expire(config.server.api.auth.redis.keyPrefix + config.server.api.auth.token.key + token, config.server.api.auth.token.expireTime, function(err) {
-                                        if (err) {
-                                            return next(err);
-                                        }
-
-                                        next();
-                                    });
+                                    return next();
                                 });
                             });
                         });
                     });
+                } else {
+                    r.get(config.server.api.auth.redis.keyPrefix + config.server.api.auth.tokens.key + ':' + token,
+                        function(err, id) {
+                            if (err) {
+                                return next(err);
+                            }
+
+                            if (!id) {
+                                err = new Error('Bad authorization token');
+                                err.status = 401;
+
+                                return next(err);
+                            }
+
+                            User.find(id, function(err, user) {
+                                if (err) {
+                                    return next(err);
+                                }
+
+                                if (!user) {
+                                    err = new Error('User not found');
+                                    err.status = 401;
+
+                                    return next(err);
+                                }
+
+                                if (!user.enabled) {
+                                    err = new Error('User disabled');
+                                    err.status = 403;
+
+                                    return next(err);
+                                }
+
+                                user.group(function(err, group) {
+                                    if (err) {
+                                        return next(err);
+                                    }
+
+                                    if (!group) {
+                                        err = new Error('Group not found');
+                                        err.status = 403;
+
+                                        return next(err);
+                                    }
+
+                                    group.role(function(err, role) {
+                                        if (err) {
+                                            return next(err);
+                                        }
+
+                                        if (!role) {
+                                            err = new Error('Role not found');
+                                            err.status = 403;
+
+                                            return next(err);
+                                        }
+
+                                        r.expire(config.server.api.auth.redis.keyPrefix + config.server.api.auth.tokens.key + ':' + token,
+                                            config.server.api.auth.tokens.expireTime, function(err) {
+                                                if (err) {
+                                                    return next(err);
+                                                }
+
+                                                updateUsersList(user, function(err) {
+                                                    if (err) {
+                                                        return next(err);
+                                                    }
+
+                                                    req.user = user;
+                                                    req.group = group;
+                                                    req.role = role;
+                                                    req.authenticated = true;
+
+                                                    return next();
+                                                });
+                                            });
+                                    });
+                                });
+                            });
+                        });
                 }
             });
         });
@@ -295,6 +329,8 @@
         pages(config, router);
         posts(config, router);
         comments(config, router);
+        categories(config, router);
+        tags(config, router);
 
         return router;
     };

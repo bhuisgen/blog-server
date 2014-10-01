@@ -21,6 +21,9 @@
                 },
                 index: true
             },
+            lastLogin: {
+                type: Date,
+            },
             enabled: {
                 type: Boolean,
                 default: false

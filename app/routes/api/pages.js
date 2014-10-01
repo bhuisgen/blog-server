@@ -20,7 +20,7 @@
         router.use(function checkUser(req, res, next) {
             var err;
 
-            if (!req.user || !req.group || !req.role) {
+            if (!req.authenticated) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -117,7 +117,7 @@
 
             var page = new Page(req.body.page);
 
-            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (page.userId !== req.user.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && page.userId && (page.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -141,7 +141,7 @@
                     return next(err);
                 }
 
-                if (!req.user.admin && req.permission.isPrivate() && page && (page.userId !== req.user.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && page && page.userId && (page.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -163,16 +163,25 @@
                     image: page.image,
                     content: page.content,
                     created: page.created,
+                    updated: page.updated,
                     published: page.published,
+                    views: page.views++,
                     user: page.userId
                 };
 
-                return res.json(data);
+                page.updateAttribute('views', page.views, function(err) {
+                    if (err) {
+                        return next(err);
+                    }
+
+                    return res.json(data);
+                });
             });
         });
 
         router.get('/pages', function readPages(req, res, next) {
             var data = {};
+            var err;
 
             if (req.query.ids) {
                 var pending = req.query.ids.length;
@@ -185,7 +194,7 @@
                             return next(err);
                         }
 
-                        if (!req.user.admin && req.permission.isPrivate() && page && (page.userId !== req.user.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && page && page.userId && (page.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
@@ -207,13 +216,21 @@
                             image: page.image,
                             content: page.content,
                             created: page.created,
+                            updated: page.updated,
                             published: page.published,
+                            views: page.views++,
                             user: page.userId
                         });
 
-                        if (!--pending) {
-                            return res.json(data);
-                        }
+                        page.updateAttribute('views', page.views, function(err) {
+                            if (err) {
+                                return next(err);
+                            }
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
+                        });
                     });
                 };
 
@@ -235,8 +252,16 @@
                     filter.created = req.query.created;
                 }
 
+                if (req.query.updated) {
+                    filter.updated = req.query.updated;
+                }
+
                 if (req.query.published) {
                     filter.published = req.query.published;
+                }
+
+                if (req.query.views) {
+                    filter.views = req.query.views;
                 }
 
                 if (Object.keys(filter).length === 0) {
@@ -247,6 +272,12 @@
                 var sort = (req.query.sort === 'false' ? 'DESC' : 'ASC');
                 var offset = parseInt(req.query.offset, 10) || 0;
                 var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
+                if ((offset < 0) || (limit < 0)) {
+                    err = new Error('Invalid parameter');
+                    err.status = 422;
+
+                    return next(err);
+                }
 
                 Page.all({
                     where: filter,
@@ -263,6 +294,13 @@
                             return next(err);
                         }
 
+                        if (offset > count) {
+                            err = new Error('Invalid parameter');
+                            err.status = 422;
+
+                            return next(err);
+                        }
+
                         data.page = [];
 
                         data.meta = {
@@ -276,7 +314,7 @@
                         var pending = pages.length;
 
                         var iterate = function(page) {
-                            if (!req.user.admin && req.permission.isPrivate() && (page.userId !== req.user.id)) {
+                            if (!req.user.admin && req.permission.isPrivate() && page.userId && (page.userId !== req.user.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
 
@@ -291,13 +329,21 @@
                                 image: page.image,
                                 content: page.content,
                                 created: page.created,
+                                updated: page.updated,
                                 published: page.published,
+                                views: page.views++,
                                 user: page.userId
                             });
 
-                            if (!--pending) {
-                                return res.json(data);
-                            }
+                            page.updateAttribute('views', page.views, function(err) {
+                                if (err) {
+                                    return next(err);
+                                }
+
+                                if (!--pending) {
+                                    return res.json(data);
+                                }
+                            });
                         };
 
                         for (var i = 0; i < pages.length; i++) {
@@ -323,7 +369,7 @@
                     return next(err);
                 }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && page && (page.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && page && page.userId && (page.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -337,7 +383,9 @@
                     return next(err);
                 }
 
-                page.update(req.body.page, function(err) {
+                req.body.page.updated = new Date();
+
+                page.updateAttributes(req.body.page, function(err) {
                     if (err) {
                         return next(err);
                     }
@@ -362,7 +410,7 @@
                     return next(err);
                 }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) &&  page && (page.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && page && page.userId && (page.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 

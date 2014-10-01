@@ -23,7 +23,7 @@
         router.use(function checkUser(req, res, next) {
             var err;
 
-            if (!req.user || !req.group || !req.role) {
+            if (!req.authenticated) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -120,7 +120,7 @@
 
             var post = new Post(req.body.post);
 
-            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (post.userId !== req.user.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && post.userId && (post.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
@@ -144,7 +144,7 @@
                     return next(err);
                 }
 
-                if (!req.user.admin && req.permission.isPrivate() && post && (post.userId !== req.user.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && post && post.userId && (post.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -158,75 +158,90 @@
                     return next(err);
                 }
 
+                var comments = {};
+                var categories = {};
+                var tags = {};
+
                 async.series([
 
                     function(callback) {
-                        post.comments(function(err, comments) {
+                        post.comments(function(err, objects) {
                             if (err) {
                                 return callback(err);
                             }
 
-                            if (!comments) {
-                                comments = {};
-                            }
-
-                            data.post = {
-                                id: post.id,
-                                slug: post.slug,
-                                layout: post.layout,
-                                title: post.title,
-                                image: post.image,
-                                content: post.content,
-                                excerpt: post.excerpt,
-                                created: post.created,
-                                published: post.published,
-                                commentsEnabled: post.commentsEnabled,
-                                commentsAllowed: post.commentsAllowed,
-                                user: post.userId,
-                                comments: _.pluck(comments, 'id')
-                            };
-
-                            return callback(null);
-                        });
-                    },
-                    function(callback) {
-                        post.categories(function(err, categories) {
-                            if (err) {
-                                return callback(err);
-                            }
-
-                            if (categories) {
-                                data.post.categories = _.pluck(categories, 'name');
+                            if (objects) {
+                                comments = objects;
                             }
 
                             return callback(null);
                         });
                     },
                     function(callback) {
-                        post.tags(function(err, tags) {
+                        post.categories(function(err, objects) {
                             if (err) {
                                 return callback(err);
                             }
 
-                            if (tags) {
-                                data.post.tags = _.pluck(tags, 'name');
+                            if (objects) {
+                                categories = objects;
+                            }
+
+                            return callback(null);
+                        });
+                    },
+                    function(callback) {
+                        post.tags(function(err, objects) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            if (!objects) {
+                                tags = objects;
                             }
 
                             return callback(null);
                         });
                     }
-                ], function(err, results) {
+                ], function(err) {
                     if (err) {
                         return next(err);
                     }
 
-                    return res.json(data);
+                    data.post = {
+                        id: post.id,
+                        slug: post.slug,
+                        layout: post.layout,
+                        title: post.title,
+                        image: post.image,
+                        content: post.content,
+                        excerpt: post.excerpt,
+                        created: post.created,
+                        updated: post.updated,
+                        published: post.published,
+                        commentsEnabled: post.commentsEnabled,
+                        commentsAllowed: post.commentsAllowed,
+                        views: post.views++,
+                        user: post.userId,
+                        comments: _.pluck(comments, 'id'),
+                        categories: _.pluck(categories, 'id'),
+                        tags: _.pluck(tags, 'id')
+                    };
+
+                    post.updateAttribute('views', post.views, function(err) {
+                        if (err) {
+                            return next(err);
+                        }
+
+                        return res.json(data);
+                    });
                 });
             });
         });
 
         router.get('/posts', function readPosts(req, res, next) {
             var data = {};
+            var err;
 
             if (req.query.ids) {
                 var pending = req.query.ids.length;
@@ -239,7 +254,7 @@
                             return next(err);
                         }
 
-                        if (!req.user.admin && req.permission.isPrivate() && post && (post.userId !== req.user.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && post && post.userId && (post.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
@@ -253,13 +268,54 @@
                             return next(err);
                         }
 
-                        post.comments(function(err, comments) {
+                        var comments = {};
+                        var categories = {};
+                        var tags = {};
+
+                        async.series([
+
+                            function(callback) {
+                                post.comments(function(err, objects) {
+                                    if (err) {
+                                        return callback(err);
+                                    }
+
+                                    if (objects) {
+                                        comments = objects;
+                                    }
+
+                                    return callback(null);
+                                });
+                            },
+                            function(callback) {
+                                post.categories(function(err, objects) {
+                                    if (err) {
+                                        return callback(err);
+                                    }
+
+                                    if (objects) {
+                                        categories = objects;
+                                    }
+
+                                    return callback(null);
+                                });
+                            },
+                            function(callback) {
+                                post.tags(function(err, objects) {
+                                    if (err) {
+                                        return callback(err);
+                                    }
+
+                                    if (!objects) {
+                                        tags = objects;
+                                    }
+
+                                    return callback(null);
+                                });
+                            }
+                        ], function(err) {
                             if (err) {
                                 return next(err);
-                            }
-
-                            if (!comments) {
-                                comments = {};
                             }
 
                             data.post.push({
@@ -271,16 +327,26 @@
                                 content: post.content,
                                 excerpt: post.excerpt,
                                 created: post.created,
+                                updated: post.updated,
                                 published: post.published,
                                 commentsEnabled: post.commentsEnabled,
                                 commentsAllowed: post.commentsAllowed,
+                                views: post.views++,
                                 user: post.userId,
-                                comments: _.pluck(comments, 'id')
+                                comments: _.pluck(comments, 'id'),
+                                categories: _.pluck(categories, 'id'),
+                                tags: _.pluck(tags, 'id')
                             });
 
-                            if (!--pending) {
-                                return res.json(data);
-                            }
+                            post.updateAttribute('views', post.views, function(err) {
+                                if (err) {
+                                    return next(err);
+                                }
+
+                                if (!--pending) {
+                                    return res.json(data);
+                                }
+                            });
                         });
                     });
                 };
@@ -303,8 +369,16 @@
                     filter.created = req.query.created;
                 }
 
+                if (req.query.updated) {
+                    filter.updated = req.query.updated;
+                }
+
                 if (req.query.published) {
                     filter.published = req.query.published;
+                }
+
+                if (req.query.views) {
+                    filter.views = req.query.views;
                 }
 
                 if (Object.keys(filter).length === 0) {
@@ -315,6 +389,12 @@
                 var sort = (req.query.sort === 'false' ? 'DESC' : 'ASC');
                 var offset = parseInt(req.query.offset, 10) || 0;
                 var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
+                if ((offset < 0) || (limit < 0)) {
+                    err = new Error('Invalid parameter');
+                    err.status = 422;
+
+                    return next(err);
+                }
 
                 Post.all({
                     where: filter,
@@ -331,6 +411,13 @@
                             return next(err);
                         }
 
+                        if (offset > count) {
+                            err = new Error('Invalid parameter');
+                            err.status = 422;
+
+                            return next(err);
+                        }
+
                         data.post = [];
 
                         data.meta = {
@@ -344,13 +431,54 @@
                         var pending = posts.length;
 
                         var iterate = function(post) {
-                            post.comments(function(err, comments) {
+                            var comments = {};
+                            var categories = {};
+                            var tags = {};
+
+                            async.series([
+
+                                function(callback) {
+                                    post.comments(function(err, objects) {
+                                        if (err) {
+                                            return callback(err);
+                                        }
+
+                                        if (objects) {
+                                            comments = objects;
+                                        }
+
+                                        return callback(null);
+                                    });
+                                },
+                                function(callback) {
+                                    post.categories(function(err, objects) {
+                                        if (err) {
+                                            return callback(err);
+                                        }
+
+                                        if (objects) {
+                                            categories = objects;
+                                        }
+
+                                        return callback(null);
+                                    });
+                                },
+                                function(callback) {
+                                    post.tags(function(err, objects) {
+                                        if (err) {
+                                            return callback(err);
+                                        }
+
+                                        if (!objects) {
+                                            tags = objects;
+                                        }
+
+                                        return callback(null);
+                                    });
+                                }
+                            ], function(err, results) {
                                 if (err) {
                                     return next(err);
-                                }
-
-                                if (!comments) {
-                                    comments = {};
                                 }
 
                                 data.post.push({
@@ -360,18 +488,28 @@
                                     title: post.title,
                                     image: post.image,
                                     content: post.content,
+                                    excerpt: post.excerpt,
                                     created: post.created,
+                                    updated: post.updated,
                                     published: post.published,
                                     commentsEnabled: post.commentsEnabled,
                                     commentsAllowed: post.commentsAllowed,
+                                    views: post.views++,
                                     user: post.userId,
-                                    comments: _.pluck(comments, 'id')
+                                    comments: _.pluck(comments, 'id'),
+                                    categories: _.pluck(categories, 'id'),
+                                    tags: _.pluck(tags, 'id')
                                 });
 
-                                if (!--pending) {
-                                    return res.json(data);
-                                }
+                                post.updateAttribute('views', post.views, function(err) {
+                                    if (err) {
+                                        return next(err);
+                                    }
 
+                                    if (!--pending) {
+                                        return res.json(data);
+                                    }
+                                });
                             });
                         };
 
@@ -398,7 +536,7 @@
                     return next(err);
                 }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && post && (post.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && post && post.userId && (post.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -412,7 +550,9 @@
                     return next(err);
                 }
 
-                post.update(req.body.post, function(err) {
+                req.body.post.updated = new Date();
+
+                post.updateAttributes(req.body.post, function(err) {
                     if (err) {
                         return next(err);
                     }
@@ -437,7 +577,7 @@
                     return next(err);
                 }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && post && (post.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && post && post.userId && (post.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 

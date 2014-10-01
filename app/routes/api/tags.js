@@ -2,7 +2,6 @@
     'use strict';
 
     var path = require('path');
-    var _ = require('lodash');
 
     var Schema = require('jugglingdb-model-loader');
 
@@ -17,7 +16,7 @@
         var schema = new Schema(config.database.type, options);
 
         var Collection = schema.loadDefinition('Collection');
-        var Group = schema.loadDefinition('Group');
+        var Tag = schema.loadDefinition('Tag');
 
         router.use(function checkUser(req, res, next) {
             var err;
@@ -33,34 +32,28 @@
 
             switch (req.method) {
                 case 'POST':
-                    if (req.role.groupsCreate) {
+                    if (req.role.tagsCreate) {
                         allow = true;
                     }
                     break;
 
                 case 'GET':
-                    if (req.role.groupsRead) {
+                    if (req.role.tagsRead) {
                         allow = true;
                     }
                     break;
 
                 case 'PUT':
-                    if (req.role.groupsUpdate) {
+                    if (req.role.tagsUpdate) {
                         allow = true;
                     }
                     break;
 
                 case 'DELETE':
-                    if (req.role.groupsDelete) {
+                    if (req.role.tagsDelete) {
                         allow = true;
                     }
                     break;
-
-                default:
-                    err = new Error('Method not allowed');
-                    err.status = 405;
-
-                    return next(err);
             }
 
             if (!allow) {
@@ -72,7 +65,7 @@
 
             Collection.findOne({
                 where: {
-                    name: 'Groups'
+                    name: 'Tags'
                 }
             }, function(err, collection) {
                 if (err) {
@@ -107,7 +100,7 @@
             });
         });
 
-        router.post('/groups', function createGroup(req, res, next) {
+        router.post('/tags', function createTag(req, res, next) {
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
@@ -117,16 +110,16 @@
                 return next(err);
             }
 
-            var group = new Group(req.body.group);
+            var tag = new Tag(req.body.tag);
 
-            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (group.id !== req.group.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && tag.userId && (tag.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
                 return next(err);
             }
 
-            group.save(function(err) {
+            tag.save(function(err) {
                 if (err) {
                     return next(err);
                 }
@@ -135,106 +128,74 @@
             });
         });
 
-        router.get('/groups/:id', function readGroup(req, res, next) {
+        router.get('/tags/:id', function readTag(req, res, next) {
             var data = {};
 
-            Group.find(req.params.id, function(err, group) {
+            Tag.find(req.params.id, function(err, tag) {
                 if (err) {
                     return next(err);
                 }
 
-                if (!req.user.admin && req.permission.isPrivate() && group && (group.id !== req.group.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && tag && tag.userId && (tag.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!group) {
-                    err = new Error('Group not found');
+                if (!tag) {
+                    err = new Error('Tag not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                group.role(function(err, role) {
-                    if (err) {
-                        return next(err);
-                    }
+                data.tag = {
+                    id: tag.id,
+                    name: tag.name,
+                };
 
-                    group.users(function(err, users) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        if (!users) {
-                            users = {};
-                        }
-
-                        data.group = {
-                            id: group.id,
-                            name: group.name,
-                            created: group.created,
-                            role: role.id,
-                            users: _.pluck(users, 'id')
-                        };
-
-                        return res.json(data);
-                    });
-                });
+                return res.json(data);
             });
         });
 
-        router.get('/groups', function readGroups(req, res, next) {
+        router.get('/tags', function readTags(req, res, next) {
             var data = {};
             var err;
 
             if (req.query.ids) {
                 var pending = req.query.ids.length;
 
-                data.group = [];
+                data.tag = [];
 
                 var iterate = function(id) {
-                    Group.find(id, function(err, group) {
+                    Tag.find(id, function(err, tag) {
                         if (err) {
                             return next(err);
                         }
 
-                        if (!req.user.admin && req.permission.isPrivate() && group && (group.id !== req.group.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && tag && tag.userId && (tag.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
                             return next(err);
                         }
 
-                        if (!group) {
-                            err = new Error('Group not found');
+                        if (!tag) {
+                            err = new Error('Tag not found');
                             err.status = 404;
 
                             return next(err);
                         }
 
-                        group.users(function(err, users) {
-                            if (err) {
-                                return next(err);
-                            }
-
-                            if (!users) {
-                                users = {};
-                            }
-
-                            data.group.push({
-                                id: group.id,
-                                name: group.name,
-                                created: group.created,
-                                role: group.roleId,
-                                users: _.pluck(users, 'id')
-                            });
-
-                            if (!--pending) {
-                                return res.json(data);
-                            }
+                        data.tag.push({
+                            id: tag.id,
+                            name: tag.name,
                         });
+
+                        if (!--pending) {
+                            return res.json(data);
+                        }
                     });
                 };
 
@@ -245,15 +206,7 @@
                 var filter = {};
 
                 if (req.query.id) {
-                    filter.id = req.quqery.id;
-                }
-
-                if (req.query.name) {
-                    filter.name = req.query.name;
-                }
-
-                if (req.query.created) {
-                    filter.email = req.query.created;
+                    filter.id = req.query.id;
                 }
 
                 if (Object.keys(filter).length === 0) {
@@ -271,17 +224,17 @@
                     return next(err);
                 }
 
-                Group.all({
+                Tag.all({
                     where: filter,
                     order: order + ' ' + sort,
                     skip: offset,
                     limit: limit
-                }, function(err, groups) {
+                }, function(err, tags) {
                     if (err) {
                         return next(err);
                     }
 
-                    Group.count(function(err, count) {
+                    Tag.count(function(err, count) {
                         if (err) {
                             return next(err);
                         }
@@ -293,59 +246,45 @@
                             return next(err);
                         }
 
-                        data.group = [];
-                        data.users = [];
+                        data.tag = [];
 
                         data.meta = {
                             total: count
                         };
 
-                        if (!groups) {
+                        if (!tags) {
                             return res.json(data);
                         }
 
-                        var pending = groups.length;
+                        var pending = tags.length;
 
-                        var iterate = function(group) {
-                            if (!req.user.admin && req.permission.isPrivate() && (group.id !== req.group.id)) {
+                        var iterate = function(tag) {
+                            if (!req.user.admin && req.permission.isPrivate() && tag.userId && (tag.userId !== req.user.id)) {
                                 err = new Error('Access forbidden');
                                 err.status = 403;
 
                                 return next(err);
                             }
 
-                            group.users(function(err, users) {
-                                if (err) {
-                                    return next(err);
-                                }
-
-                                if (!users) {
-                                    users = {};
-                                }
-
-                                data.group.push({
-                                    id: group.id,
-                                    name: group.name,
-                                    created: group.created,
-                                    role: group.roleId,
-                                    users: _.pluck(users, 'id')
-                                });
-
-                                if (!--pending) {
-                                    return res.json(data);
-                                }
+                            data.tag.push({
+                                id: tag.id,
+                                name: tag.name
                             });
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
                         };
 
-                        for (var i = 0; i < groups.length; i++) {
-                            iterate(groups[i]);
+                        for (var i = 0; i < tags.length; i++) {
+                            iterate(tags[i]);
                         }
                     });
                 });
             }
         });
 
-        router.put('/groups/:id', function updateGroup(req, res, next) {
+        router.put('/tags/:id', function updateTag(req, res, next) {
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
@@ -355,26 +294,26 @@
                 return next(err);
             }
 
-            Group.find(req.params.id, function(err, group) {
+            Tag.find(req.params.id, function(err, tag) {
                 if (err) {
                     return next(err);
                 }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && group && (group.id !== req.group.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && tag && tag.userId && (tag.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!group) {
-                    err = new Error('Group not found');
+                if (!tag) {
+                    err = new Error('Tag not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                group.updateAttributes(req.body.group, function(err) {
+                tag.updateAttributes(req.body.tag, function(err) {
                     if (err) {
                         return next(err);
                     }
@@ -384,7 +323,7 @@
             });
         });
 
-        router.delete('/groups/:id', function deleteGroup(req, res, next) {
+        router.delete('/tags/:id', function deleteTag(req, res, next) {
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
@@ -394,26 +333,26 @@
                 return next(err);
             }
 
-            Group.find(req.params.id, function(err, group) {
+            Tag.find(req.params.id, function(err, tag) {
                 if (err) {
                     return next(err);
                 }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && group && (group.id !== req.group.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && tag && tag.userId && (tag.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!group) {
-                    err = new Error('Group not found');
+                if (!tag) {
+                    err = new Error('Tag not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                group.destroy(function(err) {
+                tag.destroy(function(err) {
                     if (err) {
                         return next(err);
                     }

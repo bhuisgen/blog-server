@@ -153,6 +153,38 @@
             commentsDelete: {
                 type: Boolean,
                 default: false
+            },
+            categoriesCreate: {
+                type: Boolean,
+                default: false
+            },
+            categoriesRead: {
+                type: Boolean,
+                default: false
+            },
+            categoriesUpdate: {
+                type: Boolean,
+                default: false
+            },
+            categoriesDelete: {
+                type: Boolean,
+                default: false
+            },
+            tagsCreate: {
+                type: Boolean,
+                default: false
+            },
+            tagsRead: {
+                type: Boolean,
+                default: false
+            },
+            tagsUpdate: {
+                type: Boolean,
+                default: false
+            },
+            tagsDelete: {
+                type: Boolean,
+                default: false
             }
         });
 

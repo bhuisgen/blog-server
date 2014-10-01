@@ -20,15 +20,13 @@
             },
             image: {
                 type: String,
-                length: 1024,
-                default: null
+                length: 1024
             },
             content: {
                 type: Schema.Text
             },
             excerpt: {
-                type: Schema.Text,
-                default: null
+                type: Schema.Text
             },
             created: {
                 type: Date,
@@ -36,6 +34,9 @@
                     return new Date();
                 },
                 index: true
+            },
+            updated: {
+                type: Date
             },
             published: {
                 type: Boolean,
@@ -49,6 +50,10 @@
             commentsAllowed: {
                 type: Boolean,
                 default: true
+            },
+            views: {
+                type: Number,
+                default: 0
             }
         });
 
@@ -57,12 +62,12 @@
             foreignKey: 'userId'
         });
 
-        Post.hasAndBelongsToMany(schema.loadDefinition('Term'), {
+        Post.hasAndBelongsToMany(schema.loadDefinition('Category'), {
             as: 'categories',
             through: schema.loadDefinition('PostCategory')
         });
 
-        Post.hasAndBelongsToMany(schema.loadDefinition('Term'), {
+        Post.hasAndBelongsToMany(schema.loadDefinition('Tag'), {
             as: 'tags',
             through: schema.loadDefinition('PostTag')
         });

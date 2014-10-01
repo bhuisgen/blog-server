@@ -63,9 +63,10 @@
                         return done(null, false);
                     }
 
-                    var user = new User({
+                    user = new User({
                         name: req.body.name,
-                        email: req.body.email
+                        email: req.body.email,
+                        lastLogin: new Date()
                     });
 
                     user.save(function(err) {
@@ -84,7 +85,7 @@
                                 return done(err);
                             }
 
-                            done(null, user);
+                            return done(null, user);
                         });
                     });
                 });
@@ -121,7 +122,13 @@
                         return done(null, false);
                     }
 
-                    done(null, user);
+                    user.updateAttribute('lastLogin', new Date(), function(err) {
+                        if (err) {
+                            return done(null, false);
+                        }
+
+                        return done(null, user);
+                    });
                 });
             });
         }));
@@ -143,13 +150,13 @@
 
                 var token = uuid.v4();
 
-                r.set(config.server.api.auth.redis.keyPrefix + config.server.api.auth.token.key + token, user.id, 'EX',
-                    config.server.api.auth.token.expireTime, function(err)  {
+                r.set(config.server.api.auth.redis.keyPrefix + config.server.api.auth.tokens.key + ':' + token, user.id, 'EX',
+                    config.server.api.auth.tokens.expireTime, function(err)  {
                         if (err) {
                             return next(err);
                         }
 
-                        res.json({
+                        return res.json({
                             success: true,
                             message: 'User signup succeeded',
                             token: new Buffer(token).toString('base64')
@@ -175,13 +182,13 @@
 
                 var token = uuid.v4();
 
-                r.set(config.server.api.auth.redis.keyPrefix + config.server.api.auth.token.key + token, user.id, 'EX',
-                    config.server.api.auth.token.expireTime, function(err)  {
+                r.set(config.server.api.auth.redis.keyPrefix + config.server.api.auth.tokens.key + ':' + token, user.id, 'EX',
+                    config.server.api.auth.tokens.expireTime, function(err)  {
                         if (err) {
                             return next(err);
                         }
 
-                        res.json({
+                        return res.json({
                             success: true,
                             message: 'User signin succeeded',
                             token: new Buffer(token).toString('base64')

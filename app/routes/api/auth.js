@@ -22,7 +22,7 @@
 
             var token = new Buffer(req.body.token, 'base64').toString('ascii');
 
-            r.get(config.server.api.auth.redis.keyPrefix + config.server.api.auth.token.key + token, function(err, id) {
+            r.get(config.server.api.auth.redis.keyPrefix + config.server.api.auth.tokens.key + ':' + token, function(err, id) {
                 if (err) {
                     return next(err);
                 }
@@ -36,12 +36,12 @@
                     });
                 }
 
-                r.del(config.server.api.auth.redis.keyPrefix + config.server.api.auth.token.key + token, function(err) {
+                r.del(config.server.api.auth.redis.keyPrefix + config.server.api.auth.tokens.key + ':' + token, function(err) {
                     if (err) {
                         return next(err);
                     }
 
-                    res.json({
+                    return res.json({
                         success: true,
                         message: 'User signout succeeded'
                     });
