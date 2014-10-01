@@ -13,7 +13,7 @@ The project is under GNU GPL licence.
 - Local authentication by user credentials
 - External authentication through OAuth/OpenID providers (Facebook, GitHub, Google, LinkedIn, Twitter)
 - User permissions by groups and roles
-- Blacklist support (IP address, email, username)
+- User blacklists by IP address, email and username
 
 ## Getting blog-server
 
