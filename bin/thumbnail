@@ -1,0 +1,77 @@
+#!/usr/bin/env node
+
+(function() {
+    'use strict';
+
+    var fs = require('fs');
+    var path = require('path');
+    var gm = require('gm').subClass({
+        imageMagick: true,
+    });
+    var mime = require('mime');
+    var program = require('commander');
+    var prompt = require('prompt');
+
+    var config = {};
+    config.thumbnail = require('../config/thumbnail');
+
+    function thumbnail(file, verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var type = mime.lookup(file);
+        if (!/^image\//.test(type)) {
+            return callback(new Error('Invalid file'));
+        }
+
+        var count = config.thumbnail.outputs.length;
+
+        config.thumbnail.outputs.forEach(function(output) {
+            var newfile = config.thumbnail.filename;
+
+            newfile = newfile.replace(new RegExp('%name%', 'g'), path.basename(file, path.extname(file)));
+            newfile = newfile.replace(new RegExp('%output%', 'g'), output.name);
+            newfile = newfile.replace(new RegExp('%size%', 'g'), output.size);
+
+            var thumbnail = path.join(path.dirname(file), newfile + path.extname(file));
+
+            gm(file)
+                .resize(output.size)
+                .write(thumbnail, function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (program.verbose) {
+                        console.log('File \'' + thumbnail + '\' generated');
+                    }
+
+                    if (!--count) {
+                        return callback(null);
+                    }
+                });
+        });
+    }
+
+    program
+        .version('0.1')
+        .usage('[options] <file>')
+        .option('-v, --verbose', 'verbose output')
+        .parse(process.argv);
+
+    if (process.argv.length < 2) {
+        program.outputHelp();
+
+        process.exit(1);
+    }
+
+    thumbnail(path.resolve(process.argv[2]), program.verbose, function(err, done) {
+        if (err) {
+            console.error(err);
+            process.exit(2);
+        }
+
+        process.exit(0);
+    });
+}());

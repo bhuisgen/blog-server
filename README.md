@@ -50,8 +50,9 @@ To store content in alternative storage than Redis:
 
 - *config/server.js*: server settings
 - *config/keys.js*: API keys of external providers authentication
+- *config/database.js*: storage settings
 - *config/content.js*: local content settings
-- *config/database.js*: backend storage settings
+- *config/thumbnail.js*: image thumbnails settings
 
 You must choose one storage backend and copy the corresponding template file into *config/database.js*:
 
@@ -180,3 +181,13 @@ To purge all pages in database:
 To purge all posts in database:
 
 	$ node bin/shell purge --posts
+
+### Thumbnail command reference
+
+To show available commands:
+
+	$ node bin/thumbnail --help
+
+To generate thumbnails of an image:
+
+	$ node bin/thumbnail public/posts/2014/01/image.jpg
