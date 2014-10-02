@@ -4074,7 +4074,7 @@
                 return callback(new Error('Invalid page, header field \'slug\' not present (file=' + file + ')'), null);
             }
 
-            if (!parsed.attributes.slug.match(/^\S+$/)) {
+            if (!/^\S+$/.test(parsed.attributes.slug)) {
                 return callback(new Error('Invalid page, header field \'slug\' format invalid (file=' + file + ')'));
             }
 
@@ -4086,7 +4086,7 @@
                 return callback(new Error('Invalid page, header field \'author\' not present (file=' + file + ')'), null);
             }
 
-            if (!parsed.attributes.author.match(/^(.+) <(.+@.+)>$/)) {
+            if (!/^.+ <.+@.+>$/.test(parsed.attributes.author)) {
                 return callback(new Error('Invalid page, header field \'author\' format invalid (file=' + file + ')'));
             }
 
@@ -4444,7 +4444,7 @@
                 return callback(new Error('Invalid post, header field \'slug\' not present (file=' + file + ')'));
             }
 
-            if (!parsed.attributes.slug.match(/^\S+$/)) {
+            if (!/^\S+$/.test(parsed.attributes.slug)) {
                 return callback(new Error('Invalid post, header field \'slug\' format invalid (file=' + file + ')'));
             }
 
@@ -4456,7 +4456,7 @@
                 return callback(new Error('Invalid post, header field \'author\' not present (file=' + file + ')'));
             }
 
-            if (!parsed.attributes.author.match(/^(.+) <(.+@.+)>$/)) {
+            if (!/^.+ <.+@.+>$/.test(parsed.attributes.author)) {
                 return callback(new Error('Invalid post, header field \'author\' format invalid (file=' + file + ')'));
             }
 

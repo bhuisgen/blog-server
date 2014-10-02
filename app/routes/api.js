@@ -89,12 +89,12 @@
                 return next();
             }
 
-            var ret = header.match(/^application\/vnd\.api\.v(\d)/);
-            if (!ret) {
+            var match = header.match(/^application\/vnd\.api\.v(\d+)/);
+            if (!match) {
                 return next();
             }
 
-            req.api = ret[1];
+            req.api = match[1];
 
             return next();
         });
@@ -134,13 +134,12 @@
                     });
             }
 
-            if (req.path.match(/^\/auth\//)) {
+            if (/^\/auth\//.test(req.path.match)) {
                 return next();
             }
 
             var header = req.get('Authorization');
             var err;
-            var ret;
 
             if (typeof header === 'undefined') {
                 err = new Error('Authorization header not found');
@@ -149,15 +148,15 @@
                 return next(err);
             }
 
-            ret = header.match(/^Basic (.+)$/);
-            if (!ret) {
+            var match = header.match(/^Basic (.+)$/);
+            if (!match) {
                 err = new Error('Invalid authorization header');
                 err.status = 401;
 
                 return next(err);
             }
 
-            var token = new Buffer(ret[1], 'base64').toString();
+            var token = new Buffer(match[1], 'base64').toString();
 
             Key.findOne({
                 where: {
