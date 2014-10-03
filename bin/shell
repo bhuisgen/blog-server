@@ -626,7 +626,7 @@
 
                 keyAnonymous.save(function(err) {
                     if (err) {
-                        return callback();
+                        return callback(err);
                     }
 
                     console.log('');
@@ -2958,7 +2958,7 @@
             function iterate(key) {
                 key.user(function(err, user) {
                     if (err) {
-                        return callback(null);
+                        return callback(err);
                     }
 
                     if (!user) {
