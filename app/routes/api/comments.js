@@ -275,61 +275,54 @@
                         return next(err);
                     }
 
-                    Comment.count(function(err, count) {
-                        if (err) {
+                    if (offset > comments.length) {
+                        err = new Error('Invalid parameter');
+                        err.status = 422;
+
+                        return next(err);
+                    }
+
+                    data.comment = [];
+                    data.meta = {
+                        count: comments.length
+                    };
+
+                    if (!comments.length) {
+                        return res.json(data);
+                    }
+
+                    var pending = comments.length;
+
+                    var iterate = function(comment) {
+                        if (!req.user.admin && req.permission.isPrivate() && comment.userId && (comment.userId !== req.user.id)) {
+                            err = new Error('Access forbidden');
+                            err.status = 403;
+
                             return next(err);
                         }
 
-                        if (offset > count) {
-                            err = new Error('Invalid parameter');
-                            err.status = 422;
+                        data.comment.push({
+                            id: comment.id,
+                            content: comment.content,
+                            author: comment.author,
+                            email: comment.email,
+                            ip: comment.ip,
+                            created: comment.created,
+                            updated: comment.updated,
+                            validated: comment.validated,
+                            allowed: comment.allowed,
+                            post: comment.postId,
+                            user: comment.userId,
+                        });
 
-                            return next(err);
-                        }
-
-                        data.comment = [];
-
-                        data.meta = {
-                            total: count
-                        };
-
-                        if (!comments.length) {
+                        if (!--pending) {
                             return res.json(data);
                         }
+                    };
 
-                        var pending = comments.length;
-
-                        var iterate = function(comment) {
-                            if (!req.user.admin && req.permission.isPrivate() && comment.userId && (comment.userId !== req.user.id)) {
-                                err = new Error('Access forbidden');
-                                err.status = 403;
-
-                                return next(err);
-                            }
-
-                            data.comment.push({
-                                id: comment.id,
-                                content: comment.content,
-                                author: comment.author,
-                                email: comment.email,
-                                ip: comment.ip,
-                                created: comment.created,
-                                updated: comment.updated,
-                                validated: comment.validated,
-                                allowed: comment.allowed,
-                                post: comment.postId,
-                                user: comment.userId,
-                            });
-
-                            if (!--pending) {
-                                return res.json(data);
-                            }
-                        };
-
-                        for (var i = 0; i < comments.length; i++) {
-                            iterate(comments[i]);
-                        }
-                    });
+                    for (var i = 0; i < comments.length; i++) {
+                        iterate(comments[i]);
+                    }
                 });
             }
         });

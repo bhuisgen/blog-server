@@ -281,67 +281,60 @@
                         return next(err);
                     }
 
-                    Group.count(function(err, count) {
-                        if (err) {
+                    if (offset > groups.length) {
+                        err = new Error('Invalid parameter');
+                        err.status = 422;
+
+                        return next(err);
+                    }
+
+                    data.group = [];
+                    data.users = [];
+                    data.meta = {
+                        count: groups.length
+                    };
+
+                    if (!groups.length) {
+                        return res.json(data);
+                    }
+
+                    var pending = groups.length;
+
+                    var iterate = function(group) {
+                        if (!req.user.admin && req.permission.isPrivate() && (group.id !== req.group.id)) {
+                            err = new Error('Access forbidden');
+                            err.status = 403;
+
                             return next(err);
                         }
 
-                        if (offset > count) {
-                            err = new Error('Invalid parameter');
-                            err.status = 422;
-
-                            return next(err);
-                        }
-
-                        data.group = [];
-                        data.users = [];
-
-                        data.meta = {
-                            total: count
-                        };
-
-                        if (!groups.length) {
-                            return res.json(data);
-                        }
-
-                        var pending = groups.length;
-
-                        var iterate = function(group) {
-                            if (!req.user.admin && req.permission.isPrivate() && (group.id !== req.group.id)) {
-                                err = new Error('Access forbidden');
-                                err.status = 403;
-
+                        group.users(function(err, users) {
+                            if (err) {
                                 return next(err);
                             }
 
-                            group.users(function(err, users) {
-                                if (err) {
-                                    return next(err);
-                                }
+                            if (!users) {
+                                users = {};
+                            }
 
-                                if (!users) {
-                                    users = {};
-                                }
-
-                                data.group.push({
-                                    id: group.id,
-                                    name: group.name,
-                                    created: group.created,
-                                    role: group.roleId,
-                                    users: _.pluck(users, 'id')
-                                });
-
-                                if (!--pending) {
-                                    return res.json(data);
-                                }
+                            data.group.push({
+                                id: group.id,
+                                name: group.name,
+                                created: group.created,
+                                role: group.roleId,
+                                users: _.pluck(users, 'id')
                             });
-                        };
 
-                        for (var i = 0; i < groups.length; i++) {
-                            iterate(groups[i]);
-                        }
+                            if (!--pending) {
+                                return res.json(data);
+                            }
+                        });
+                    };
+
+                    for (var i = 0; i < groups.length; i++) {
+                        iterate(groups[i]);
+                    }
                     });
-                });
             }
         });
 

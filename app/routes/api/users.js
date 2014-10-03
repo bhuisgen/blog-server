@@ -327,91 +327,84 @@
                         return next(err);
                     }
 
-                    User.count(function(err, count) {
-                        if (err) {
+                    if (offset > users.length) {
+                        err = new Error('Invalid parameter');
+                        err.status = 422;
+
+                        return next(err);
+                    }
+
+                    data.user = [];
+                    data.meta = {
+                        count: users.length
+                    };
+
+                    if (!users.length) {
+                        return res.json(data);
+                    }
+
+                    var pending = users.length;
+
+                    data.user = [];
+
+                    var iterate = function(user) {
+                        if (!req.user.admin && req.permission.isPrivate() && (user.id !== req.user.id)) {
+                            err = new Error('Access forbidden');
+                            err.status = 403;
+
                             return next(err);
                         }
 
-                        if (offset > count) {
-                            err = new Error('Invalid parameter');
-                            err.status = 422;
-
-                            return next(err);
-                        }
-
-                        data.user = [];
-
-                        data.meta = {
-                            total: count
-                        };
-
-                        if (!users.length) {
-                            return res.json(data);
-                        }
-
-                        var pending = users.length;
-
-                        data.user = [];
-
-                        var iterate = function(user) {
-                            if (!req.user.admin && req.permission.isPrivate() && (user.id !== req.user.id)) {
-                                err = new Error('Access forbidden');
-                                err.status = 403;
-
+                        user.keys(function(err, keys) {
+                            if (err) {
                                 return next(err);
                             }
 
-                            user.keys(function(err, keys) {
+                            if (!keys) {
+                                keys = {};
+                            }
+
+                            user.localAccounts(function(err, localAccounts) {
                                 if (err) {
                                     return next(err);
                                 }
 
-                                if (!keys) {
-                                    keys = {};
+                                if (!localAccounts) {
+                                    localAccounts = {};
                                 }
 
-                                user.localAccounts(function(err, localAccounts) {
+                                user.externAccounts(function(err, externAccounts) {
                                     if (err) {
                                         return next(err);
                                     }
 
-                                    if (!localAccounts) {
-                                        localAccounts = {};
+                                    if (!externAccounts) {
+                                        externAccounts = {};
                                     }
 
-                                    user.externAccounts(function(err, externAccounts) {
-                                        if (err) {
-                                            return next(err);
-                                        }
-
-                                        if (!externAccounts) {
-                                            externAccounts = {};
-                                        }
-
-                                        data.user.push({
-                                            id: user.id,
-                                            email: user.email,
-                                            name: user.name,
-                                            enabled: user.enabled,
-                                            created: user.created,
-                                            group: user.groupId,
-                                            keys: _.pluck(keys, 'id'),
-                                            localAccounts: _.pluck(localAccounts, 'id'),
-                                            externAccounts: _.pluck(externAccounts, 'id')
-                                        });
-
-                                        if (!--pending) {
-                                            return res.json(data);
-                                        }
+                                    data.user.push({
+                                        id: user.id,
+                                        email: user.email,
+                                        name: user.name,
+                                        enabled: user.enabled,
+                                        created: user.created,
+                                        group: user.groupId,
+                                        keys: _.pluck(keys, 'id'),
+                                        localAccounts: _.pluck(localAccounts, 'id'),
+                                        externAccounts: _.pluck(externAccounts, 'id')
                                     });
+
+                                    if (!--pending) {
+                                        return res.json(data);
+                                    }
                                 });
                             });
-                        };
+                        });
+                    };
 
-                        for (var i = 0; i < users.length; i++) {
-                            iterate(users[i]);
-                        }
-                    });
+                    for (var i = 0; i < users.length; i++) {
+                        iterate(users[i]);
+                    }
                 });
             }
         });

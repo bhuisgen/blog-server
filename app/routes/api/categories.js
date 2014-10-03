@@ -233,53 +233,46 @@
                     if (err) {
                         return next(err);
                     }
-
-                    Category.count(function(err, count) {
-                        if (err) {
-                            return next(err);
-                        }
                         
-                        if (offset > count) {
-                            err = new Error('Invalid parameter');
-                            err.status = 422;
+                    if (offset > categories.length) {
+                        err = new Error('Invalid parameter');
+                        err.status = 422;
+
+                        return next(err);
+                    }
+
+                    data.category = [];
+                    data.meta = {
+                        count: categories.length
+                    };
+
+                    if (!categories.length) {
+                        return res.json(data);
+                    }
+
+                    var pending = categories.length;
+
+                    var iterate = function(category) {
+                        if (!req.user.admin && req.permission.isPrivate() && category.userId && (category.userId !== req.user.id)) {
+                            err = new Error('Access forbidden');
+                            err.status = 403;
 
                             return next(err);
                         }
 
-                        data.category = [];
+                        data.category.push({
+                            id: category.id,
+                            name: category.name
+                        });
 
-                        data.meta = {
-                            total: count
-                        };
-
-                        if (!categories.length) {
+                        if (!--pending) {
                             return res.json(data);
                         }
+                    };
 
-                        var pending = categories.length;
-
-                        var iterate = function(category) {
-                            if (!req.user.admin && req.permission.isPrivate() && category.userId && (category.userId !== req.user.id)) {
-                                err = new Error('Access forbidden');
-                                err.status = 403;
-
-                                return next(err);
-                            }
-
-                            data.category.push({
-                                id: category.id,
-                                name: category.name
-                            });
-
-                            if (!--pending) {
-                                return res.json(data);
-                            }
-                        };
-
-                        for (var i = 0; i < categories.length; i++) {
-                            iterate(categories[i]);
-                        }
-                    });
+                    for (var i = 0; i < categories.length; i++) {
+                        iterate(categories[i]);
+                    }
                 });
             }
         });

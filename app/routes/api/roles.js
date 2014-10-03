@@ -362,106 +362,99 @@
                         return next(err);
                     }
 
-                    Role.count(function(err, count) {
-                        if (err) {
+                    if (offset > roles.length) {
+                        err = new Error('Invalid parameter');
+                        err.status = 422;
+
+                        return next(err);
+                    }
+
+                    data.role = [];
+                    data.meta = {
+                        count: roles.length
+                    };
+
+                    if (!roles.length) {
+                        return res.json(data);
+                    }
+
+                    var pending = roles.length;
+
+                    var iterate = function(role) {
+                        if (!req.user.admin && req.permission.isPrivate() && (role.id !== req.role.id)) {
+                            err = new Error('Access forbidden');
+                            err.status = 403;
+
                             return next(err);
                         }
 
-                        if (offset > count) {
-                            err = new Error('Invalid parameter');
-                            err.status = 422;
-
-                            return next(err);
-                        }
-
-                        data.role = [];
-
-                        data.meta = {
-                            total: count
-                        };
-
-                        if (!roles.length) {
-                            return res.json(data);
-                        }
-
-                        var pending = roles.length;
-
-                        var iterate = function(role) {
-                            if (!req.user.admin && req.permission.isPrivate() && (role.id !== req.role.id)) {
-                                err = new Error('Access forbidden');
-                                err.status = 403;
-
+                        role.groups(function(err, groups) {
+                            if (err) {
                                 return next(err);
                             }
 
-                            role.groups(function(err, groups) {
-                                if (err) {
-                                    return next(err);
-                                }
+                            if (!groups) {
+                                groups = {};
+                            }
 
-                                if (!groups) {
-                                    groups = {};
-                                }
-
-                                data.role.push({
-                                    id: role.id,
-                                    usersCreate: role.usersCreate,
-                                    usersRead: role.usersRead,
-                                    usersUpdate: role.usersUpdate,
-                                    usersDelete: role.usersDelete,
-                                    groupsCreate: role.groupsCreate,
-                                    groupsRead: role.groupsRead,
-                                    groupsUpdate: role.groupsUpdate,
-                                    groupsDelete: role.groupsDelete,
-                                    rolesCreate: role.rolesCreate,
-                                    rolesRead: role.rolesRead,
-                                    rolesUpdate: role.rolesUpdate,
-                                    rolesDelete: role.rolesDelete,
-                                    keysCreate: role.keysCreate,
-                                    keysRead: role.keysRead,
-                                    keysUpdate: role.keysUpdate,
-                                    keysDelete: role.keysDelete,
-                                    localAccountsCreate: role.localAccountsCreate,
-                                    localAccountsRead: role.localAccountsRead,
-                                    localAccountsUpdate: role.localAccountsUpdate,
-                                    localAccountsDelete: role.localAccountsDelete,
-                                    externAccountsCreate: role.externAccountsCreate,
-                                    externAccountsRead: role.externAccountsRead,
-                                    externAccountsUpdate: role.externAccountsUpdate,
-                                    externAccountsDelete: role.externAccountsDelete,
-                                    pagesCreate: role.pagesCreate,
-                                    pagesRead: role.pagesRead,
-                                    pagesUpdate: role.pagesUpdate,
-                                    pagesDelete: role.pagesDelete,
-                                    postsCreate: role.postsCreate,
-                                    postsRead: role.postsRead,
-                                    postsUpdate: role.postsUpdate,
-                                    postsDelete: role.postsDelete,
-                                    commentsCreate: role.commentsCreate,
-                                    commentsRead: role.commentsRead,
-                                    commentsUpdate: role.commentsUpdate,
-                                    commentsDelete: role.commentsDelete,
-                                    categoriesCreate: role.categoriesCreate,
-                                    categoriesRead: role.categoriesRead,
-                                    categoriesUpdate: role.categoriesUpdate,
-                                    categoriesDelete: role.categoriesDelete,
-                                    tagsCreate: role.tagsCreate,
-                                    tagsRead: role.tagsRead,
-                                    tagsUpdate: role.tagsUpdate,
-                                    tagsDelete: role.tagsDelete,
-                                    group: _.pluck(groups, 'id')
-                                });
-
-                                if (!--pending) {
-                                    return res.json(data);
-                                }
+                            data.role.push({
+                                id: role.id,
+                                usersCreate: role.usersCreate,
+                                usersRead: role.usersRead,
+                                usersUpdate: role.usersUpdate,
+                                usersDelete: role.usersDelete,
+                                groupsCreate: role.groupsCreate,
+                                groupsRead: role.groupsRead,
+                                groupsUpdate: role.groupsUpdate,
+                                groupsDelete: role.groupsDelete,
+                                rolesCreate: role.rolesCreate,
+                                rolesRead: role.rolesRead,
+                                rolesUpdate: role.rolesUpdate,
+                                rolesDelete: role.rolesDelete,
+                                keysCreate: role.keysCreate,
+                                keysRead: role.keysRead,
+                                keysUpdate: role.keysUpdate,
+                                keysDelete: role.keysDelete,
+                                localAccountsCreate: role.localAccountsCreate,
+                                localAccountsRead: role.localAccountsRead,
+                                localAccountsUpdate: role.localAccountsUpdate,
+                                localAccountsDelete: role.localAccountsDelete,
+                                externAccountsCreate: role.externAccountsCreate,
+                                externAccountsRead: role.externAccountsRead,
+                                externAccountsUpdate: role.externAccountsUpdate,
+                                externAccountsDelete: role.externAccountsDelete,
+                                pagesCreate: role.pagesCreate,
+                                pagesRead: role.pagesRead,
+                                pagesUpdate: role.pagesUpdate,
+                                pagesDelete: role.pagesDelete,
+                                postsCreate: role.postsCreate,
+                                postsRead: role.postsRead,
+                                postsUpdate: role.postsUpdate,
+                                postsDelete: role.postsDelete,
+                                commentsCreate: role.commentsCreate,
+                                commentsRead: role.commentsRead,
+                                commentsUpdate: role.commentsUpdate,
+                                commentsDelete: role.commentsDelete,
+                                categoriesCreate: role.categoriesCreate,
+                                categoriesRead: role.categoriesRead,
+                                categoriesUpdate: role.categoriesUpdate,
+                                categoriesDelete: role.categoriesDelete,
+                                tagsCreate: role.tagsCreate,
+                                tagsRead: role.tagsRead,
+                                tagsUpdate: role.tagsUpdate,
+                                tagsDelete: role.tagsDelete,
+                                group: _.pluck(groups, 'id')
                             });
-                        };
 
-                        for (var i = 0; i < roles.length; i++) {
-                            iterate(roles[i]);
-                        }
-                    });
+                            if (!--pending) {
+                                return res.json(data);
+                            }
+                        });
+                    };
+
+                    for (var i = 0; i < roles.length; i++) {
+                        iterate(roles[i]);
+                    }
                 });
             }
         });

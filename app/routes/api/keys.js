@@ -240,55 +240,48 @@
                         return next(err);
                     }
 
-                    Key.count(function(err, count) {
-                        if (err) {
+                    if (offset > keys.length) {
+                        err = new Error('Invalid parameter');
+                        err.status = 422;
+
+                        return next(err);
+                    }
+
+                    data.key = [];
+                    data.meta = {
+                        count: keys.length
+                    };
+
+                    if (!keys.length) {
+                        return res.json(data);
+                    }
+
+                    var pending = keys.length;
+
+                    var iterate = function(key) {
+                        if (!req.user.admin && req.permission.isPrivate() && (key.userId !== req.user.id)) {
+                            err = new Error('Access forbidden');
+                            err.status = 403;
+
                             return next(err);
                         }
 
-                        if (offset > count) {
-                            err = new Error('Invalid parameter');
-                            err.status = 422;
+                        data.key.push({
+                            id: key.id,
+                            authkey: key.authkey,
+                            created: key.created,
+                            enabled: key.enabled,
+                            user: key.userId
+                        });
 
-                            return next(err);
-                        }
-
-                        data.key = [];
-
-                        data.meta = {
-                            total: count
-                        };
-
-                        if (!keys.length) {
+                        if (!--pending) {
                             return res.json(data);
                         }
+                    };
 
-                        var pending = keys.length;
-
-                        var iterate = function(key) {
-                            if (!req.user.admin && req.permission.isPrivate() && (key.userId !== req.user.id)) {
-                                err = new Error('Access forbidden');
-                                err.status = 403;
-
-                                return next(err);
-                            }
-
-                            data.key.push({
-                                id: key.id,
-                                authkey: key.authkey,
-                                created: key.created,
-                                enabled: key.enabled,
-                                user: key.userId
-                            });
-
-                            if (!--pending) {
-                                return res.json(data);
-                            }
-                        };
-
-                        for (var i = 0; i < keys.length; i++) {
-                            iterate(keys[i]);
-                        }
-                    });
+                    for (var i = 0; i < keys.length; i++) {
+                        iterate(keys[i]);
+                    }
                 });
             }
         });
