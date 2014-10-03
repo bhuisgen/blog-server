@@ -258,7 +258,7 @@
                             total: count
                         };
 
-                        if (!keys) {
+                        if (!keys.length) {
                             return res.json(data);
                         }
 

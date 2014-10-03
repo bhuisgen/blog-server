@@ -424,7 +424,7 @@
                             total: count
                         };
 
-                        if (!posts) {
+                        if (!posts.length) {
                             return res.json(data);
                         }
 

@@ -1197,9 +1197,7 @@
                         return callback(err);
                     }
 
-                    if (!roles) {
-                        console.log(data);
-
+                    if (!roles.length) {
                         return callback(null);
                     }
 
@@ -1888,9 +1886,7 @@
                 return callback(err);
             }
 
-            if (!groups) {
-                console.log(data);
-
+            if (!groups.length) {
                 return callback(null);
             }
 
@@ -2384,9 +2380,7 @@
                 return callback(err);
             }
 
-            if (!users) {
-                console.log(data);
-
+            if (!users.length) {
                 return callback(null);
             }
 
@@ -2947,9 +2941,7 @@
                 return callback(err);
             }
 
-            if (!keys) {
-                console.log(data);
-
+            if (!keys.length) {
                 return callback(null);
             }
 
@@ -3335,6 +3327,10 @@
                 return callback(err);
             }
 
+            if (!ips.length) {
+                return callback(null);
+            }
+
             console.log(ips);
 
             return callback(null);
@@ -3482,6 +3478,10 @@
                 return callback(err);
             }
 
+            if (!emails.length) {
+                return callback(null);
+            }
+
             console.log(emails);
 
             return callback(null);
@@ -3624,6 +3624,10 @@
         BlacklistName.all(function(err, names) {
             if (err) {
                 return callback(err);
+            }
+
+            if (!names.length) {
+                return callback(null);
             }
 
             console.log(names);

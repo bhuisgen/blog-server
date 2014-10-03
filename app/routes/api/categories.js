@@ -252,7 +252,7 @@
                             total: count
                         };
 
-                        if (!categories) {
+                        if (!categories.length) {
                             return res.json(data);
                         }
 

@@ -300,7 +300,7 @@
                             total: count
                         };
 
-                        if (!groups) {
+                        if (!groups.length) {
                             return res.json(data);
                         }
 

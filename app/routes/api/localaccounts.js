@@ -264,7 +264,7 @@
                             total: count
                         };
 
-                        if (!localAccounts) {
+                        if (!localAccounts.length) {
                             return res.json(data);
                         }
 

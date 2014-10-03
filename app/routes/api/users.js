@@ -345,7 +345,7 @@
                             total: count
                         };
 
-                        if (!users) {
+                        if (!users.length) {
                             return res.json(data);
                         }
 

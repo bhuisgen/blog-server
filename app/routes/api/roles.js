@@ -380,7 +380,7 @@
                             total: count
                         };
 
-                        if (!roles) {
+                        if (!roles.length) {
                             return res.json(data);
                         }
 

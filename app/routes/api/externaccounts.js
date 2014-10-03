@@ -266,7 +266,7 @@
                             total: count
                         };
 
-                        if (!externAccounts) {
+                        if (!externAccounts.length) {
                             return res.json(data);
                         }
 
