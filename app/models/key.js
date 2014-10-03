@@ -10,7 +10,10 @@
             authkey: {
                 type: String,
                 length: 256,
-                index: true
+                default: function() {
+                    return uuid.v4();
+                },
+                index: true,
             },
             created: {
                 type: Date,
@@ -31,12 +34,6 @@
         });
 
         Key.validatesPresenceOf('authkey');
-
-        Key.beforeCreate = function(next, data) {
-            data.authkey = uuid.v4();
-
-            return next();
-        };
 
         return Key;
     };
