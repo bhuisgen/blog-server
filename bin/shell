@@ -1297,10 +1297,6 @@
                                 return callback(err);
                             }
 
-                            if (!groups) {
-                                return callback(new Error('Group doesn\'t exist'));
-                            }
-
                             console.log([role, groups]);
 
                             return callback(null);
@@ -3029,7 +3025,7 @@
                         return callback(err);
                     }
 
-                    if (!keys) {
+                    if (!keys.length) {
                         return callback(null);
                     }
 
