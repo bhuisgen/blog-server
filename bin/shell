@@ -2573,7 +2573,7 @@
                     }
 
                     if (object && (object.email !== result.email)) {
-                        return callback(new Error('New email already exist'));
+                        return callback(new Error('New email already exists'));
                     }
 
                     Group.findOne({
@@ -3712,7 +3712,7 @@
 
                     fs.exists(file, function(exists) {
                         if (exists) {
-                            return callback(new Error('File already exist'));
+                            return callback(new Error('File already exists'));
                         }
 
                         var stream = fs.createWriteStream(file, {
@@ -3822,7 +3822,7 @@
 
                     fs.exists(file, function(exists) {
                         if (exists) {
-                            return callback(new Error('File already exist'));
+                            return callback(new Error('File already exists'));
                         }
 
                         var stream = fs.createWriteStream(file, {
