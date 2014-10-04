@@ -134,7 +134,7 @@
                     });
             }
 
-            if (/^\/auth\//.test(req.path.match)) {
+            if (/^\/auth\//.test(req.path)) {
                 return next();
             }
 
