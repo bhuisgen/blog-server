@@ -160,7 +160,7 @@
 
                 var token = uuid.v4();
 
-                r.set(config.server.api.auth.redis.keyPrefix + config.server.api.auth.tokens.key + ':' + ttoken, user.id, 'EX',
+                r.set(config.server.api.auth.redis.keyPrefix + config.server.api.auth.tokens.key + ':' + token, user.id, 'EX',
                     config.server.api.auth.tokens.expireTime, function(err)  {
                         if (err) {
                             return next(err);
