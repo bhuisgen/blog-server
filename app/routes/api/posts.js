@@ -158,9 +158,9 @@
                     return next(err);
                 }
 
-                var comments = {};
-                var categories = {};
-                var tags = {};
+                var comments;
+                var categories;
+                var tags;
 
                 async.series([
 
@@ -170,9 +170,7 @@
                                 return callback(err);
                             }
 
-                            if (objects) {
-                                comments = objects;
-                            }
+                            comments = objects;
 
                             return callback(null);
                         });
@@ -183,9 +181,7 @@
                                 return callback(err);
                             }
 
-                            if (objects) {
-                                categories = objects;
-                            }
+                            categories = objects;
 
                             return callback(null);
                         });
@@ -196,9 +192,7 @@
                                 return callback(err);
                             }
 
-                            if (!objects) {
-                                tags = objects;
-                            }
+                            tags = objects;
 
                             return callback(null);
                         });
@@ -268,9 +262,9 @@
                             return next(err);
                         }
 
-                        var comments = {};
-                        var categories = {};
-                        var tags = {};
+                        var comments;
+                        var categories;
+                        var tags;
 
                         async.series([
 
@@ -280,9 +274,7 @@
                                         return callback(err);
                                     }
 
-                                    if (objects) {
-                                        comments = objects;
-                                    }
+                                    comments = objects;
 
                                     return callback(null);
                                 });
@@ -293,9 +285,7 @@
                                         return callback(err);
                                     }
 
-                                    if (objects) {
-                                        categories = objects;
-                                    }
+                                    categories = objects;
 
                                     return callback(null);
                                 });
@@ -306,9 +296,7 @@
                                         return callback(err);
                                     }
 
-                                    if (!objects) {
-                                        tags = objects;
-                                    }
+                                    tags = objects;
 
                                     return callback(null);
                                 });
@@ -425,9 +413,9 @@
                     var pending = posts.length;
 
                     var iterate = function(post) {
-                        var comments = {};
-                        var categories = {};
-                        var tags = {};
+                        var comments;
+                        var categories;
+                        var tags;
 
                         async.series([
 
@@ -437,9 +425,7 @@
                                         return callback(err);
                                     }
 
-                                    if (objects) {
-                                        comments = objects;
-                                    }
+                                    comments = objects;
 
                                     return callback(null);
                                 });
@@ -450,9 +436,7 @@
                                         return callback(err);
                                     }
 
-                                    if (objects) {
-                                        categories = objects;
-                                    }
+                                    categories = objects;
 
                                     return callback(null);
                                 });
@@ -463,9 +447,7 @@
                                         return callback(err);
                                     }
 
-                                    if (!objects) {
-                                        tags = objects;
-                                    }
+                                    tags = objects;
 
                                     return callback(null);
                                 });

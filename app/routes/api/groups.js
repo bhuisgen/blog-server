@@ -167,10 +167,6 @@
                             return next(err);
                         }
 
-                        if (!users) {
-                            users = {};
-                        }
-
                         data.group = {
                             id: group.id,
                             name: group.name,
@@ -217,10 +213,6 @@
                         group.users(function(err, users) {
                             if (err) {
                                 return next(err);
-                            }
-
-                            if (!users) {
-                                users = {};
                             }
 
                             data.group.push({
@@ -311,10 +303,6 @@
                         group.users(function(err, users) {
                             if (err) {
                                 return next(err);
-                            }
-
-                            if (!users) {
-                                users = {};
                             }
 
                             data.group.push({

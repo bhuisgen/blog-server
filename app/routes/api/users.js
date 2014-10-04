@@ -162,26 +162,14 @@
                         return next(err);
                     }
 
-                    if (!keys) {
-                        keys = {};
-                    }
-
                     user.localAccounts(function(err, localAccounts) {
                         if (err) {
                             return next(err);
                         }
 
-                        if (!localAccounts) {
-                            localAccounts = {};
-                        }
-
                         user.externAccounts(function(err, externAccounts) {
                             if (err) {
                                 return next(err);
-                            }
-
-                            if (!externAccounts) {
-                                externAccounts = {};
                             }
 
                             data.user = {
@@ -237,26 +225,14 @@
                                 return next(err);
                             }
 
-                            if (!keys) {
-                                keys = {};
-                            }
-
                             user.localAccounts(function(err, localAccounts) {
                                 if (err) {
                                     return next(err);
                                 }
 
-                                if (!localAccounts) {
-                                    localAccounts = {};
-                                }
-
                                 user.externAccounts(function(err, externAccounts) {
                                     if (err) {
                                         return next(err);
-                                    }
-
-                                    if (!externAccounts) {
-                                        externAccounts = {};
                                     }
 
                                     data.user.push({
@@ -360,26 +336,14 @@
                                 return next(err);
                             }
 
-                            if (!keys) {
-                                keys = {};
-                            }
-
                             user.localAccounts(function(err, localAccounts) {
                                 if (err) {
                                     return next(err);
                                 }
 
-                                if (!localAccounts) {
-                                    localAccounts = {};
-                                }
-
                                 user.externAccounts(function(err, externAccounts) {
                                     if (err) {
                                         return next(err);
-                                    }
-
-                                    if (!externAccounts) {
-                                        externAccounts = {};
                                     }
 
                                     data.user.push({

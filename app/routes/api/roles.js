@@ -162,10 +162,6 @@
                         return next(err);
                     }
 
-                    if (!groups) {
-                        groups = {};
-                    }
-
                     data.role = {
                         id: role.id,
                         name: role.name,
@@ -260,10 +256,6 @@
                         role.groups(function(err, groups) {
                             if (err) {
                                 return next(err);
-                            }
-
-                            if (!groups) {
-                                groups = {};
                             }
 
                             data.role = {
@@ -391,10 +383,6 @@
                         role.groups(function(err, groups) {
                             if (err) {
                                 return next(err);
-                            }
-
-                            if (!groups) {
-                                groups = {};
                             }
 
                             data.role.push({
