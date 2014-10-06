@@ -7,13 +7,13 @@ The project is under GNU GPL licence.
 ## Features
 
 - Support pages and posts with comments, tags and categories
-- Content generated from static Markdown files or by API calls
+- Content generated from static Markdown files or by REST API
 - Content indexed in database (Redis, SQLite, PostgreSQL, MySQL)
+- User permissions by groups and roles
 - Client API authentication by keys or tokens
 - Local authentication by user credentials
-- External authentication through OAuth/OpenID providers (Facebook, GitHub, Google, LinkedIn, Twitter)
-- User permissions by groups and roles
-- User blacklists by IP address, email and username
+- External authentication through remote providers (Facebook, GitHub, Google, LinkedIn, Twitter)
+- Client blacklist support by IP address, email and username
 
 ## Getting blog-server
 
@@ -135,6 +135,12 @@ Command help:
 Command help:
 
 	$node bin/shell blacklists --help
+
+#### Variables management
+
+Command help:
+
+	$node bin/shell variables --help
 
 #### Content mangement
 
