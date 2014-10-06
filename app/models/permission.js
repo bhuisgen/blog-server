@@ -13,8 +13,8 @@
             }
         });
 
-        Permission.hasMany(schema.loadDefinition('Collection'), {
-            as: 'collections',
+        Permission.hasMany(schema.loadDefinition('Route'), {
+            as: 'routes',
             foreignKey: 'permissionId'
         });
 

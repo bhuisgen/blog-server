@@ -16,96 +16,7 @@
 
         var schema = new Schema(config.database.type, options);
 
-        var Collection = schema.loadDefinition('Collection');
         var User = schema.loadDefinition('User');
-
-        router.use(function checkUser(req, res, next) {
-            var err;
-
-            if (!req.authenticated) {
-                err = new Error('Access forbidden');
-                err.status = 403;
-
-                return next(err);
-            }
-
-            var allow = false;
-
-            switch (req.method) {
-                case 'POST':
-                    if (req.role.usersCreate) {
-                        allow = true;
-                    }
-                    break;
-
-                case 'GET':
-                    if (req.role.usersRead) {
-                        allow = true;
-                    }
-                    break;
-
-                case 'PUT':
-                    if (req.role.usersUpdate) {
-                        allow = true;
-                    }
-                    break;
-
-                case 'DELETE':
-                    if (req.role.usersDelete) {
-                        allow = true;
-                    }
-                    break;
-
-                default:
-                    err = new Error('Method not allowed');
-                    err.status = 405;
-
-                    return next(err);
-            }
-
-            if (!allow) {
-                err = new Error('Access forbidden');
-                err.status = 403;
-
-                return next(err);
-            }
-
-            Collection.findOne({
-                where: {
-                    name: 'Users'
-                }
-            }, function(err, collection) {
-                if (err) {
-                    return next(err);
-                }
-
-                if (!collection) {
-                    err = new Error('Collection not found');
-                    err.status = 500;
-
-                    return next(err);
-                }
-
-                req.collection = collection;
-
-                collection.permission(function(err, permission) {
-                    if (err) {
-                        return next(err);
-                    }
-
-                    if (!permission) {
-                        err = new Error('Permission not found');
-                        err.status = 500;
-
-                        return next(err);
-                    }
-
-                    req.permission = permission;
-
-                    return next();
-                });
-            });
-        });
 
         router.post('/users', function createUser(req, res, next) {
             var err;
@@ -176,8 +87,10 @@
                                 id: user.id,
                                 email: user.email,
                                 name: user.name,
-                                enabled: user.enabled,
                                 created: user.created,
+                                lastLogin: user.lastLogin,
+                                enabled: user.enabled,
+                                admin: user.admin,
                                 group: user.groupId,
                                 keys: _.pluck(keys, 'id'),
                                 localAccounts: _.pluck(localAccounts, 'id'),
@@ -239,8 +152,10 @@
                                         id: user.id,
                                         email: user.email,
                                         name: user.name,
-                                        enabled: user.enabled,
                                         created: user.created,
+                                        lastLogin: user.lastLogin,
+                                        enabled: user.enabled,
+                                        admin: user.admin,
                                         group: user.groupId,
                                         keys: _.pluck(keys, 'id'),
                                         localAccounts: _.pluck(localAccounts, 'id'),
@@ -277,6 +192,12 @@
                 if (req.query.created) {
                     filter.email = req.query.created;
                 }
+
+                if (req.query.lastLogin) {
+                    filter.email = req.query.lastLogin;
+                }
+
+                if (req.query)
 
                 if (Object.keys(filter).length === 0) {
                     filter = null;
@@ -350,8 +271,10 @@
                                         id: user.id,
                                         email: user.email,
                                         name: user.name,
-                                        enabled: user.enabled,
                                         created: user.created,
+                                        lastLogin: user.lastLogin,
+                                        enabled: user.enabled,
+                                        admin: user.admin,
                                         group: user.groupId,
                                         keys: _.pluck(keys, 'id'),
                                         localAccounts: _.pluck(localAccounts, 'id'),

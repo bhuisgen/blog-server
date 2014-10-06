@@ -4,7 +4,7 @@
     var Schema = require('jugglingdb').Schema;
 
     module.exports = function(schema) {
-        var Collection = schema.define('Collection', {
+        var Route = schema.define('Route', {
             name: {
                 type: String,
                 length: 64,
@@ -12,13 +12,13 @@
             },
         });
 
-        Collection.belongsTo(schema.loadDefinition('Permission'), {
+        Route.belongsTo(schema.loadDefinition('Permission'), {
             as: 'permission',
             foreignKey: 'permissionId'
         });
 
-        Collection.validatesPresenceOf('name');
+        Route.validatesPresenceOf('name');
 
-        return Collection;
+        return Route;
     };
 }());

@@ -16,96 +16,7 @@
 
         var schema = new Schema(config.database.type, options);
 
-        var Collection = schema.loadDefinition('Collection');
         var Role = schema.loadDefinition('Role');
-
-        router.use(function checkUser(req, res, next) {
-            var err;
-
-            if (!req.authenticated) {
-                err = new Error('Access forbidden');
-                err.status = 403;
-
-                return next(err);
-            }
-
-            var allow = false;
-
-            switch (req.method) {
-                case 'POST':
-                    if (req.role.rolesCreate) {
-                        allow = true;
-                    }
-                    break;
-
-                case 'GET':
-                    if (req.role.rolesRead) {
-                        allow = true;
-                    }
-                    break;
-
-                case 'PUT':
-                    if (req.role.rolesUpdate) {
-                        allow = true;
-                    }
-                    break;
-
-                case 'DELETE':
-                    if (req.role.rolesDelete) {
-                        allow = true;
-                    }
-                    break;
-
-                default:
-                    err = new Error('Method not allowed');
-                    err.status = 405;
-
-                    return next(err);
-            }
-
-            if (!allow) {
-                err = new Error('Access forbidden');
-                err.status = 403;
-
-                return next(err);
-            }
-
-            Collection.findOne({
-                where: {
-                    name: 'Roles'
-                }
-            }, function(err, collection) {
-                if (err) {
-                    return next(err);
-                }
-
-                if (!collection) {
-                    err = new Error('Collection not found');
-                    err.status = 500;
-
-                    return next(err);
-                }
-
-                req.collection = collection;
-
-                collection.permission(function(err, permission) {
-                    if (err) {
-                        return next(err);
-                    }
-
-                    if (!permission) {
-                        err = new Error('Permission not found');
-                        err.status = 500;
-
-                        return next(err);
-                    }
-
-                    req.permission = permission;
-
-                    next();
-                });
-            });
-        });
 
         router.post('/roles', function createRole(req, res, next) {
             var err;
@@ -189,6 +100,22 @@
                         externAccountsRead: role.externAccountsRead,
                         externAccountsUpdate: role.externAccountsUpdate,
                         externAccountsDelete: role.externAccountsDelete,
+                        variablesCreate: role.variablesCreate,
+                        variablesRead: role.variablesRead,
+                        variablesUpdate: role.variablesUpdate,
+                        variablesDelete: role.variablesDelete,
+                        blacklistIPsCreate: role.blacklistIPsCreate,
+                        blacklistIPsRead: role.blacklistIPsRead,
+                        blacklistIPsUpdate: role.blacklistIPsUpdate,
+                        blacklistIPsDelete: role.blacklistIPsDelete,
+                        blacklistEmailsCreate: role.blacklistEmailsCreate,
+                        blacklistEmailsRead: role.blacklistEmailsRead,
+                        blacklistEmailsUpdate: role.blacklistEmailsUpdate,
+                        blacklistEmailsDelete: role.blacklistEmailsDelete,
+                        blacklistNamesCreate: role.blacklistNamesCreate,
+                        blacklistNamesRead: role.blacklistNamesRead,
+                        blacklistNamesUpdate: role.blacklistNamesUpdate,
+                        blacklistNamesDelete: role.blacklistNamesDelete,
                         pagesCreate: role.pagesCreate,
                         pagesRead: role.pagesRead,
                         pagesUpdate: role.pagesUpdate,
@@ -285,6 +212,22 @@
                                 externAccountsRead: role.externAccountsRead,
                                 externAccountsUpdate: role.externAccountsUpdate,
                                 externAccountsDelete: role.externAccountsDelete,
+                                variablesCreate: role.variablesCreate,
+                                variablesRead: role.variablesRead,
+                                variablesUpdate: role.variablesUpdate,
+                                variablesDelete: role.variablesDelete,
+                                blacklistIPsCreate: role.blacklistIPsCreate,
+                                blacklistIPsRead: role.blacklistIPsRead,
+                                blacklistIPsUpdate: role.blacklistIPsUpdate,
+                                blacklistIPsDelete: role.blacklistIPsDelete,
+                                blacklistEmailsCreate: role.blacklistEmailsCreate,
+                                blacklistEmailsRead: role.blacklistEmailsRead,
+                                blacklistEmailsUpdate: role.blacklistEmailsUpdate,
+                                blacklistEmailsDelete: role.blacklistEmailsDelete,
+                                blacklistNamesCreate: role.blacklistNamesCreate,
+                                blacklistNamesRead: role.blacklistNamesRead,
+                                blacklistNamesUpdate: role.blacklistNamesUpdate,
+                                blacklistNamesDelete: role.blacklistNamesDelete,
                                 pagesCreate: role.pagesCreate,
                                 pagesRead: role.pagesRead,
                                 pagesUpdate: role.pagesUpdate,
@@ -411,6 +354,22 @@
                                 externAccountsRead: role.externAccountsRead,
                                 externAccountsUpdate: role.externAccountsUpdate,
                                 externAccountsDelete: role.externAccountsDelete,
+                                variablesCreate: role.variablesCreate,
+                                variablesRead: role.variablesRead,
+                                variablesUpdate: role.variablesUpdate,
+                                variablesDelete: role.variablesDelete,
+                                blacklistIPsCreate: role.blacklistIPsCreate,
+                                blacklistIPsRead: role.blacklistIPsRead,
+                                blacklistIPsUpdate: role.blacklistIPsUpdate,
+                                blacklistIPsDelete: role.blacklistIPsDelete,
+                                blacklistEmailsCreate: role.blacklistEmailsCreate,
+                                blacklistEmailsRead: role.blacklistEmailsRead,
+                                blacklistEmailsUpdate: role.blacklistEmailsUpdate,
+                                blacklistEmailsDelete: role.blacklistEmailsDelete,
+                                blacklistNamesCreate: role.blacklistNamesCreate,
+                                blacklistNamesRead: role.blacklistNamesRead,
+                                blacklistNamesUpdate: role.blacklistNamesUpdate,
+                                blacklistNamesDelete: role.blacklistNamesDelete,
                                 pagesCreate: role.pagesCreate,
                                 pagesRead: role.pagesRead,
                                 pagesUpdate: role.pagesUpdate,

@@ -22,7 +22,7 @@
                 index: true
             },
             lastLogin: {
-                type: Date,
+                type: Date
             },
             enabled: {
                 type: Boolean,

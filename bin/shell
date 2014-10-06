@@ -35,21 +35,22 @@
         var BlacklistEmail = schema.loadDefinition('BlacklistEmail');
         var BlacklistIP = schema.loadDefinition('BlacklistIp');
         var BlacklistName = schema.loadDefinition('BlacklistName');
-        var ExternAccount = schema.loadDefinition('ExternAccount');
-        var LocalAccount = schema.loadDefinition('LocalAccount');
-        var PostCategory = schema.loadDefinition('PostCategory');
-        var PostTag = schema.loadDefinition('PostTag');
-        var Collection = schema.loadDefinition('Collection');
+        var Category = schema.loadDefinition('Category');
         var Comment = schema.loadDefinition('Comment');
+        var ExternAccount = schema.loadDefinition('ExternAccount');
         var Group = schema.loadDefinition('Group');
         var Key = schema.loadDefinition('Key');
+        var LocalAccount = schema.loadDefinition('LocalAccount');
         var Page = schema.loadDefinition('Page');
         var Permission = schema.loadDefinition('Permission');
         var Post = schema.loadDefinition('Post');
+        var PostCategory = schema.loadDefinition('PostCategory');
+        var PostTag = schema.loadDefinition('PostTag');
         var Role = schema.loadDefinition('Role');
-        var Category = schema.loadDefinition('Category');
+        var Route = schema.loadDefinition('Route');
         var Tag = schema.loadDefinition('Tag');
         var User = schema.loadDefinition('User');
+        var Variable = schema.loadDefinition('Variable');
 
         async.series([
 
@@ -73,18 +74,18 @@
                 });
             },
             function(callback) {
-                var Collection = schema.loadDefinition('Collection');
+                var Variable = schema.loadDefinition('Variable');
 
-                Collection.count(function(err, count) {
+                Variable.get(Define.VARIABLE.INSTANCE_DATE, function(err, value) {
                     if (err) {
                         return callback(err);
                     }
 
-                    if (neededState && !count) {
+                    if (neededState && !value) {
                         return callback(new Error('Instance not initialized'));
                     }
 
-                    if (!neededState && count) {
+                    if (!neededState && value) {
                         return callback(new Error('Instance already initialized'));
                     }
 
@@ -121,28 +122,33 @@
         var schema = new Schema(config.database.type, options);
 
         var Permission = schema.loadDefinition('Permission');
-        var Collection = schema.loadDefinition('Collection');
+        var Route = schema.loadDefinition('Route');
         var Role = schema.loadDefinition('Role');
         var Group = schema.loadDefinition('Group');
         var User = schema.loadDefinition('User');
         var Key = schema.loadDefinition('Key');
         var LocalAccount = schema.loadDefinition('LocalAccount');
+        var Variable = schema.loadDefinition('Variable');
 
         var permissionShared;
         var permissionPrivate;
         var permissionReadOnly;
         var permissionFull;
-        var collectionUsers;
-        var collectionGroups;
-        var collectionRoles;
-        var collectionKeys;
-        var collectionLocalAccounts;
-        var collectionExternAccounts;
-        var collectionPages;
-        var collectionPosts;
-        var collectionComments;
-        var collectionCategories;
-        var collectionTags;
+        var routeRoles;
+        var routeGroups;
+        var routeUsers;
+        var routeKeys;
+        var routeLocalAccounts;
+        var routeExternAccounts;
+        var routeBlacklistIPs;
+        var routeBlacklistEmails;
+        var routeBlacklistNames;
+        var routeVariables;
+        var routePages;
+        var routePosts;
+        var routeComments;
+        var routeCategories;
+        var routeTags;
         var roleAnonymous;
         var roleAdministrator;
         var roleAuthor;
@@ -229,13 +235,13 @@
                 });
             },
             function(callback) {
-                console.log('Creating collection \'Users\' ...');
+                console.log('Creating route \'Roles\' ...');
 
-                collectionUsers = permissionShared.collections.build({
-                    name: 'Users'
+                routeRoles = permissionShared.routes.build({
+                    name: 'roles'
                 });
 
-                collectionUsers.save(function(err) {
+                routeRoles.save(function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -244,13 +250,13 @@
                 });
             },
             function(callback) {
-                console.log('Creating collection \'Groups\' ...');
+                console.log('Creating route \'Groups\' ...');
 
-                collectionGroups = permissionShared.collections.build({
-                    name: 'Groups'
+                routeGroups = permissionShared.routes.build({
+                    name: 'groups'
                 });
 
-                collectionGroups.save(function(err) {
+                routeGroups.save(function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -259,13 +265,13 @@
                 });
             },
             function(callback) {
-                console.log('Creating collection \'Roles\' ...');
+                console.log('Creating route \'Users\' ...');
 
-                collectionRoles = permissionShared.collections.build({
-                    name: 'Roles'
+                routeUsers = permissionShared.routes.build({
+                    name: 'users'
                 });
 
-                collectionRoles.save(function(err) {
+                routeUsers.save(function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -274,13 +280,13 @@
                 });
             },
             function(callback) {
-                console.log('Creating collection \'Keys\' ...');
+                console.log('Creating route \'Keys\' ...');
 
-                collectionKeys = permissionPrivate.collections.build({
-                    name: 'Keys'
+                routeKeys = permissionPrivate.routes.build({
+                    name: 'keys'
                 });
 
-                collectionKeys.save(function(err) {
+                routeKeys.save(function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -289,13 +295,13 @@
                 });
             },
             function(callback) {
-                console.log('Creating collection \'LocalAccount\' ...');
+                console.log('Creating route \'LocalAccounts\' ...');
 
-                collectionLocalAccounts = permissionPrivate.collections.build({
-                    name: 'LocalAccounts'
+                routeLocalAccounts = permissionPrivate.routes.build({
+                    name: 'localAccounts'
                 });
 
-                collectionLocalAccounts.save(function(err) {
+                routeLocalAccounts.save(function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -304,13 +310,13 @@
                 });
             },
             function(callback) {
-                console.log('Creating collection \'ExternAccount\' ...');
+                console.log('Creating route \'ExternAccounts\' ...');
 
-                collectionExternAccounts = permissionPrivate.collections.build({
-                    name: 'ExternAccounts'
+                routeExternAccounts = permissionPrivate.routes.build({
+                    name: 'externAccounts'
                 });
 
-                collectionExternAccounts.save(function(err) {
+                routeExternAccounts.save(function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -319,13 +325,13 @@
                 });
             },
             function(callback) {
-                console.log('Creating collection \'Pages\' ...');
+                console.log('Creating route \'BlacklistIPs\' ...');
 
-                collectionPages = permissionShared.collections.build({
-                    name: 'Pages'
+                routeBlacklistIPs = permissionShared.routes.build({
+                    name: 'blacklistIPs'
                 });
 
-                collectionPages.save(function(err) {
+                routeBlacklistIPs.save(function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -334,13 +340,13 @@
                 });
             },
             function(callback) {
-                console.log('Creating collection \'Posts\' ...');
+                console.log('Creating route \'BlacklistEmails\' ...');
 
-                collectionPosts = permissionShared.collections.build({
-                    name: 'Posts'
+                routeBlacklistEmails = permissionShared.routes.build({
+                    name: 'blacklistEmails'
                 });
 
-                collectionPosts.save(function(err) {
+                routeBlacklistEmails.save(function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -349,13 +355,13 @@
                 });
             },
             function(callback) {
-                console.log('Creating collection \'Comments\' ...');
+                console.log('Creating route \'BlacklistUsers\' ...');
 
-                collectionComments = permissionShared.collections.build({
-                    name: 'Comments'
+                routeBlacklistNames = permissionShared.routes.build({
+                    name: 'blacklistNames'
                 });
 
-                collectionComments.save(function(err) {
+                routeBlacklistNames.save(function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -364,13 +370,13 @@
                 });
             },
             function(callback) {
-                console.log('Creating collection \'Categories\' ...');
+                console.log('Creating route \'Variables\' ...');
 
-                collectionCategories = permissionShared.collections.build({
-                    name: 'Categories'
+                routeVariables = permissionShared.routes.build({
+                    name: 'variables'
                 });
 
-                collectionCategories.save(function(err) {
+                routeVariables.save(function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -379,13 +385,73 @@
                 });
             },
             function(callback) {
-                console.log('Creating collection \'Tags\' ...');
+                console.log('Creating route \'Pages\' ...');
 
-                collectionTags = permissionShared.collections.build({
-                    name: 'Tags'
+                routePages = permissionShared.routes.build({
+                    name: 'pages'
                 });
 
-                collectionTags.save(function(err) {
+                routePages.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating route \'Posts\' ...');
+
+                routePosts = permissionShared.routes.build({
+                    name: 'posts'
+                });
+
+                routePosts.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating route \'Comments\' ...');
+
+                routeComments = permissionShared.routes.build({
+                    name: 'comments'
+                });
+
+                routeComments.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating route \'Categories\' ...');
+
+                routeCategories = permissionShared.routes.build({
+                    name: 'categories'
+                });
+
+                routeCategories.save(function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+            },
+            function(callback) {
+                console.log('Creating route \'Tags\' ...');
+
+                routeTags = permissionShared.routes.build({
+                    name: 'tags'
+                });
+
+                routeTags.save(function(err) {
                     if (err) {
                         return callback(err);
                     }
@@ -442,6 +508,22 @@
                     externAccountsRead: true,
                     externAccountsUpdate: true,
                     externAccountsDelete: true,
+                    blacklistIPsCreate: true,
+                    blacklistIPsRead: true,
+                    blacklistIPsUpdate: true,
+                    blacklistIPsDelete: true,
+                    blacklistEmailsCreate: true,
+                    blacklistEmailsRead: true,
+                    blacklistEmailsUpdate: true,
+                    blacklistEmailsDelete: true,
+                    blacklistNamesCreate: true,
+                    blacklistNamesRead: true,
+                    blacklistNamesUpdate: true,
+                    blacklistNamesDelete: true,
+                    variablesCreate: true,
+                    variablesRead: true,
+                    variablesUpdate: true,
+                    variablesDelete: true,
                     pagesCreate: true,
                     pagesRead: true,
                     pagesUpdate: true,
@@ -711,6 +793,37 @@
                         });
                     });
                 });
+            },
+            function(callback) {
+                var option;
+
+                async.series([
+
+                    function(callback) {
+                        Variable.set(Define.VARIABLE.INSTANCE_VERSION, '0.1', function(err) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            return callback(null);
+                        });
+                    },
+                    function(callback) {
+                        Variable.set(Define.VARIABLE.INSTANCE_DATE, new Date(), function(err) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            return callback(null);
+                        });
+                    }
+                ], function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
             }
         ], function(err) {
             schema.disconnect();
@@ -887,6 +1000,86 @@
                             type: 'boolean',
                             required: true
                         },
+                        blacklistIPsCreate: {
+                            description: 'blacklistIPsCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        blacklistIPsRead: {
+                            description: 'blacklistIPsRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        blacklistIPsUpdate: {
+                            description: 'blacklistIPsUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        blacklistIPsDelete: {
+                            description: 'blacklistIPsDelete',
+                            type: 'boolean',
+                            required: true
+                        },
+                        blacklistEmailsCreate: {
+                            description: 'blacklistEmailsCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        blacklistEmailsRead: {
+                            description: 'blacklistIPsRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        blacklistEmailsUpdate: {
+                            description: 'blacklistEmailsUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        blacklistEmailsDelete: {
+                            description: 'blacklistEmailsDelete',
+                            type: 'boolean',
+                            required: true
+                        },
+                        blacklistNamesCreate: {
+                            description: 'blacklistNamesCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        blacklistNamesRead: {
+                            description: 'blacklistNamessRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        blacklistNamesUpdate: {
+                            description: 'blacklistNamesUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        blacklistNamesDelete: {
+                            description: 'blacklistNamesDelete',
+                            type: 'boolean',
+                            required: true
+                        },
+                        variablesCreate: {
+                            description: 'variablesCreate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        variablesRead: {
+                            description: 'variablesRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        variablesUpdate: {
+                            description: 'variablesUpdate',
+                            type: 'boolean',
+                            required: true
+                        },
+                        variablesDelete: {
+                            description: 'variablesDelete',
+                            type: 'boolean',
+                            required: true
+                        },
                         pagesCreate: {
                             description: 'pagesCreate',
                             type: 'boolean',
@@ -1032,6 +1225,22 @@
                             externAccountsRead: result.externAccountsRead,
                             externAccountsUpdate: result.externAccountsUpdate,
                             externAccountsDelete: result.externAccountsDelete,
+                            blacklistIPsCreate: result.blacklistIPsCreate,
+                            blacklistIPsRead: result.blacklistIPsRead,
+                            blacklistIPsUpdate: result.blacklistIPsUpdate,
+                            blacklistIPsDelete: result.blacklistIPsDelete,
+                            blacklistEmailsCreate: result.blacklistEmailsCreate,
+                            blacklistEmailsRead: result.blacklistEmailsRead,
+                            blacklistEmailsUpdate: result.blacklistEmailsUpdate,
+                            blacklistEmailsDelete: result.blacklistEmailsDelete,
+                            blacklistNamesCreate: result.blacklistNamesCreate,
+                            blacklistNamesRead: result.blacklistNamesRead,
+                            blacklistNamesUpdate: result.blacklistNamesUpdate,
+                            blacklistNamesDelete: result.blacklistNamesDelete,
+                            variablesCreate: result.variablesCreate,
+                            variablesRead: result.variablesRead,
+                            variablesUpdate: result.variablesUpdate,
+                            variablesDelete: result.variablesDelete,
                             pagesCreate: result.pagesCreate,
                             pagesRead: result.pagesRead,
                             pagesUpdate: result.pagesUpdate,
@@ -1460,6 +1669,86 @@
                     type: 'boolean',
                     required: true
                 },
+                blacklistIPsCreate: {
+                    description: 'blacklistIPsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                blacklistIPsRead: {
+                    description: 'blacklistIPsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                blacklistIPsUpdate: {
+                    description: 'blacklistIPsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                blacklistIPsDelete: {
+                    description: 'blacklistIPsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                blacklistEmailsCreate: {
+                    description: 'blacklistEmailsCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                blacklistEmailsRead: {
+                    description: 'blacklistIPsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                blacklistEmailsUpdate: {
+                    description: 'blacklistEmailsUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                blacklistEmailsDelete: {
+                    description: 'blacklistEmailsDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                blacklistNamesCreate: {
+                    description: 'blacklistNamesCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                blacklistNamesRead: {
+                    description: 'blacklistNamessRead',
+                    type: 'boolean',
+                    required: true
+                },
+                blacklistNamesUpdate: {
+                    description: 'blacklistNamesUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                blacklistNamesDelete: {
+                    description: 'blacklistNamesDelete',
+                    type: 'boolean',
+                    required: true
+                },
+                variablesCreate: {
+                    description: 'variablesCreate',
+                    type: 'boolean',
+                    required: true
+                },
+                variablesRead: {
+                    description: 'variablesRead',
+                    type: 'boolean',
+                    required: true
+                },
+                variablesUpdate: {
+                    description: 'variablesUpdate',
+                    type: 'boolean',
+                    required: true
+                },
+                variablesDelete: {
+                    description: 'variablesDelete',
+                    type: 'boolean',
+                    required: true
+                },
                 pagesCreate: {
                     description: 'pagesCreate',
                     type: 'boolean',
@@ -1604,6 +1893,22 @@
                     externAccountsRead: result.externAccountsRead,
                     externAccountsUpdate: result.externAccountsUpdate,
                     externAccountsDelete: result.externAccountsDelete,
+                    blacklistIPsCreate: result.blacklistIPsCreate,
+                    blacklistIPsRead: result.blacklistIPsRead,
+                    blacklistIPsUpdate: result.blacklistIPsUpdate,
+                    blacklistIPsDelete: result.blacklistIPsDelete,
+                    blacklistEmailsCreate: result.blacklistEmailsCreate,
+                    blacklistEmailsRead: result.blacklistEmailsRead,
+                    blacklistEmailsUpdate: result.blacklistEmailsUpdate,
+                    blacklistEmailsDelete: result.blacklistEmailsDelete,
+                    blacklistNamesCreate: result.blacklistNamesCreate,
+                    blacklistNamesRead: result.blacklistNamesRead,
+                    blacklistNamesUpdate: result.blacklistNamesUpdate,
+                    blacklistNamesDelete: result.blacklistNamesDelete,
+                    variablesCreate: result.variablesCreate,
+                    variablesRead: result.variablesRead,
+                    variablesUpdate: result.variablesUpdate,
+                    variablesDelete: result.variablesDelete,
                     pagesCreate: result.pagesCreate,
                     pagesRead: result.pagesRead,
                     pagesUpdate: result.pagesUpdate,
@@ -3619,6 +3924,105 @@
     }
 
     /*
+     * Variables management
+     */
+
+    function variableSet(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Variable = schema.loadDefinition('Variable');
+
+        prompt.message = 'Set variable';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'Name',
+                    type: 'string',
+                    required: true
+                },
+                value: {
+                    description: 'Value',
+                    type: 'string',
+                    required: true
+                },
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Variable.set(result.name, result.value, function(err, value) {
+                if (err) {
+                    return callback(err);
+                }
+
+                return callback(null);
+            });
+        });
+    }
+
+    function variableGet(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var schema = new Schema(config.database.type, {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            modelLoader: {
+                rootDirectory: path.normalize(__dirname + '/..'),
+                directory: 'app/models'
+            }
+        });
+
+        var Variable = schema.loadDefinition('Variable');
+
+        prompt.message = 'Get variable';
+
+        var promptConfig = {
+            properties: {
+                name: {
+                    description: 'Name',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            Variable.get(result.name, function(err, value) {
+                if (err) {
+                    return callback(err);
+                }
+
+                if (!value) {
+                    return callback(new Error('Variable doesn\'t exist'));
+                }
+
+                console.log(value);
+
+                return callback(null);
+            });
+        });
+    }
+
+    /*
      * Create command
      */
 
@@ -5061,6 +5465,36 @@
 
             if (options.listName) {
                 blacklistListName(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+        });
+
+    program.command('variables')
+        .description('variables management')
+        .option('    --set', 'set variable')
+        .option('    --get', 'get variable')
+        .action(function(options) {
+            if (options.set) {
+                variableSet(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.get) {
+                variableGet(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 

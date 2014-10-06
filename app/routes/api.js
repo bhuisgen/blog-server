@@ -16,12 +16,16 @@
     var Schema = require('jugglingdb-model-loader');
 
     var auth = require('./api/auth');
-    var users = require('./api/users');
-    var groups = require('./api/groups');
     var roles = require('./api/roles');
+    var groups = require('./api/groups');
+    var users = require('./api/users');
+    var keys = require('./api/keys');
     var localAccounts = require('./api/localaccounts');
     var externAccounts = require('./api/externaccounts');
-    var keys = require('./api/keys');
+    var blacklistIPs = require('./api/blacklistips');
+    var blacklistEmails = require('./api/blacklistemails');
+    var blacklistNames = require('./api/blacklistnames');
+    var variables = require('./api/variables');
     var pages = require('./api/pages');
     var posts = require('./api/posts');
     var comments = require('./api/comments');
@@ -47,6 +51,7 @@
         var BlacklistIP = schema.loadDefinition('BlacklistIp');
         var Key = schema.loadDefinition('Key');
         var User = schema.loadDefinition('User');
+        var Route = schema.loadDefinition('Route');
 
         var r;
 
@@ -70,7 +75,7 @@
             console.error(error);
         });
 
-        router.use(function checkStatus(req, res, next)  {
+        router.use(function checkServer(req, res, next)  {
             if (!config.server.api.enable) {
                 res.status(503);
 
@@ -79,22 +84,6 @@
                     message: 'API server is not available'
                 });
             }
-
-            return next();
-        });
-
-        router.use(function checkAPIVersion(req, res, next) {
-            var header = req.get('Accepts');
-            if (!header) {
-                return next();
-            }
-
-            var match = header.match(/^application\/vnd\.api\.v(\d+)/);
-            if (!match) {
-                return next();
-            }
-
-            req.api = match[1];
 
             return next();
         });
@@ -118,6 +107,24 @@
             });
         });
 
+        router.use(function getAPIVersion(req, res, next) {
+            var header = req.get('Accepts');
+            if (!header) {
+                return next();
+            }
+
+            var match = header.match(/^application\/vnd\.api\.v(\d+)/);
+            if (!match) {
+                return next();
+            }
+
+            req.api = match[1];
+
+            return next();
+        });
+
+        auth(config, router, r);
+
         router.use(function checkAuthentication(req, res, next) {
             function updateUsersList(user, callback) {
                 r.multi()
@@ -134,15 +141,11 @@
                     });
             }
 
-            if (/^\/auth\//.test(req.path)) {
-                return next();
-            }
-
             var header = req.get('Authorization');
             var err;
 
             if (typeof header === 'undefined') {
-                err = new Error('Authorization header not found');
+                err = new Error('Unauthorized');
                 err.status = 401;
 
                 return next(err);
@@ -150,7 +153,7 @@
 
             var match = header.match(/^Basic (.+)$/);
             if (!match) {
-                err = new Error('Invalid authorization header');
+                err = new Error('Unauthorized');
                 err.status = 401;
 
                 return next(err);
@@ -169,7 +172,7 @@
 
                 if (key) {
                     if (!key.enabled) {
-                        err = new Error('Key disabled');
+                        err = new Error('Forbidden');
                         err.status = 403;
 
                         return next(err);
@@ -181,14 +184,14 @@
                         }
 
                         if (!user) {
-                            err = new Error('User not found');
-                            err.status = 401;
+                            err = new Error('Forbidden');
+                            err.status = 403;
 
                             return next(err);
                         }
 
                         if (!user.enabled) {
-                            err = new Error('User disabled');
+                            err = new Error('Forbidden');
                             err.status = 403;
 
                             return next(err);
@@ -200,7 +203,7 @@
                             }
 
                             if (!group) {
-                                err = new Error('Group not found');
+                                err = new Error('Forbidden');
                                 err.status = 403;
 
                                 return next(err);
@@ -212,7 +215,7 @@
                                 }
 
                                 if (!role) {
-                                    err = new Error('Role not found');
+                                    err = new Error('Forbidden');
                                     err.status = 403;
 
                                     return next(err);
@@ -241,7 +244,7 @@
                             }
 
                             if (!id) {
-                                err = new Error('Bad authorization token');
+                                err = new Error('Unauthorized');
                                 err.status = 401;
 
                                 return next(err);
@@ -253,14 +256,14 @@
                                 }
 
                                 if (!user) {
-                                    err = new Error('User not found');
-                                    err.status = 401;
+                                    err = new Error('Forbidden');
+                                    err.status = 403;
 
                                     return next(err);
                                 }
 
                                 if (!user.enabled) {
-                                    err = new Error('User disabled');
+                                    err = new Error('Forbidden');
                                     err.status = 403;
 
                                     return next(err);
@@ -272,7 +275,7 @@
                                     }
 
                                     if (!group) {
-                                        err = new Error('Group not found');
+                                        err = new Error('Forbidden');
                                         err.status = 403;
 
                                         return next(err);
@@ -284,7 +287,7 @@
                                         }
 
                                         if (!role) {
-                                            err = new Error('Role not found');
+                                            err = new Error('Forbidden');
                                             err.status = 403;
 
                                             return next(err);
@@ -317,14 +320,108 @@
             });
         });
 
-        auth(config, router, r);
+        router.use(function checkAPIAccess(req, res, next) {
+            var err;
 
-        users(config, router);
-        groups(config, router);
+            if (!req.authenticated) {
+                err = new Error('Forbidden');
+                err.status = 403;
+
+                return next(err);
+            }
+
+            var match = req.path.match(/^\/(\w+)\//);
+            if (!match) {
+                err = new Error('Method Not Allowed');
+                err.status = 405;
+
+                return next(err);
+            }
+
+            var allow = false;
+
+            var item = match[1];
+
+            switch (req.method) {
+                case 'POST':
+                    item += 'Create';
+                    break;
+
+                case 'GET':
+                    item += 'Read';
+                    break;
+
+                case 'PUT':
+                    item += 'Update';
+                    break;
+
+                case 'DELETE':
+                    item += 'Delete';
+                    break;
+
+                default:
+                    err = new Error('Bad Request');
+                    err.status = 400;
+
+                    return next(err);
+            }
+
+            if (item && req.role[item]) {
+                allow = true;
+            }
+
+            if (!allow) {
+                err = new Error('Forbidden');
+                err.status = 403;
+
+                return next(err);
+            }
+
+            Route.findOne({
+                where: {
+                    name: match[1]
+                }
+            }, function(err, route) {
+                if (err) {
+                    return next(err);
+                }
+
+                if (!route) {
+                    err = new Error('Internal Server Error');
+                    err.status = 500;
+
+                    return next(err);
+                }
+
+                route.permission(function(err, permission) {
+                    if (err) {
+                        return next(err);
+                    }
+
+                    if (!permission) {
+                        err = new Error('Internal Server Error');
+                        err.status = 500;
+
+                        return next(err);
+                    }
+
+                    req.permission = permission;
+
+                    return next();
+                });
+            });
+        });
+
         roles(config, router);
+        groups(config, router);
+        users(config, router);
         keys(config, router);
         localAccounts(config, router);
         externAccounts(config, router);
+        blacklistIPs(config, router);
+        blacklistEmails(config, router);
+        blacklistNames(config, router);
+        variables(config, router);
         pages(config, router);
         posts(config, router);
         comments(config, router);

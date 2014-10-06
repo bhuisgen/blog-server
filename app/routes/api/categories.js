@@ -15,90 +15,7 @@
 
         var schema = new Schema(config.database.type, options);
 
-        var Collection = schema.loadDefinition('Collection');
         var Category = schema.loadDefinition('Category');
-
-        router.use(function checkUser(req, res, next) {
-            var err;
-
-            if (!req.authenticated) {
-                err = new Error('Access forbidden');
-                err.status = 403;
-
-                return next(err);
-            }
-
-            var allow = false;
-
-            switch (req.method) {
-                case 'POST':
-                    if (req.role.categoriesCreate) {
-                        allow = true;
-                    }
-                    break;
-
-                case 'GET':
-                    if (req.role.categoriesRead) {
-                        allow = true;
-                    }
-                    break;
-
-                case 'PUT':
-                    if (req.role.categoriesUpdate) {
-                        allow = true;
-                    }
-                    break;
-
-                case 'DELETE':
-                    if (req.role.categoriesDelete) {
-                        allow = true;
-                    }
-                    break;
-            }
-
-            if (!allow) {
-                err = new Error('Access forbidden');
-                err.status = 403;
-
-                return next(err);
-            }
-
-            Collection.findOne({
-                where: {
-                    name: 'Categories'
-                }
-            }, function(err, collection) {
-                if (err) {
-                    return next(err);
-                }
-
-                if (!collection) {
-                    err = new Error('Collection not found');
-                    err.status = 500;
-
-                    return next(err);
-                }
-
-                req.collection = collection;
-
-                collection.permission(function(err, permission) {
-                    if (err) {
-                        return next(err);
-                    }
-
-                    if (!permission) {
-                        err = new Error('Permission not found');
-                        err.status = 500;
-
-                        return next(err);
-                    }
-
-                    req.permission = permission;
-
-                    return next();
-                });
-            });
-        });
 
         router.post('/categories', function createCategory(req, res, next) {
             var err;
@@ -207,6 +124,10 @@
 
                 if (req.query.id) {
                     filter.id = req.query.id;
+                }
+
+                if (req.query.name) {
+                    filter.name = req.query.name;
                 }
 
                 if (Object.keys(filter).length === 0) {

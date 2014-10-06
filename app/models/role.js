@@ -106,6 +106,70 @@
                 type: Boolean,
                 default: false
             },
+            variablesCreate: {
+                type: Boolean,
+                default: false
+            },
+            variablesRead: {
+                type: Boolean,
+                default: false
+            },
+            variablesUpdate: {
+                type: Boolean,
+                default: false
+            },
+            variablesDelete: {
+                type: Boolean,
+                default: false
+            },
+            blacklistIPsCreate: {
+                type: Boolean,
+                default: false
+            },
+            blacklistIPsRead: {
+                type: Boolean,
+                default: false
+            },
+            blacklistIPsUpdate: {
+                type: Boolean,
+                default: false
+            },
+            blacklistIPsDelete: {
+                type: Boolean,
+                default: false
+            },
+            blacklistEmailsCreate: {
+                type: Boolean,
+                default: false
+            },
+            blacklistEmailsRead: {
+                type: Boolean,
+                default: false
+            },
+            blacklistEmailsUpdate: {
+                type: Boolean,
+                default: false
+            },
+            blacklistEmailsDelete: {
+                type: Boolean,
+                default: false
+            },
+            blacklistNamesCreate: {
+                type: Boolean,
+                default: false
+            },
+            blacklistNamesRead: {
+                type: Boolean,
+                default: false
+            },
+            blacklistNamesUpdate: {
+                type: Boolean,
+                default: false
+            },
+            blacklistNamesDelete: {
+                type: Boolean,
+                default: false
+            },
             pagesCreate: {
                 type: Boolean,
                 default: false,

@@ -2,7 +2,6 @@
     'use strict';
 
     var path = require('path');
-    var _ = require('lodash');
 
     var Schema = require('jugglingdb-model-loader');
 
@@ -16,9 +15,9 @@
 
         var schema = new Schema(config.database.type, options);
 
-        var Comment = schema.loadDefinition('Comment');
+        var BlacklistIP = schema.loadDefinition('BlacklistIp');
 
-        router.post('/comments', function createComment(req, res, next) {
+        router.post('/blacklistIPs', function createBlacklistIP(req, res, next) {
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
@@ -28,16 +27,16 @@
                 return next(err);
             }
 
-            var comment = new Comment(req.body.comment);
+            var blacklistIP = new BlacklistIP(req.body.blacklistIP);
 
-            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment.userId && (comment.userId !== req.user.id)) {
+            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
                 err = new Error('Access forbidden');
                 err.status = 403;
 
                 return next(err);
             }
 
-            comment.save(function(err) {
+            blacklistIP.save(function(err) {
                 if (err) {
                     return next(err);
                 }
@@ -46,87 +45,69 @@
             });
         });
 
-        router.get('/comments/:id', function readComment(req, res, next) {
+        router.get('/blacklistIPs/:id', function readBlacklistIP(req, res, next) {
             var data = {};
 
-            Comment.find(req.params.id, function(err, comment) {
+            BlacklistIP.find(req.params.id, function(err, blacklistIP) {
                 if (err) {
                     return next(err);
                 }
 
-                if (!req.user.admin && req.permission.isPrivate() && comment && comment.userId && (comment.userId !== req.user.id)) {
+                if (!req.user.admin && req.permission.isPrivate() && blacklistIP && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!comment) {
-                    err = new Error('Comment not found');
+                if (!blacklistIP) {
+                    err = new Error('BlacklistIP not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                data.comment = {
-                    id: comment.id,
-                    content: comment.content,
-                    author: comment.author,
-                    email: comment.email,
-                    ip: comment.ip,
-                    created: comment.created,
-                    updated: comment.updated,
-                    validated: comment.validated,
-                    allowed: comment.allowed,
-                    post: comment.postId,
-                    user: comment.userId,
+                data.blacklistIP = {
+                    id: blacklistIP.id,
+                    ip: blacklistIP.ip
                 };
 
                 return res.json(data);
             });
         });
 
-        router.get('/comments', function readComments(req, res, next) {
+        router.get('/blacklistIPs', function readBlacklistIPs(req, res, next) {
             var data = {};
             var err;
 
             if (req.query.ids) {
                 var pending = req.query.ids.length;
 
-                data.comment = [];
+                data.blacklistIP = [];
 
                 var iterate = function(id) {
-                    Comment.find(id, function(err, comment) {
+                    BlacklistIP.find(id, function(err, blacklistIP) {
                         if (err) {
                             return next(err);
                         }
 
-                        if (!req.user.admin && req.permission.isPrivate() && comment && comment.userId && (comment.userId !== req.user.id)) {
+                        if (!req.user.admin && req.permission.isPrivate() && blacklistIP && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
                             return next(err);
                         }
 
-                        if (!comment) {
-                            err = new Error('Comment not found');
+                        if (!blacklistIP) {
+                            err = new Error('BlacklistIP not found');
                             err.status = 404;
 
                             return next(err);
                         }
 
-                        data.comment.push({
-                            id: comment.id,
-                            content: comment.content,
-                            author: comment.author,
-                            email: comment.email,
-                            ip: comment.ip,
-                            created: comment.created,
-                            updated: comment.updated,
-                            validated: comment.validated,
-                            allowed: comment.allowed,
-                            post: comment.postId,
-                            user: comment.userId,
+                        data.blacklistIP.push({
+                            id: blacklistIP.id,
+                            ip: blacklistIP.ip
                         });
 
                         if (!--pending) {
@@ -145,20 +126,8 @@
                     filter.id = req.query.id;
                 }
 
-                if (req.query.author) {
-                    filter.author = req.query.author;
-                }
-
-                if (req.query.email) {
-                    filter.email = req.query.email;
-                }
-
-                if (req.query.created) {
-                    filter.created = req.query.created;
-                }
-
-                if (req.query.updated) {
-                    filter.updated = req.query.updated;
+                if (req.query.ip) {
+                    filter.ip = req.query.ip;
                 }
 
                 if (Object.keys(filter).length === 0) {
@@ -176,54 +145,45 @@
                     return next(err);
                 }
 
-                Comment.all({
+                BlacklistIP.all({
                     where: filter,
                     order: order + ' ' + sort,
                     skip: offset,
                     limit: limit
-                }, function(err, comments) {
+                }, function(err, blacklistIPs) {
                     if (err) {
                         return next(err);
                     }
 
-                    if (offset > comments.length) {
+                    if (offset > blacklistIPs.length) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
                         return next(err);
                     }
 
-                    data.comment = [];
+                    data.blacklistIP = [];
                     data.meta = {
-                        count: comments.length
+                        count: blacklistIPs.length
                     };
 
-                    if (!comments.length) {
+                    if (!blacklistIPs.length) {
                         return res.json(data);
                     }
 
-                    var pending = comments.length;
+                    var pending = blacklistIPs.length;
 
-                    var iterate = function(comment) {
-                        if (!req.user.admin && req.permission.isPrivate() && comment.userId && (comment.userId !== req.user.id)) {
+                    var iterate = function(blacklistIP) {
+                        if (!req.user.admin && req.permission.isPrivate() && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
                             return next(err);
                         }
 
-                        data.comment.push({
-                            id: comment.id,
-                            content: comment.content,
-                            author: comment.author,
-                            email: comment.email,
-                            ip: comment.ip,
-                            created: comment.created,
-                            updated: comment.updated,
-                            validated: comment.validated,
-                            allowed: comment.allowed,
-                            post: comment.postId,
-                            user: comment.userId,
+                        data.blacklistIP.push({
+                            id: blacklistIP.id,
+                            ip: blacklistIP.ip
                         });
 
                         if (!--pending) {
@@ -231,14 +191,14 @@
                         }
                     };
 
-                    for (var i = 0; i < comments.length; i++) {
-                        iterate(comments[i]);
+                    for (var i = 0; i < blacklistIPs.length; i++) {
+                        iterate(blacklistIPs[i]);
                     }
                 });
             }
         });
 
-        router.put('/comments/:id', function updateComment(req, res, next) {
+        router.put('/blacklistIPs/:id', function updateBlacklistIP(req, res, next) {
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
@@ -248,28 +208,26 @@
                 return next(err);
             }
 
-            Comment.find(req.params.id, function(err, comment) {
+            BlacklistIP.find(req.params.id, function(err, blacklistIP) {
                 if (err) {
                     return next(err);
                 }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment && comment.userId && (comment.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistIP && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!comment) {
-                    err = new Error('Comment not found');
+                if (!blacklistIP) {
+                    err = new Error('BlacklistIP not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                req.body.comment.updated = new Date();
-
-                comment.updateAttributes(req.body.comment, function(err) {
+                blacklistIP.updateAttributes(req.body.blacklistIP, function(err) {
                     if (err) {
                         return next(err);
                     }
@@ -279,7 +237,7 @@
             });
         });
 
-        router.delete('/comments/:id', function deleteComment(req, res, next) {
+        router.delete('/blacklistIPs/:id', function deleteBlacklistIP(req, res, next) {
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
@@ -289,26 +247,26 @@
                 return next(err);
             }
 
-            Comment.find(req.params.id, function(err, comment) {
+            BlacklistIP.find(req.params.id, function(err, blacklistIP) {
                 if (err) {
                     return next(err);
                 }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment && comment.userId && (comment.userId !== req.user.id)) {
+                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistIP && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
-                if (!comment) {
-                    err = new Error('Comment not found');
+                if (!blacklistIP) {
+                    err = new Error('BlacklistIP not found');
                     err.status = 404;
 
                     return next(err);
                 }
 
-                comment.destroy(function(err) {
+                blacklistIP.destroy(function(err) {
                     if (err) {
                         return next(err);
                     }

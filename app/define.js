@@ -1,6 +1,10 @@
 (function() {
     'use strict';
 
+    /*
+     * Permissions
+     */
+
     var PERMISSION = {
         SHARED: 1,
         PRIVATE: 2,
@@ -16,4 +20,15 @@
         '4': 'full'
     };
     module.exports.PERMISSION_DESCRIPTION = PERMISSION_DESCRIPTION;
+
+    /*
+     * Variables
+     */
+
+    var VARIABLE = {
+        INSTANCE_VERSION: 'instance.version',
+        INSTANCE_DATE: 'instance.date',
+    };
+    module.exports.VARIABLE = VARIABLE;
+
 }());
