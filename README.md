@@ -8,7 +8,7 @@ The project is under GNU GPL licence.
 
 - Support pages and posts with comments, tags and categories
 - Content generated from static Markdown files or by REST API
-- Content indexed in database (Redis, SQLite, PostgreSQL, MySQL)
+- Content indexed in database (Redis, SQLite, PostgreSQL, MySQL, MongoDB)
 - User permissions by groups and roles
 - Client API authentication by keys or tokens
 - Local authentication by user credentials
@@ -44,6 +44,10 @@ To store content in alternative storage than Redis:
 
 		$ npm install jugglingdb-mysql
 
+- for MongoDB storage:
+
+		$ npm install jugglingdb-mongodb
+
 	$ grunt build
 
 ## Configuration
@@ -58,19 +62,23 @@ You must choose one storage backend and copy the corresponding template file int
 
 - for Redis storage:
 
-		$ cp config/database.redis.js config/database.js
+		$ cp config/database.js.redis config/database.js
 
 - for SQLite storage:
 
-		$ cp config/database.sqlite.js config/database.js
+		$ cp config/database.js.sqlite config/database.js
 
 - for PostgreSQL storage:
 
-		$ cp config/database.pgsql.js config/database.js
+		$ cp config/database.js.pgsql config/database.js
 
 - for MySQL storage:
 
-		$ cp config/database.mysql.js config/database.js
+		$ cp config/database.js.mysql config/database.js
+
+- for MongoDB storage:
+
+		$ cp config/database.js.mongodb config/database.js
 
 ## Use
 
