@@ -199,9 +199,9 @@
 
                 if (req.query)
 
-                if (Object.keys(filter).length === 0) {
-                    filter = null;
-                }
+                    if (Object.keys(filter).length === 0) {
+                        filter = null;
+                    }
 
                 var order = req.query.order || 'id';
                 var sort = (req.query.sort === 'false' ? 'DESC' : 'ASC');
@@ -214,17 +214,12 @@
                     return next(err);
                 }
 
-                User.all({
-                    where: filter,
-                    order: order + ' ' + sort,
-                    skip: offset,
-                    limit: limit
-                }, function(err, users) {
+                User.count(filter, function(err, count) {
                     if (err) {
                         return next(err);
                     }
 
-                    if (offset > users.length) {
+                    if (offset > count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
@@ -233,65 +228,76 @@
 
                     data.user = [];
                     data.meta = {
-                        count: users.length
+                        count: count
                     };
 
-                    if (!users.length) {
-                        return res.json(data);
-                    }
-
-                    var pending = users.length;
-
-                    data.user = [];
-
-                    var iterate = function(user) {
-                        if (!req.user.admin && req.permission.isPrivate() && (user.id !== req.user.id)) {
-                            err = new Error('Access forbidden');
-                            err.status = 403;
-
+                    User.all({
+                        where: filter,
+                        order: order + ' ' + sort,
+                        skip: offset,
+                        limit: limit
+                    }, function(err, users) {
+                        if (err) {
                             return next(err);
                         }
 
-                        user.keys(function(err, keys) {
-                            if (err) {
+                        if (!users.length) {
+                            return res.json(data);
+                        }
+
+                        var pending = users.length;
+
+                        data.user = [];
+
+                        var iterate = function(user) {
+                            if (!req.user.admin && req.permission.isPrivate() && (user.id !== req.user.id)) {
+                                err = new Error('Access forbidden');
+                                err.status = 403;
+
                                 return next(err);
                             }
 
-                            user.localAccounts(function(err, localAccounts) {
+                            user.keys(function(err, keys) {
                                 if (err) {
                                     return next(err);
                                 }
 
-                                user.externAccounts(function(err, externAccounts) {
+                                user.localAccounts(function(err, localAccounts) {
                                     if (err) {
                                         return next(err);
                                     }
 
-                                    data.user.push({
-                                        id: user.id,
-                                        email: user.email,
-                                        name: user.name,
-                                        created: user.created,
-                                        lastLogin: user.lastLogin,
-                                        enabled: user.enabled,
-                                        admin: user.admin,
-                                        group: user.groupId,
-                                        keys: _.pluck(keys, 'id'),
-                                        localAccounts: _.pluck(localAccounts, 'id'),
-                                        externAccounts: _.pluck(externAccounts, 'id')
-                                    });
+                                    user.externAccounts(function(err, externAccounts) {
+                                        if (err) {
+                                            return next(err);
+                                        }
 
-                                    if (!--pending) {
-                                        return res.json(data);
-                                    }
+                                        data.user.push({
+                                            id: user.id,
+                                            email: user.email,
+                                            name: user.name,
+                                            created: user.created,
+                                            lastLogin: user.lastLogin,
+                                            enabled: user.enabled,
+                                            admin: user.admin,
+                                            group: user.groupId,
+                                            keys: _.pluck(keys, 'id'),
+                                            localAccounts: _.pluck(localAccounts, 'id'),
+                                            externAccounts: _.pluck(externAccounts, 'id')
+                                        });
+
+                                        if (!--pending) {
+                                            return res.json(data);
+                                        }
+                                    });
                                 });
                             });
-                        });
-                    };
+                        };
 
-                    for (var i = 0; i < users.length; i++) {
-                        iterate(users[i]);
-                    }
+                        for (var i = 0; i < users.length; i++) {
+                            iterate(users[i]);
+                        }
+                    });
                 });
             }
         });

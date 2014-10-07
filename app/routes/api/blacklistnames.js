@@ -145,17 +145,12 @@
                     return next(err);
                 }
 
-                BlacklistName.all({
-                    where: filter,
-                    order: order + ' ' + sort,
-                    skip: offset,
-                    limit: limit
-                }, function(err, blacklistNames) {
+                BlacklistName.count(filter, function(err, count) {
                     if (err) {
                         return next(err);
                     }
 
-                    if (offset > blacklistNames.length) {
+                    if (offset > count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
@@ -164,36 +159,47 @@
 
                     data.blacklistName = [];
                     data.meta = {
-                        count: blacklistNames.length
+                        count: count
                     };
 
-                    if (!blacklistNames.length) {
-                        return res.json(data);
-                    }
-
-                    var pending = blacklistNames.length;
-
-                    var iterate = function(blacklistName) {
-                        if (!req.user.admin && req.permission.isPrivate() && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                            err = new Error('Access forbidden');
-                            err.status = 403;
-
+                    BlacklistName.all({
+                        where: filter,
+                        order: order + ' ' + sort,
+                        skip: offset,
+                        limit: limit
+                    }, function(err, blacklistNames) {
+                        if (err) {
                             return next(err);
                         }
 
-                        data.blacklistName.push({
-                            id: blacklistName.id,
-                            name: blacklistName.name
-                        });
-
-                        if (!--pending) {
+                        if (!blacklistNames.length) {
                             return res.json(data);
                         }
-                    };
 
-                    for (var i = 0; i < blacklistNames.length; i++) {
-                        iterate(blacklistNames[i]);
-                    }
+                        var pending = blacklistNames.length;
+
+                        var iterate = function(blacklistName) {
+                            if (!req.user.admin && req.permission.isPrivate() && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
+                                err = new Error('Access forbidden');
+                                err.status = 403;
+
+                                return next(err);
+                            }
+
+                            data.blacklistName.push({
+                                id: blacklistName.id,
+                                name: blacklistName.name
+                            });
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
+                        };
+
+                        for (var i = 0; i < blacklistNames.length; i++) {
+                            iterate(blacklistNames[i]);
+                        }
+                    });
                 });
             }
         });

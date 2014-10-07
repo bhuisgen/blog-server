@@ -176,17 +176,12 @@
                     return next(err);
                 }
 
-                Comment.all({
-                    where: filter,
-                    order: order + ' ' + sort,
-                    skip: offset,
-                    limit: limit
-                }, function(err, comments) {
+                Comment.count(filter, function(err, count) {
                     if (err) {
                         return next(err);
                     }
 
-                    if (offset > comments.length) {
+                    if (offset > count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
@@ -195,45 +190,56 @@
 
                     data.comment = [];
                     data.meta = {
-                        count: comments.length
+                        count: count
                     };
 
-                    if (!comments.length) {
-                        return res.json(data);
-                    }
-
-                    var pending = comments.length;
-
-                    var iterate = function(comment) {
-                        if (!req.user.admin && req.permission.isPrivate() && comment.userId && (comment.userId !== req.user.id)) {
-                            err = new Error('Access forbidden');
-                            err.status = 403;
-
+                    Comment.all({
+                        where: filter,
+                        order: order + ' ' + sort,
+                        skip: offset,
+                        limit: limit
+                    }, function(err, comments) {
+                        if (err) {
                             return next(err);
                         }
 
-                        data.comment.push({
-                            id: comment.id,
-                            content: comment.content,
-                            author: comment.author,
-                            email: comment.email,
-                            ip: comment.ip,
-                            created: comment.created,
-                            updated: comment.updated,
-                            validated: comment.validated,
-                            allowed: comment.allowed,
-                            post: comment.postId,
-                            user: comment.userId,
-                        });
-
-                        if (!--pending) {
+                        if (!comments.length) {
                             return res.json(data);
                         }
-                    };
 
-                    for (var i = 0; i < comments.length; i++) {
-                        iterate(comments[i]);
-                    }
+                        var pending = comments.length;
+
+                        var iterate = function(comment) {
+                            if (!req.user.admin && req.permission.isPrivate() && comment.userId && (comment.userId !== req.user.id)) {
+                                err = new Error('Access forbidden');
+                                err.status = 403;
+
+                                return next(err);
+                            }
+
+                            data.comment.push({
+                                id: comment.id,
+                                content: comment.content,
+                                author: comment.author,
+                                email: comment.email,
+                                ip: comment.ip,
+                                created: comment.created,
+                                updated: comment.updated,
+                                validated: comment.validated,
+                                allowed: comment.allowed,
+                                post: comment.postId,
+                                user: comment.userId,
+                            });
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
+                        };
+
+                        for (var i = 0; i < comments.length; i++) {
+                            iterate(comments[i]);
+                        }
+                    });
                 });
             }
         });

@@ -145,17 +145,12 @@
                     return next(err);
                 }
 
-                BlacklistEmail.all({
-                    where: filter,
-                    order: order + ' ' + sort,
-                    skip: offset,
-                    limit: limit
-                }, function(err, blacklistEmails) {
+                BlacklistEmail.count(filter, function(err, count) {
                     if (err) {
                         return next(err);
                     }
 
-                    if (offset > blacklistEmails.length) {
+                    if (offset > count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
@@ -164,36 +159,47 @@
 
                     data.blacklistEmail = [];
                     data.meta = {
-                        count: blacklistEmails.length
+                        count: count
                     };
 
-                    if (!blacklistEmails.length) {
-                        return res.json(data);
-                    }
-
-                    var pending = blacklistEmails.length;
-
-                    var iterate = function(blacklistEmail) {
-                        if (!req.user.admin && req.permission.isPrivate() && blacklistEmail.userId && (blacklistEmail.userId !== req.user.id)) {
-                            err = new Error('Access forbidden');
-                            err.status = 403;
-
+                    BlacklistEmail.all({
+                        where: filter,
+                        order: order + ' ' + sort,
+                        skip: offset,
+                        limit: limit
+                    }, function(err, blacklistEmails) {
+                        if (err) {
                             return next(err);
                         }
 
-                        data.blacklistEmail.push({
-                            id: blacklistEmail.id,
-                            email: blacklistEmail.email
-                        });
-
-                        if (!--pending) {
+                        if (!blacklistEmails.length) {
                             return res.json(data);
                         }
-                    };
 
-                    for (var i = 0; i < blacklistEmails.length; i++) {
-                        iterate(blacklistEmails[i]);
-                    }
+                        var pending = blacklistEmails.length;
+
+                        var iterate = function(blacklistEmail) {
+                            if (!req.user.admin && req.permission.isPrivate() && blacklistEmail.userId && (blacklistEmail.userId !== req.user.id)) {
+                                err = new Error('Access forbidden');
+                                err.status = 403;
+
+                                return next(err);
+                            }
+
+                            data.blacklistEmail.push({
+                                id: blacklistEmail.id,
+                                email: blacklistEmail.email
+                            });
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
+                        };
+
+                        for (var i = 0; i < blacklistEmails.length; i++) {
+                            iterate(blacklistEmails[i]);
+                        }
+                    });
                 });
             }
         });

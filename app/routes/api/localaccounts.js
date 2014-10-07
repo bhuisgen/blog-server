@@ -147,17 +147,12 @@
                     return next(err);
                 }
 
-                LocalAccount.all({
-                    where: filter,
-                    order: order + ' ' + sort,
-                    skip: offset,
-                    limit: limit
-                }, function(err, localAccounts) {
+                LocalAccount.count(filter, function(err, count) {
                     if (err) {
                         return next(err);
                     }
 
-                    if (offset > localAccounts.length) {
+                    if (offset > count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
@@ -166,37 +161,48 @@
 
                     data.localAccount = [];
                     data.meta = {
-                        count: localAccounts.length
+                        count: count
                     };
 
-                    if (!localAccounts.length) {
-                        return res.json(data);
-                    }
-
-                    var pending = localAccounts.length;
-
-                    var iterate = function(localAccount) {
-                        if (!req.user.admin && req.permission.isPrivate() && (localAccount.userId !== req.user.id)) {
-                            err = new Error('Access forbidden');
-                            err.status = 403;
-
+                    LocalAccount.all({
+                        where: filter,
+                        order: order + ' ' + sort,
+                        skip: offset,
+                        limit: limit
+                    }, function(err, localAccounts) {
+                        if (err) {
                             return next(err);
                         }
 
-                        data.key.push({
-                            id: localAccount.id,
-                            login: localAccount.login,
-                            user: localAccount.userId
-                        });
-
-                        if (!--pending) {
+                        if (!localAccounts.length) {
                             return res.json(data);
                         }
-                    };
 
-                    for (var i = 0; i < localAccounts.length; i++) {
-                        iterate(localAccounts[i]);
-                    }
+                        var pending = localAccounts.length;
+
+                        var iterate = function(localAccount) {
+                            if (!req.user.admin && req.permission.isPrivate() && (localAccount.userId !== req.user.id)) {
+                                err = new Error('Access forbidden');
+                                err.status = 403;
+
+                                return next(err);
+                            }
+
+                            data.key.push({
+                                id: localAccount.id,
+                                login: localAccount.login,
+                                user: localAccount.userId
+                            });
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
+                        };
+
+                        for (var i = 0; i < localAccounts.length; i++) {
+                            iterate(localAccounts[i]);
+                        }
+                    });
                 });
             }
         });

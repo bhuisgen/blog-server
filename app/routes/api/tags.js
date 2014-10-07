@@ -145,17 +145,12 @@
                     return next(err);
                 }
 
-                Tag.all({
-                    where: filter,
-                    order: order + ' ' + sort,
-                    skip: offset,
-                    limit: limit
-                }, function(err, tags) {
+                Tag.count(filter, function(err, count) {
                     if (err) {
                         return next(err);
                     }
 
-                    if (offset > tags.length) {
+                    if (offset > count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
@@ -164,36 +159,47 @@
 
                     data.tag = [];
                     data.meta = {
-                        count: tags.length
+                        count: count
                     };
 
-                    if (!tags.length) {
-                        return res.json(data);
-                    }
-
-                    var pending = tags.length;
-
-                    var iterate = function(tag) {
-                        if (!req.user.admin && req.permission.isPrivate() && tag.userId && (tag.userId !== req.user.id)) {
-                            err = new Error('Access forbidden');
-                            err.status = 403;
-
+                    Tag.all({
+                        where: filter,
+                        order: order + ' ' + sort,
+                        skip: offset,
+                        limit: limit
+                    }, function(err, tags) {
+                        if (err) {
                             return next(err);
                         }
 
-                        data.tag.push({
-                            id: tag.id,
-                            name: tag.name
-                        });
-
-                        if (!--pending) {
+                        if (!tags.length) {
                             return res.json(data);
                         }
-                    };
 
-                    for (var i = 0; i < tags.length; i++) {
-                        iterate(tags[i]);
-                    }
+                        var pending = tags.length;
+
+                        var iterate = function(tag) {
+                            if (!req.user.admin && req.permission.isPrivate() && tag.userId && (tag.userId !== req.user.id)) {
+                                err = new Error('Access forbidden');
+                                err.status = 403;
+
+                                return next(err);
+                            }
+
+                            data.tag.push({
+                                id: tag.id,
+                                name: tag.name
+                            });
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
+                        };
+
+                        for (var i = 0; i < tags.length; i++) {
+                            iterate(tags[i]);
+                        }
+                    });
                 });
             }
         });

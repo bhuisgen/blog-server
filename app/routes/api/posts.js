@@ -295,17 +295,12 @@
                     return next(err);
                 }
 
-                Post.all({
-                    where: filter,
-                    order: order + ' ' + sort,
-                    skip: offset,
-                    limit: limit
-                }, function(err, posts) {
+                Post.count(filter, function(err, count) {
                     if (err) {
                         return next(err);
                     }
 
-                    if (offset > posts.length) {
+                    if (offset > count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
@@ -314,95 +309,106 @@
 
                     data.post = [];
                     data.meta = {
-                        count: posts.length
+                        count: count
                     };
 
-                    if (!posts.length) {
-                        return res.json(data);
-                    }
+                    Post.all({
+                        where: filter,
+                        order: order + ' ' + sort,
+                        skip: offset,
+                        limit: limit
+                    }, function(err, posts) {
+                        if (err) {
+                            return next(err);
+                        }
 
-                    var pending = posts.length;
+                        if (!posts.length) {
+                            return res.json(data);
+                        }
 
-                    var iterate = function(post) {
-                        var comments;
-                        var categories;
-                        var tags;
+                        var pending = posts.length;
 
-                        async.series([
+                        var iterate = function(post) {
+                            var comments;
+                            var categories;
+                            var tags;
 
-                            function(callback) {
-                                post.comments(function(err, objects) {
-                                    if (err) {
-                                        return callback(err);
-                                    }
+                            async.series([
 
-                                    comments = objects;
+                                function(callback) {
+                                    post.comments(function(err, objects) {
+                                        if (err) {
+                                            return callback(err);
+                                        }
 
-                                    return callback(null);
-                                });
-                            },
-                            function(callback) {
-                                post.categories(function(err, objects) {
-                                    if (err) {
-                                        return callback(err);
-                                    }
+                                        comments = objects;
 
-                                    categories = objects;
+                                        return callback(null);
+                                    });
+                                },
+                                function(callback) {
+                                    post.categories(function(err, objects) {
+                                        if (err) {
+                                            return callback(err);
+                                        }
 
-                                    return callback(null);
-                                });
-                            },
-                            function(callback) {
-                                post.tags(function(err, objects) {
-                                    if (err) {
-                                        return callback(err);
-                                    }
+                                        categories = objects;
 
-                                    tags = objects;
+                                        return callback(null);
+                                    });
+                                },
+                                function(callback) {
+                                    post.tags(function(err, objects) {
+                                        if (err) {
+                                            return callback(err);
+                                        }
 
-                                    return callback(null);
-                                });
-                            }
-                        ], function(err, results) {
-                            if (err) {
-                                return next(err);
-                            }
+                                        tags = objects;
 
-                            data.post.push({
-                                id: post.id,
-                                slug: post.slug,
-                                layout: post.layout,
-                                title: post.title,
-                                image: post.image,
-                                content: post.content,
-                                excerpt: post.excerpt,
-                                created: post.created,
-                                updated: post.updated,
-                                published: post.published,
-                                commentsEnabled: post.commentsEnabled,
-                                commentsAllowed: post.commentsAllowed,
-                                views: post.views++,
-                                user: post.userId,
-                                comments: _.pluck(comments, 'id'),
-                                categories: _.pluck(categories, 'id'),
-                                tags: _.pluck(tags, 'id')
-                            });
-
-                            post.updateAttribute('views', post.views, function(err) {
+                                        return callback(null);
+                                    });
+                                }
+                            ], function(err, results) {
                                 if (err) {
                                     return next(err);
                                 }
 
-                                if (!--pending) {
-                                    return res.json(data);
-                                }
-                            });
-                        });
-                    };
+                                data.post.push({
+                                    id: post.id,
+                                    slug: post.slug,
+                                    layout: post.layout,
+                                    title: post.title,
+                                    image: post.image,
+                                    content: post.content,
+                                    excerpt: post.excerpt,
+                                    created: post.created,
+                                    updated: post.updated,
+                                    published: post.published,
+                                    commentsEnabled: post.commentsEnabled,
+                                    commentsAllowed: post.commentsAllowed,
+                                    views: post.views++,
+                                    user: post.userId,
+                                    comments: _.pluck(comments, 'id'),
+                                    categories: _.pluck(categories, 'id'),
+                                    tags: _.pluck(tags, 'id')
+                                });
 
-                    for (var i = 0; i < posts.length; i++) {
-                        iterate(posts[i]);
-                    }
+                                post.updateAttribute('views', post.views, function(err) {
+                                    if (err) {
+                                        return next(err);
+                                    }
+
+                                    if (!--pending) {
+                                        return res.json(data);
+                                    }
+                                });
+                            });
+                        };
+
+                        for (var i = 0; i < posts.length; i++) {
+                            iterate(posts[i]);
+                        }
+                    });
                 });
             }
         });

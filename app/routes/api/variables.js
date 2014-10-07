@@ -147,17 +147,12 @@
                     return next(err);
                 }
 
-                Variable.all({
-                    where: filter,
-                    order: order + ' ' + sort,
-                    skip: offset,
-                    limit: limit
-                }, function(err, variables) {
+                Variable.count(filter, function(err, count) {
                     if (err) {
                         return next(err);
                     }
 
-                    if (offset > variables.length) {
+                    if (offset > count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
@@ -166,37 +161,48 @@
 
                     data.variable = [];
                     data.meta = {
-                        count: variables.length
+                        count: count
                     };
 
-                    if (!variables.length) {
-                        return res.json(data);
-                    }
-
-                    var pending = variables.length;
-
-                    var iterate = function(variable) {
-                        if (!req.user.admin && req.permission.isPrivate() && variable.userId && (variable.userId !== req.user.id)) {
-                            err = new Error('Access forbidden');
-                            err.status = 403;
-
+                    Variable.all({
+                        where: filter,
+                        order: order + ' ' + sort,
+                        skip: offset,
+                        limit: limit
+                    }, function(err, variables) {
+                        if (err) {
                             return next(err);
                         }
 
-                        data.variable.push({
-                            id: variable.id,
-                            name: variable.name,
-                            value: variable.value
-                        });
-
-                        if (!--pending) {
+                        if (!variables.length) {
                             return res.json(data);
                         }
-                    };
 
-                    for (var i = 0; i < variables.length; i++) {
-                        iterate(variables[i]);
-                    }
+                        var pending = variables.length;
+
+                        var iterate = function(variable) {
+                            if (!req.user.admin && req.permission.isPrivate() && variable.userId && (variable.userId !== req.user.id)) {
+                                err = new Error('Access forbidden');
+                                err.status = 403;
+
+                                return next(err);
+                            }
+
+                            data.variable.push({
+                                id: variable.id,
+                                name: variable.name,
+                                value: variable.value
+                            });
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
+                        };
+
+                        for (var i = 0; i < variables.length; i++) {
+                            iterate(variables[i]);
+                        }
+                    });
                 });
             }
         });

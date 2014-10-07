@@ -147,17 +147,12 @@
                     return next(err);
                 }
 
-                Key.all({
-                    where: filter,
-                    order: order + ' ' + sort,
-                    skip: offset,
-                    limit: limit
-                }, function(err, keys) {
+                Key.count(filter, function(err, count) {
                     if (err) {
                         return next(err);
                     }
 
-                    if (offset > keys.length) {
+                    if (offset > count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
@@ -166,39 +161,50 @@
 
                     data.key = [];
                     data.meta = {
-                        count: keys.length
+                        count: count
                     };
 
-                    if (!keys.length) {
-                        return res.json(data);
-                    }
-
-                    var pending = keys.length;
-
-                    var iterate = function(key) {
-                        if (!req.user.admin && req.permission.isPrivate() && (key.userId !== req.user.id)) {
-                            err = new Error('Access forbidden');
-                            err.status = 403;
-
+                    Key.all({
+                        where: filter,
+                        order: order + ' ' + sort,
+                        skip: offset,
+                        limit: limit
+                    }, function(err, keys) {
+                        if (err) {
                             return next(err);
                         }
 
-                        data.key.push({
-                            id: key.id,
-                            authkey: key.authkey,
-                            created: key.created,
-                            enabled: key.enabled,
-                            user: key.userId
-                        });
-
-                        if (!--pending) {
+                        if (!keys.length) {
                             return res.json(data);
                         }
-                    };
 
-                    for (var i = 0; i < keys.length; i++) {
-                        iterate(keys[i]);
-                    }
+                        var pending = keys.length;
+
+                        var iterate = function(key) {
+                            if (!req.user.admin && req.permission.isPrivate() && (key.userId !== req.user.id)) {
+                                err = new Error('Access forbidden');
+                                err.status = 403;
+
+                                return next(err);
+                            }
+
+                            data.key.push({
+                                id: key.id,
+                                authkey: key.authkey,
+                                created: key.created,
+                                enabled: key.enabled,
+                                user: key.userId
+                            });
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
+                        };
+
+                        for (var i = 0; i < keys.length; i++) {
+                            iterate(keys[i]);
+                        }
+                    });
                 });
             }
         });

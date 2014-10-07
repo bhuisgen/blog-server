@@ -190,17 +190,12 @@
                     return next(err);
                 }
 
-                Page.all({
-                    where: filter,
-                    order: order + ' ' + sort,
-                    skip: offset,
-                    limit: limit
-                }, function(err, pages) {
+                Page.count(filter, function(err, count) {
                     if (err) {
                         return next(err);
                     }
 
-                    if (offset > pages.length) {
+                    if (offset > count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
@@ -209,51 +204,62 @@
 
                     data.page = [];
                     data.meta = {
-                        count: pages.length
+                        count: count
                     };
 
-                    if (!pages.length) {
-                        return res.json(data);
-                    }
-
-                    var pending = pages.length;
-
-                    var iterate = function(page) {
-                        if (!req.user.admin && req.permission.isPrivate() && page.userId && (page.userId !== req.user.id)) {
-                            err = new Error('Access forbidden');
-                            err.status = 403;
-
+                    Page.all({
+                        where: filter,
+                        order: order + ' ' + sort,
+                        skip: offset,
+                        limit: limit
+                    }, function(err, pages) {
+                        if (err) {
                             return next(err);
                         }
 
-                        data.page.push({
-                            id: page.id,
-                            slug: page.slug,
-                            layout: page.layout,
-                            title: page.title,
-                            image: page.image,
-                            content: page.content,
-                            created: page.created,
-                            updated: page.updated,
-                            published: page.published,
-                            views: page.views++,
-                            user: page.userId
-                        });
+                        if (!pages.length) {
+                            return res.json(data);
+                        }
 
-                        page.updateAttribute('views', page.views, function(err) {
-                            if (err) {
+                        var pending = pages.length;
+
+                        var iterate = function(page) {
+                            if (!req.user.admin && req.permission.isPrivate() && page.userId && (page.userId !== req.user.id)) {
+                                err = new Error('Access forbidden');
+                                err.status = 403;
+
                                 return next(err);
                             }
 
-                            if (!--pending) {
-                                return res.json(data);
-                            }
-                        });
-                    };
+                            data.page.push({
+                                id: page.id,
+                                slug: page.slug,
+                                layout: page.layout,
+                                title: page.title,
+                                image: page.image,
+                                content: page.content,
+                                created: page.created,
+                                updated: page.updated,
+                                published: page.published,
+                                views: page.views++,
+                                user: page.userId
+                            });
 
-                    for (var i = 0; i < pages.length; i++) {
-                        iterate(pages[i]);
-                    }
+                            page.updateAttribute('views', page.views, function(err) {
+                                if (err) {
+                                    return next(err);
+                                }
+
+                                if (!--pending) {
+                                    return res.json(data);
+                                }
+                            });
+                        };
+
+                        for (var i = 0; i < pages.length; i++) {
+                            iterate(pages[i]);
+                        }
+                    });
                 });
             }
         });

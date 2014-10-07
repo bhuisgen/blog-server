@@ -145,17 +145,12 @@
                     return next(err);
                 }
 
-                BlacklistIP.all({
-                    where: filter,
-                    order: order + ' ' + sort,
-                    skip: offset,
-                    limit: limit
-                }, function(err, blacklistIPs) {
+                BlacklistIP.count(filter, function(err, count) {
                     if (err) {
                         return next(err);
                     }
 
-                    if (offset > blacklistIPs.length) {
+                    if (offset > count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
@@ -164,36 +159,47 @@
 
                     data.blacklistIP = [];
                     data.meta = {
-                        count: blacklistIPs.length
+                        count: count
                     };
 
-                    if (!blacklistIPs.length) {
-                        return res.json(data);
-                    }
-
-                    var pending = blacklistIPs.length;
-
-                    var iterate = function(blacklistIP) {
-                        if (!req.user.admin && req.permission.isPrivate() && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
-                            err = new Error('Access forbidden');
-                            err.status = 403;
-
+                    BlacklistIP.all({
+                        where: filter,
+                        order: order + ' ' + sort,
+                        skip: offset,
+                        limit: limit
+                    }, function(err, blacklistIPs) {
+                        if (err) {
                             return next(err);
                         }
 
-                        data.blacklistIP.push({
-                            id: blacklistIP.id,
-                            ip: blacklistIP.ip
-                        });
-
-                        if (!--pending) {
+                        if (!blacklistIPs.length) {
                             return res.json(data);
                         }
-                    };
 
-                    for (var i = 0; i < blacklistIPs.length; i++) {
-                        iterate(blacklistIPs[i]);
-                    }
+                        var pending = blacklistIPs.length;
+
+                        var iterate = function(blacklistIP) {
+                            if (!req.user.admin && req.permission.isPrivate() && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
+                                err = new Error('Access forbidden');
+                                err.status = 403;
+
+                                return next(err);
+                            }
+
+                            data.blacklistIP.push({
+                                id: blacklistIP.id,
+                                ip: blacklistIP.ip
+                            });
+
+                            if (!--pending) {
+                                return res.json(data);
+                            }
+                        };
+
+                        for (var i = 0; i < blacklistIPs.length; i++) {
+                            iterate(blacklistIPs[i]);
+                        }
+                    });
                 });
             }
         });
