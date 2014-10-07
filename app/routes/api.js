@@ -50,8 +50,8 @@
 
         var BlacklistIP = schema.loadDefinition('BlacklistIp');
         var Key = schema.loadDefinition('Key');
-        var User = schema.loadDefinition('User');
         var Route = schema.loadDefinition('Route');
+        var User = schema.loadDefinition('User');
 
         var r;
 
@@ -74,6 +74,35 @@
         r.on('error', function onRedisError(error) {
             console.error(error);
         });
+
+        function registerUser(user, callback) {
+            r.multi()
+                .zadd(config.server.api.auth.redis.keyPrefix + config.server.api.auth.users.key,
+                    new Date().getTime(), user.id)
+                .zremrangebyscore(config.server.api.auth.redis.keyPrefix + config.server.api.auth.users.key,
+                    new Date().getTime() + (config.server.api.auth.tokens.expireTime * 1000), '+inf')
+                .exec(function(err, replies) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+        }
+
+        function unregisterUser(user, callback) {
+            r.multi()
+                .zrem(config.server.api.auth.redis.keyPrefix + config.server.api.auth.users.key, user.id)
+                .zremrangebyscore(config.server.api.auth.redis.keyPrefix + config.server.api.auth.users.key,
+                    new Date().getTime() + (config.server.api.auth.tokens.expireTime * 1000), '+inf')
+                .exec(function(err, replies) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null);
+                });
+        }
 
         router.use(function checkServer(req, res, next)  {
             if (!config.server.api.enable) {
@@ -107,7 +136,7 @@
             });
         });
 
-        router.use(function getAPIVersion(req, res, next) {
+        router.use(function checkAPIVersion(req, res, next) {
             var header = req.get('Accepts');
             if (!header) {
                 return next();
@@ -125,22 +154,52 @@
 
         auth(config, router, r);
 
-        router.use(function checkAuthentication(req, res, next) {
-            function updateUsersList(user, callback) {
-                r.multi()
-                    .zadd(config.server.api.auth.redis.keyPrefix + config.server.api.auth.users.key,
-                        new Date().getTime(), user.id)
-                    .zremrangebyscore(config.server.api.auth.redis.keyPrefix + config.server.api.auth.users.key,
-                        new Date().getTime() + (config.server.api.auth.tokens.expireTime * 1000), '+inf')
-                    .exec(function(err, replies) {
-                        if (err) {
-                            return callback(err);
-                        }
+        router.post('/auth/signout', function signout(req, res, next) {
+            if (!req.body.token) {
+                res.status(401);
 
-                        return callback(null);
-                    });
+                return res.json({
+                    success: false,
+                    message: 'User signout failed'
+                });
             }
 
+            var token = new Buffer(req.body.token, 'base64').toString('ascii');
+
+            r.get(config.server.api.auth.redis.keyPrefix + config.server.api.auth.tokens.key + ':' + token, function(err, id) {
+                if (err) {
+                    return next(err);
+                }
+
+                if (!id) {
+                    res.status(401);
+
+                    return res.json({
+                        success: false,
+                        message: 'User signout failed'
+                    });
+                }
+
+                r.del(config.server.api.auth.redis.keyPrefix + config.server.api.auth.tokens.key + ':' + token, function(err) {
+                    if (err) {
+                        return next(err);
+                    }
+
+                    unregisterUser(id, function(err) {
+                        if (err) {
+                            return next(err);
+                        }
+
+                        return res.json({
+                            success: true,
+                            message: 'User signout succeeded'
+                        });
+                    });
+                });
+            });
+        });
+
+        router.use(function checkAPIAuthentication(req, res, next) {
             var header = req.get('Authorization');
             var err;
 
@@ -221,7 +280,7 @@
                                     return next(err);
                                 }
 
-                                updateUsersList(user, function(err) {
+                                registerUser(user, function(err) {
                                     if (err) {
                                         return next(err);
                                     }
@@ -299,7 +358,7 @@
                                                     return next(err);
                                                 }
 
-                                                updateUsersList(user, function(err) {
+                                                registerUser(user, function(err) {
                                                     if (err) {
                                                         return next(err);
                                                     }

@@ -37,9 +37,15 @@
     "grunt-contrib-jshint": "~0.10.0",
     "grunt-contrib-watch": "~0.6.1",
     "grunt-develop": "~0.4.0",
-    "jshint-stylish": "^1.0.0",
+    "jshint-stylish": "~1.0.0",
     "load-grunt-tasks": "~0.6.0",
-    "request": "~2.44.0",
+    "request": "~2.45.0",
     "time-grunt": "~1.0.0"
+  },
+  "author": "Boris HUISGEN <bhuisgen@hbis.fr>",
+  "license": "gpl3",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bhuisgen/blog-server"
   }
 }

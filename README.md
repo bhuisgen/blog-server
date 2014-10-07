@@ -1,6 +1,6 @@
 # Blog-server
 
-Blog-server is a blog REST API server developed by Boris HUISGEN.
+Blog-server is a REST API blog engine developed by Boris HUISGEN.
 
 The project is under GNU GPL licence.
 
@@ -13,7 +13,6 @@ The project is under GNU GPL licence.
 - Client API authentication by keys or tokens
 - Local authentication by user credentials
 - External authentication through remote providers (Facebook, GitHub, Google, LinkedIn, Twitter)
-- Client blacklist support by IP address, email and username
 
 ## Getting blog-server
 
@@ -88,11 +87,11 @@ You need to initialize your instance before adding any content:
 
 This process will ask you the administrator credentials.
 
-It will give you the API key of the user *Anonymous* which is needed for the client application. 
+It will give you the API key of the user *Anonymous* which is needed for the client side application. 
 
 ### Running
 
-To run the REST API server:
+To run the server:
 
 	$ grunt serve
 
