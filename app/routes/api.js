@@ -389,7 +389,7 @@
                 return next(err);
             }
 
-            var match = req.path.match(/^\/(\w+)\//);
+            var match = req.path.match(/^\/(\w+)/);
             if (!match) {
                 err = new Error('Method Not Allowed');
                 err.status = 405;
