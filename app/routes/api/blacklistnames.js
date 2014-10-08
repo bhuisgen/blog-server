@@ -150,17 +150,21 @@
                         return next(err);
                     }
 
-                    if (offset > count) {
+                    data.blacklistName = [];
+                    data.meta = {
+                        count: count
+                    };
+                    
+                    if (!count) {
+                        return res.json(data);
+                    }
+
+                    if (offset >= count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
                         return next(err);
                     }
-
-                    data.blacklistName = [];
-                    data.meta = {
-                        count: count
-                    };
 
                     BlacklistName.all({
                         where: filter,

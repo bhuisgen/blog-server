@@ -292,17 +292,21 @@
                         return next(err);
                     }
 
-                    if (offset > count) {
+                    data.role = [];
+                    data.meta = {
+                        count: count
+                    };
+
+                    if (!count) {
+                        return res.json(data);
+                    }
+
+                    if (offset >= count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
                         return next(err);
                     }
-
-                    data.role = [];
-                    data.meta = {
-                        count: count
-                    };
 
                     Role.all({
                         where: filter,

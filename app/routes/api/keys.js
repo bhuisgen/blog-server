@@ -152,17 +152,21 @@
                         return next(err);
                     }
 
-                    if (offset > count) {
+                    data.key = [];
+                    data.meta = {
+                        count: count
+                    };
+
+                    if (!count) {
+                        return res.json(data);
+                    }
+                    
+                    if (offset >= count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
                         return next(err);
                     }
-
-                    data.key = [];
-                    data.meta = {
-                        count: count
-                    };
 
                     Key.all({
                         where: filter,

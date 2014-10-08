@@ -179,18 +179,22 @@
                         return next(err);
                     }
 
-                    if (offset > count) {
-                        err = new Error('Invalid parameter');
-                        err.status = 422;
-
-                        return next(err);
-                    }
-
                     data.group = [];
                     data.users = [];
                     data.meta = {
                         count: count
                     };
+
+                    if (!count) {
+                        return res.json(data);
+                    }
+
+                    if (offset >= count) {
+                        err = new Error('Invalid parameter');
+                        err.status = 422;
+
+                        return next(err);
+                    }
 
                     Group.all({
                         where: filter,

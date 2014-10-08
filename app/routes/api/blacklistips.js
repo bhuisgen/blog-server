@@ -150,17 +150,21 @@
                         return next(err);
                     }
 
-                    if (offset > count) {
+                    data.blacklistIP = [];
+                    data.meta = {
+                        count: count
+                    };
+
+                    if (!count) {
+                        return res.json(data);
+                    }
+
+                    if (offset >= count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
                         return next(err);
                     }
-
-                    data.blacklistIP = [];
-                    data.meta = {
-                        count: count
-                    };
 
                     BlacklistIP.all({
                         where: filter,

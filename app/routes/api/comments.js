@@ -181,17 +181,21 @@
                         return next(err);
                     }
 
-                    if (offset > count) {
+                    data.comment = [];
+                    data.meta = {
+                        count: count
+                    };
+
+                    if (!count) {
+                        return res.json(data);
+                    }
+
+                    if (offset >= count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
                         return next(err);
                     }
-
-                    data.comment = [];
-                    data.meta = {
-                        count: count
-                    };
 
                     Comment.all({
                         where: filter,

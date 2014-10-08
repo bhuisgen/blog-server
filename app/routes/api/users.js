@@ -197,11 +197,9 @@
                     filter.email = req.query.lastLogin;
                 }
 
-                if (req.query)
-
-                    if (Object.keys(filter).length === 0) {
-                        filter = null;
-                    }
+                if (Object.keys(filter).length === 0) {
+                    filter = null;
+                }
 
                 var order = req.query.order || 'id';
                 var sort = (req.query.sort === 'false' ? 'DESC' : 'ASC');
@@ -219,17 +217,21 @@
                         return next(err);
                     }
 
-                    if (offset > count) {
+                    data.user = [];
+                    data.meta = {
+                        count: count
+                    };
+
+                    if (!count) {
+                        return res.json(data);
+                    }
+
+                    if (offset >= count) {
                         err = new Error('Invalid parameter');
                         err.status = 422;
 
                         return next(err);
                     }
-
-                    data.user = [];
-                    data.meta = {
-                        count: count
-                    };
 
                     User.all({
                         where: filter,
