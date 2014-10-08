@@ -33,7 +33,8 @@
                 index: true
             },
             updated: {
-                type: Date
+                type: Date,
+                index: true
             },
             published: {
                 type: Boolean,
