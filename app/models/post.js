@@ -36,8 +36,7 @@
                 index: true
             },
             updated: {
-                type: Date,
-                index: true
+                type: Date
             },
             published: {
                 type: Boolean,
@@ -54,7 +53,8 @@
             },
             views: {
                 type: Number,
-                default: 0
+                default: 0,
+                index: true
             }
         });
 

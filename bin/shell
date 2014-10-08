@@ -526,14 +526,18 @@
                     variablesDelete: true,
                     pagesCreate: true,
                     pagesRead: true,
+                    pagesReadNotPublished: true,
                     pagesUpdate: true,
                     pagesDelete: true,
                     postsCreate: true,
                     postsRead: true,
+                    postsReadNotPublished: true,
                     postsUpdate: true,
                     postsDelete: true,
                     commentsCreate: true,
                     commentsRead: true,
+                    commentsReadNotValidated: true,
+                    commentsReadNotAllowed: true,
                     commentsUpdate: true,
                     commentsDelete: true,
                     categoriesCreate: true,
@@ -569,10 +573,12 @@
                     externAccountsDelete: true,
                     pagesCreate: true,
                     pagesRead: true,
+                    pagesReadNotPublished: true,
                     pagesUpdate: true,
                     pagesDelete: true,
                     postsCreate: true,
                     postsRead: true,
+                    postsReadNotPublished: true,
                     postsUpdate: true,
                     postsDelete: true,
                     commentsCreate: true,
@@ -1090,6 +1096,11 @@
                             type: 'boolean',
                             required: true
                         },
+                        pagesReadNotPublished: {
+                            description: 'pagesReadNotPublished',
+                            type: 'boolean',
+                            required: true
+                        },
                         pagesUpdate: {
                             description: 'pagesUpdate',
                             type: 'boolean',
@@ -1110,6 +1121,11 @@
                             type: 'boolean',
                             required: true
                         },
+                        postsReadNotPublished: {
+                            description: 'postsReadNotPublished',
+                            type: 'boolean',
+                            required: true
+                        },
                         postsUpdate: {
                             description: 'postsUpdate',
                             type: 'boolean',
@@ -1127,6 +1143,16 @@
                         },
                         commentsRead: {
                             description: 'commentsRead',
+                            type: 'boolean',
+                            required: true
+                        },
+                        commentsReadNotValidated: {
+                            description: 'commentsReadNotValidated',
+                            type: 'boolean',
+                            required: true
+                        },
+                        commentsReadNotAllowed: {
+                            description: 'commentsReadNotAllowed',
                             type: 'boolean',
                             required: true
                         },
@@ -1243,14 +1269,18 @@
                             variablesDelete: result.variablesDelete,
                             pagesCreate: result.pagesCreate,
                             pagesRead: result.pagesRead,
+                            pagesReadNotPublished: result.pagesReadNotPublished,
                             pagesUpdate: result.pagesUpdate,
                             pagesDelete: result.pagesDelete,
                             postsCreate: result.postsCreate,
                             postsRead: result.postsRead,
+                            postsReadNotPublished: result.postsReadNotPublished,
                             postsUpdate: result.postsUpdate,
                             postsDelete: result.postsDelete,
                             commentsCreate: result.commentsCreate,
                             commentsRead: result.commentsRead,
+                            commentsReadNotValidated: result.commentsReadNotValidated,
+                            commentsReadNotAllowed: result.commentsReadNotAllowed,
                             commentsUpdate: result.commentsUpdate,
                             commentsDelete: result.commentsDelete,
                             categoriesCreate: result.categoriesCreate,
@@ -1759,6 +1789,11 @@
                     type: 'boolean',
                     required: true
                 },
+                pagesReadNotPublished: {
+                    description: 'pagesReadNotPublished',
+                    type: 'boolean',
+                    required: true
+                },
                 pagesUpdate: {
                     description: 'pagesUpdate',
                     type: 'boolean',
@@ -1779,6 +1814,11 @@
                     type: 'boolean',
                     required: true
                 },
+                postsReadNotPublished: {
+                    description: 'postsReadNotPublished',
+                    type: 'boolean',
+                    required: true
+                },
                 postsUpdate: {
                     description: 'postsUpdate',
                     type: 'boolean',
@@ -1796,6 +1836,16 @@
                 },
                 commentsRead: {
                     description: 'commentsRead',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsReadNotValidated: {
+                    description: 'commentsReadNotValidated',
+                    type: 'boolean',
+                    required: true
+                },
+                commentsReadNotAllowed: {
+                    description: 'commentsReadNotAllowed',
                     type: 'boolean',
                     required: true
                 },
@@ -1911,14 +1961,18 @@
                     variablesDelete: result.variablesDelete,
                     pagesCreate: result.pagesCreate,
                     pagesRead: result.pagesRead,
+                    pagesReadNotPublished: result.pagesReadNotPublished,
                     pagesUpdate: result.pagesUpdate,
                     pagesDelete: result.pagesDelete,
                     postsCreate: result.postsCreate,
                     postsRead: result.postsRead,
+                    postsReadNotPublished: result.postsReadNotPublished,
                     postsUpdate: result.postsUpdate,
                     postsDelete: result.postsDelete,
                     commentsCreate: result.commentsCreate,
                     commentsRead: result.commentsRead,
+                    commentsReadNotValidated: result.commentsReadNotValidated,
+                    commentsReadNotAllowed: result.commentsReadNotAllowed,
                     commentsUpdate: result.commentsUpdate,
                     commentsDelete: result.commentsDelete,
                     categoriesCreate: result.categoriesCreate,

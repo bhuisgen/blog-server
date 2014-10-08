@@ -178,6 +178,10 @@
                 type: Boolean,
                 default: false
             },
+            pagesReadNotPublished: {
+                type: Boolean,
+                default: false
+            },
             pagesUpdate: {
                 type: Boolean,
                 default: false
@@ -194,6 +198,10 @@
                 type: Boolean,
                 default: false
             },
+            postsReadNotPublished: {
+                type: Boolean,
+                default: false
+            },
             postsUpdate: {
                 type: Boolean,
                 default: false
@@ -207,6 +215,14 @@
                 default: false
             },
             commentsRead: {
+                type: Boolean,
+                default: false
+            },
+            commentsReadNotValidated: {
+                type: Boolean,
+                default: false
+            },
+            commentsReadNotAllowed: {
                 type: Boolean,
                 default: false
             },

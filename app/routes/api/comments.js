@@ -54,7 +54,10 @@
                     return next(err);
                 }
 
-                if (!req.user.admin && req.permission.isPrivate() && comment && comment.userId && (comment.userId !== req.user.id)) {
+                if ((!req.user.admin &&
+                    (req.permission.isPrivate() && comment && comment.userId && (comment.userId !== req.user.id)) ||
+                    (!req.role.commentsReadNotValidated && comment && !comment.validated) ||
+                    (!req.role.commentsReadNotAllowed && comment && !comment.allowed))) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -101,7 +104,10 @@
                             return next(err);
                         }
 
-                        if (!req.user.admin && req.permission.isPrivate() && comment && comment.userId && (comment.userId !== req.user.id)) {
+                        if ((!req.user.admin &&
+                            (req.permission.isPrivate() && comment && comment.userId && (comment.userId !== req.user.id)) ||
+                            (!req.role.commentsReadNotValidated && comment && !comment.validated) ||
+                            (!req.role.commentsReadNotAllowed && comment && !comment.allowed))) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
@@ -157,8 +163,24 @@
                     filter.created = req.query.created;
                 }
 
-                if (req.query.updated) {
-                    filter.updated = req.query.updated;
+                if (req.query.validated) {
+                    filter.validated = req.query.validated;
+                }
+
+                if (req.query.allowed) {
+                    filter.allowed = req.query.allowed;
+                }
+
+                if (!req.user.admin && req.permission.isPrivate()) {
+                    filter.userId = req.user.id;
+                }
+
+                if (!req.user.admin && !req.role.commentsReadNotValidated) {
+                    filter.validated = true;
+                }
+
+                if (!req.user.admin && !req.role.commentsReadNotAllowed) {
+                    filter.allowed = true;
                 }
 
                 if (Object.keys(filter).length === 0) {

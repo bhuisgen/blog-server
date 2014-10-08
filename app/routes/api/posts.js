@@ -55,7 +55,9 @@
                     return next(err);
                 }
 
-                if (!req.user.admin && req.permission.isPrivate() && post && post.userId && (post.userId !== req.user.id)) {
+                if (!req.user.admin &&
+                    (req.permission.isPrivate() && post && post.userId && (post.userId !== req.user.id)) ||
+                    (!req.role.postsReadNotPublished && post && !post.published)) {
                     err = new Error('Access forbidden');
                     err.status = 403;
 
@@ -159,7 +161,9 @@
                             return next(err);
                         }
 
-                        if (!req.user.admin && req.permission.isPrivate() && post && post.userId && (post.userId !== req.user.id)) {
+                        if (!req.user.admin &&
+                            (req.permission.isPrivate() && post && post.userId && (post.userId !== req.user.id)) ||
+                            (!req.role.postsReadNotPublished && post && !post.published)) {
                             err = new Error('Access forbidden');
                             err.status = 403;
 
@@ -268,16 +272,20 @@
                     filter.created = req.query.created;
                 }
 
-                if (req.query.updated) {
-                    filter.updated = req.query.updated;
-                }
-
                 if (req.query.published) {
                     filter.published = req.query.published;
                 }
 
                 if (req.query.views) {
                     filter.views = req.query.views;
+                }
+
+                if (!req.user.admin && req.permission.isPrivate()) {
+                    filter.userId = req.user.id;
+                }
+
+                if (!req.user.admin && !req.role.postsReadNotPublished) {
+                    filter.published = true;
                 }
 
                 if (Object.keys(filter).length === 0) {

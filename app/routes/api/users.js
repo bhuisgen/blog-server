@@ -193,10 +193,6 @@
                     filter.email = req.query.created;
                 }
 
-                if (req.query.lastLogin) {
-                    filter.email = req.query.lastLogin;
-                }
-
                 if (Object.keys(filter).length === 0) {
                     filter = null;
                 }
