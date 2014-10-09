@@ -21,7 +21,7 @@
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -30,7 +30,7 @@
             var variable = new Variable(req.body.variable);
 
             if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && variable.userId && (variable.userId !== req.user.id)) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -41,7 +41,7 @@
                     return next(err);
                 }
 
-                return res.send(200);
+                return Forbidden;
             });
         });
 
@@ -54,14 +54,14 @@
                 }
 
                 if (!req.user.admin && req.permission.isPrivate() && variable && variable.userId && (variable.userId !== req.user.id)) {
-                    err = new Error('Access forbidden');
+                    err = new Error('Forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
                 if (!variable) {
-                    err = new Error('Variable not found');
+                    err = new Error('Not Found');
                     err.status = 404;
 
                     return next(err);
@@ -93,14 +93,14 @@
                         }
 
                         if (!req.user.admin && req.permission.isPrivate() && variable && variable.userId && (variable.userId !== req.user.id)) {
-                            err = new Error('Access forbidden');
+                            err = new Error('Forbidden');
                             err.status = 403;
 
                             return next(err);
                         }
 
                         if (!variable) {
-                            err = new Error('Variable not found');
+                            err = new Error('Not Found');
                             err.status = 404;
 
                             return next(err);
@@ -141,8 +141,8 @@
                 var offset = parseInt(req.query.offset, 10) || 0;
                 var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
                 if ((offset < 0) || (limit < 0)) {
-                    err = new Error('Invalid parameter');
-                    err.status = 422;
+                    err = new Error('Bad Request');
+                    err.status = 400;
 
                     return next(err);
                 }
@@ -162,8 +162,8 @@
                     }
 
                     if (offset >= count) {
-                        err = new Error('Invalid parameter');
-                        err.status = 422;
+                        err = new Error('Bad Request');
+                        err.status = 400;
 
                         return next(err);
                     }
@@ -186,7 +186,7 @@
 
                         var iterate = function(variable) {
                             if (!req.user.admin && req.permission.isPrivate() && variable.userId && (variable.userId !== req.user.id)) {
-                                err = new Error('Access forbidden');
+                                err = new Error('Forbidden');
                                 err.status = 403;
 
                                 return next(err);
@@ -215,7 +215,7 @@
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -227,14 +227,14 @@
                 }
 
                 if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && variable && variable.userId && (variable.userId !== req.user.id)) {
-                    err = new Error('Access forbidden');
+                    err = new Error('Forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
                 if (!variable) {
-                    err = new Error('Variable not found');
+                    err = new Error('Not Found');
                     err.status = 404;
 
                     return next(err);
@@ -254,7 +254,7 @@
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -266,14 +266,14 @@
                 }
 
                 if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && variable && variable.userId && (variable.userId !== req.user.id)) {
-                    err = new Error('Access forbidden');
+                    err = new Error('Forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
                 if (!variable) {
-                    err = new Error('Variable not found');
+                    err = new Error('Not Found');
                     err.status = 404;
 
                     return next(err);
@@ -284,7 +284,7 @@
                         return next(err);
                     }
 
-                    return res.send(200);
+                    return Forbidden;
                 });
             });
         });

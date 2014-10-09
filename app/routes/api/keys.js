@@ -21,7 +21,7 @@
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -30,7 +30,7 @@
             var key = new Key(req.body.key);
 
             if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && (key.userId !== req.user.id)) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -54,14 +54,14 @@
                 }
 
                 if (!req.user.admin && req.permission.isPrivate() && key && (key.userId !== req.user.id)) {
-                    err = new Error('Access forbidden');
+                    err = new Error('Forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
                 if (!key) {
-                    err = new Error('Key not found');
+                    err = new Error('Not Found');
                     err.status = 404;
 
                     return next(err);
@@ -95,14 +95,14 @@
                         }
 
                         if (!req.user.admin && req.permission.isPrivate() && key && (key.userId !== req.user.id)) {
-                            err = new Error('Access forbidden');
+                            err = new Error('Forbidden');
                             err.status = 403;
 
                             return next(err);
                         }
 
                         if (!key) {
-                            err = new Error('Key not found');
+                            err = new Error('Not Found');
                             err.status = 404;
 
                             return next(err);
@@ -141,8 +141,8 @@
                 var offset = parseInt(req.query.offset, 10) || 0;
                 var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
                 if ((offset < 0) || (limit < 0)) {
-                    err = new Error('Invalid parameter');
-                    err.status = 422;
+                    err = new Error('Bad Request');
+                    err.status = 400;
 
                     return next(err);
                 }
@@ -162,8 +162,8 @@
                     }
                     
                     if (offset >= count) {
-                        err = new Error('Invalid parameter');
-                        err.status = 422;
+                        err = new Error('Bad Request');
+                        err.status = 400;
 
                         return next(err);
                     }
@@ -186,7 +186,7 @@
 
                         var iterate = function(key) {
                             if (!req.user.admin && req.permission.isPrivate() && (key.userId !== req.user.id)) {
-                                err = new Error('Access forbidden');
+                                err = new Error('Forbidden');
                                 err.status = 403;
 
                                 return next(err);
@@ -217,7 +217,7 @@
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -229,14 +229,14 @@
                 }
 
                 if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && key && (key.userId !== req.user.id)) {
-                    err = new Error('Access forbidden');
+                    err = new Error('Forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
                 if (!key) {
-                    err = new Error('Key not found');
+                    err = new Error('Not Found');
                     err.status = 404;
 
                     return next(err);
@@ -256,7 +256,7 @@
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -268,14 +268,14 @@
                 }
 
                 if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && key && (key.userId !== req.user.id)) {
-                    err = new Error('Access forbidden');
+                    err = new Error('Forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
                 if (!key) {
-                    err = new Error('Key not found');
+                    err = new Error('Not Found');
                     err.status = 404;
 
                     return next(err);

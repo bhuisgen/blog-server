@@ -21,7 +21,7 @@
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -30,7 +30,7 @@
             var blacklistName = new BlacklistName(req.body.blacklistName);
 
             if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -54,14 +54,14 @@
                 }
 
                 if (!req.user.admin && req.permission.isPrivate() && blacklistName && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                    err = new Error('Access forbidden');
+                    err = new Error('Forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
                 if (!blacklistName) {
-                    err = new Error('BlacklistName not found');
+                    err = new Error('Not Found');
                     err.status = 404;
 
                     return next(err);
@@ -92,14 +92,14 @@
                         }
 
                         if (!req.user.admin && req.permission.isPrivate() && blacklistName && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                            err = new Error('Access forbidden');
+                            err = new Error('Forbidden');
                             err.status = 403;
 
                             return next(err);
                         }
 
                         if (!blacklistName) {
-                            err = new Error('BlacklistName not found');
+                            err = new Error('Not Found');
                             err.status = 404;
 
                             return next(err);
@@ -139,8 +139,8 @@
                 var offset = parseInt(req.query.offset, 10) || 0;
                 var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
                 if ((offset < 0) || (limit < 0)) {
-                    err = new Error('Invalid parameter');
-                    err.status = 422;
+                    err = new Error('Bad Request');
+                    err.status = 400;
 
                     return next(err);
                 }
@@ -160,8 +160,8 @@
                     }
 
                     if (offset >= count) {
-                        err = new Error('Invalid parameter');
-                        err.status = 422;
+                        err = new Error('Bad Request');
+                        err.status = 400;
 
                         return next(err);
                     }
@@ -184,7 +184,7 @@
 
                         var iterate = function(blacklistName) {
                             if (!req.user.admin && req.permission.isPrivate() && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                                err = new Error('Access forbidden');
+                                err = new Error('Forbidden');
                                 err.status = 403;
 
                                 return next(err);
@@ -212,7 +212,7 @@
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -224,14 +224,14 @@
                 }
 
                 if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistName && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                    err = new Error('Access forbidden');
+                    err = new Error('Forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
                 if (!blacklistName) {
-                    err = new Error('BlacklistName not found');
+                    err = new Error('Not Found');
                     err.status = 404;
 
                     return next(err);
@@ -251,7 +251,7 @@
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -263,14 +263,14 @@
                 }
 
                 if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistName && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                    err = new Error('Access forbidden');
+                    err = new Error('Forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
                 if (!blacklistName) {
-                    err = new Error('BlacklistName not found');
+                    err = new Error('Not Found');
                     err.status = 404;
 
                     return next(err);

@@ -13,7 +13,7 @@
     module.exports = function(config) {
         router.use(function checkAccess(req, res, next) {
             if ((req.ip !== '127.0.0.1') && (req.ip !== '::1')) {
-                var err = new Error('Unauthorized access');
+                var err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);

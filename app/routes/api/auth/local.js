@@ -144,7 +144,7 @@
 
                     return res.json({
                         success: false,
-                        message: 'User already exists'
+                        message: 'Forbidden'
                     });
                 }
 
@@ -158,7 +158,7 @@
 
                         return res.json({
                             success: true,
-                            message: 'User signup succeeded',
+                            message: 'OK',
                             token: new Buffer(token).toString('base64')
                         });
                     });
@@ -176,7 +176,7 @@
 
                     return res.json({
                         success: false,
-                        message: 'User signin failed'
+                        message: 'Unauthorized'
                     });
                 }
 
@@ -190,7 +190,7 @@
 
                         return res.json({
                             success: true,
-                            message: 'User signin succeeded',
+                            message: 'OK',
                             token: new Buffer(token).toString('base64')
                         });
                     });

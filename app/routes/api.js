@@ -110,7 +110,7 @@
 
                 return res.json({
                     success: false,
-                    message: 'API server is not available'
+                    message: 'Service Unavailable'
                 });
             }
 
@@ -128,7 +128,7 @@
 
                     return res.json({
                         success: false,
-                        message: 'IP address is blacklisted'
+                        message: 'Forbidden'
                     });
                 }
 
@@ -160,7 +160,7 @@
 
                 return res.json({
                     success: false,
-                    message: 'User signout failed'
+                    message: 'Unauthorized'
                 });
             }
 
@@ -176,7 +176,7 @@
 
                     return res.json({
                         success: false,
-                        message: 'User signout failed'
+                        message: 'Unauthorized'
                     });
                 }
 
@@ -192,7 +192,7 @@
 
                         return res.json({
                             success: true,
-                            message: 'User signout succeeded'
+                            message: 'OK',
                         });
                     });
                 });

@@ -22,7 +22,7 @@
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -31,7 +31,7 @@
             var comment = new Comment(req.body.comment);
 
             if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment.userId && (comment.userId !== req.user.id)) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -58,14 +58,14 @@
                     (req.permission.isPrivate() && comment && comment.userId && (comment.userId !== req.user.id)) ||
                     (!req.role.commentsReadNotValidated && comment && !comment.validated) ||
                     (!req.role.commentsReadNotAllowed && comment && !comment.allowed))) {
-                    err = new Error('Access forbidden');
+                    err = new Error('Forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
                 if (!comment) {
-                    err = new Error('Comment not found');
+                    err = new Error('Not Found');
                     err.status = 404;
 
                     return next(err);
@@ -108,14 +108,14 @@
                             (req.permission.isPrivate() && comment && comment.userId && (comment.userId !== req.user.id)) ||
                             (!req.role.commentsReadNotValidated && comment && !comment.validated) ||
                             (!req.role.commentsReadNotAllowed && comment && !comment.allowed))) {
-                            err = new Error('Access forbidden');
+                            err = new Error('Forbidden');
                             err.status = 403;
 
                             return next(err);
                         }
 
                         if (!comment) {
-                            err = new Error('Comment not found');
+                            err = new Error('Not Found');
                             err.status = 404;
 
                             return next(err);
@@ -192,8 +192,8 @@
                 var offset = parseInt(req.query.offset, 10) || 0;
                 var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
                 if ((offset < 0) || (limit < 0)) {
-                    err = new Error('Invalid parameter');
-                    err.status = 422;
+                    err = new Error('Bad Request');
+                    err.status = 400;
 
                     return next(err);
                 }
@@ -213,8 +213,8 @@
                     }
 
                     if (offset >= count) {
-                        err = new Error('Invalid parameter');
-                        err.status = 422;
+                        err = new Error('Bad Request');
+                        err.status = 400;
 
                         return next(err);
                     }
@@ -237,7 +237,7 @@
 
                         var iterate = function(comment) {
                             if (!req.user.admin && req.permission.isPrivate() && comment.userId && (comment.userId !== req.user.id)) {
-                                err = new Error('Access forbidden');
+                                err = new Error('Forbidden');
                                 err.status = 403;
 
                                 return next(err);
@@ -274,7 +274,7 @@
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -286,14 +286,14 @@
                 }
 
                 if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment && comment.userId && (comment.userId !== req.user.id)) {
-                    err = new Error('Access forbidden');
+                    err = new Error('Forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
                 if (!comment) {
-                    err = new Error('Comment not found');
+                    err = new Error('Not Found');
                     err.status = 404;
 
                     return next(err);
@@ -315,7 +315,7 @@
             var err;
 
             if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Access forbidden');
+                err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
@@ -327,14 +327,14 @@
                 }
 
                 if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && comment && comment.userId && (comment.userId !== req.user.id)) {
-                    err = new Error('Access forbidden');
+                    err = new Error('Forbidden');
                     err.status = 403;
 
                     return next(err);
                 }
 
                 if (!comment) {
-                    err = new Error('Comment not found');
+                    err = new Error('Not Found');
                     err.status = 404;
 
                     return next(err);

@@ -162,7 +162,7 @@
 
                     return res.json({
                         success: false,
-                        message: 'User signin failed'
+                        message: 'Unauthorized'
                     });
                 }
 
@@ -176,7 +176,7 @@
 
                         return res.json({
                             success: true,
-                            message: 'User signin succeeded',
+                            message: 'OK',
                             token: new Buffer(token).toString('base64')
                         });
                     });

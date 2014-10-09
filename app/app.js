@@ -63,7 +63,7 @@
                 return;
             }
 
-            var err = new Error('Request timeout');
+            var err = new Error('Request Timeout');
             err.status = 408;
 
             return next(err);
@@ -78,7 +78,7 @@
     app.use(express.static(path.join(config.server.root, config.server.publicDirectory)));
 
     app.use(function error404(req, res, next) {
-        var err = new Error('Page not found');
+        var err = new Error('Not Found');
         err.status = 404;
 
         return next(err);
@@ -93,7 +93,7 @@
 
         return res.json({
             success: false,
-            message: err.message
+            message: err.message || 'Internal Server Error'
         });
     });
 
