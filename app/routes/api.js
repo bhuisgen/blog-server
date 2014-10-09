@@ -222,7 +222,7 @@
 
             Key.findOne({
                 where: {
-                    authkey: token,
+                    authKey: token,
                 }
             }, function(err, key) {
                 if (err) {

@@ -69,7 +69,7 @@
 
                 data.key = {
                     id: key.id,
-                    authkey: key.authkey,
+                    authKey: key.authKey,
                     created: key.created,
                     enabled: key.enabled,
                     user: key.userId
@@ -110,7 +110,7 @@
 
                         data.key.push({
                             id: key.id,
-                            authkey: key.authkey,
+                            authKey: key.authKey,
                             created: key.created,
                             enabled: key.enabled,
                             user: key.userId
@@ -194,7 +194,7 @@
 
                             data.key.push({
                                 id: key.id,
-                                authkey: key.authkey,
+                                authKey: key.authKey,
                                 created: key.created,
                                 enabled: key.enabled,
                                 user: key.userId

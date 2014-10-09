@@ -7,7 +7,7 @@
 
     module.exports = function(schema) {
         var Key = schema.define('Key', {
-            authkey: {
+            authKey: {
                 type: String,
                 length: 256,
                 default: function() {
@@ -33,7 +33,7 @@
             foreignKey: 'userId'
         });
 
-        Key.validatesPresenceOf('authkey');
+        Key.validatesPresenceOf('authKey');
 
         return Key;
     };

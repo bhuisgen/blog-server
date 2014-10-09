@@ -718,8 +718,8 @@
                     }
 
                     console.log('');
-                    console.log('Authentication key: ' + keyAnonymous.authkey);
-                    console.log('HTTP header: "Authorization: Basic ' + new Buffer(keyAnonymous.authkey).toString('base64') + '"');
+                    console.log('Authentication key: ' + keyAnonymous.authKey);
+                    console.log('HTTP header: "Authorization: Basic ' + new Buffer(keyAnonymous.authKey).toString('base64') + '"');
                     console.log('');
 
                     return callback(null);
@@ -3419,7 +3419,7 @@
         prompt.get(promptConfig, function(err, result) {
             Key.findOne({
                 where: {
-                    authkey: result.key
+                    authKey: result.key
                 }
             }, function(err, key) {
                 if (err) {
@@ -3474,7 +3474,7 @@
         prompt.get(promptConfig, function(err, result) {
             Key.findOne({
                 where: {
-                    authkey: result.key
+                    authKey: result.key
                 }
             }, function(err, key) {
                 if (err) {
@@ -3516,7 +3516,33 @@
         prompt.start();
 
         prompt.get(promptConfig, function(err, result) {
-            console.log('Base64 encoded key: ' + new Buffer(result.key).toString('base64'));
+            console.log('Encoded key: ' + new Buffer(result.key).toString('base64'));
+
+            return callback(null);
+        });
+    }
+
+    function keyDecode(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        prompt.message = 'Decode key';
+
+        var promptConfig = {
+            properties: {
+                key: {
+                    description: 'key',
+                    type: 'string',
+                    required: true
+                }
+            }
+        };
+
+        prompt.start();
+
+        prompt.get(promptConfig, function(err, result) {
+            console.log('Decoded key: ' + new Buffer(result.key, 'base64').toString());
 
             return callback(null);
         });
@@ -5323,6 +5349,7 @@
         .option('    --enable', 'enable key')
         .option('    --disable', 'disable key')
         .option('    --encode', 'encode a key in base64')
+        .option('    --decode', 'decode a key from base64')
         .action(function(options) {
             if (options.add) {
                 keyAdd(program.verbose, function(err) {
@@ -5398,6 +5425,18 @@
 
             if (options.encode) {
                 keyEncode(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.decode) {
+                keyDecode(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
