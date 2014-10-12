@@ -42,7 +42,7 @@
                     return next(err);
                 }
 
-                return res.send(200);
+                return res.send(200).end();
             });
         });
 
@@ -198,7 +198,7 @@
                 }
 
                 var order = req.query.order || 'id';
-                var sort = (req.query.sort === 'false' ? 'DESC' : 'ASC');
+                var sort = req.query.sort || 'ASC';
                 var offset = parseInt(req.query.offset, 10) || 0;
                 var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
                 if ((offset < 0) || (limit < 0)) {
@@ -213,13 +213,11 @@
                         return next(err);
                     }
 
-                    data.user = [];
-                    data.meta = {
-                        count: count
-                    };
-
                     if (!count) {
-                        return res.json(data);
+                        err = new Error('Not Found');
+                        err.status = 404;
+
+                        return next(err);
                     }
 
                     if (offset >= count) {
@@ -240,8 +238,16 @@
                         }
 
                         if (!users.length) {
-                            return res.json(data);
+                            err = new Error('Not Found');
+                            err.status = 404;
+
+                            return next(err);
                         }
+
+                        data.user = [];
+                        data.meta = {
+                            count: count
+                        };
 
                         var pending = users.length;
 
@@ -334,7 +340,7 @@
                         return next(err);
                     }
 
-                    return res.send(200);
+                    return res.send(200).end();
                 });
             });
         });
@@ -373,7 +379,7 @@
                         return next(err);
                     }
 
-                    return res.send(200);
+                    return res.send(200).end();
                 });
             });
         });

@@ -1,18 +1,28 @@
 {
   "name": "blog-server",
+  "description": "REST API blog engine",
   "version": "0.0.1",
-  "private": true,
   "scripts": {
-    "start": "grunt"
+    "start": "grunt serve"
+  },
+  "author": "Boris HUISGEN <bhuisgen@hbis.fr>",
+  "license": "gpl3",
+  "homepage": "https://github.com/bhuisgen/blog-server",
+  "bugs": {
+    "url": "https://github.com/bhuisgen/blog-server/issues"
+  }, 
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bhuisgen/blog-server"
   },
   "dependencies": {
     "async": "~0.9.0",
     "bcrypt": "~0.8.0",
     "body-parser": "~1.9.0",
     "commander": "~2.3.0",
-    "express": "~4.9.5",
+    "express": "~4.9.7",
     "front-matter": "~0.2.0",
-    "gm": "^1.16.0",
+    "gm": "~1.16.0",
     "hiredis": "~0.1.17",
     "jugglingdb": "~0.3.0",
     "jugglingdb-model-loader": "~0.0.3",
@@ -41,11 +51,5 @@
     "load-grunt-tasks": "~0.6.0",
     "request": "~2.45.0",
     "time-grunt": "~1.0.0"
-  },
-  "author": "Boris HUISGEN <bhuisgen@hbis.fr>",
-  "license": "gpl3",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/bhuisgen/blog-server"
   }
 }
