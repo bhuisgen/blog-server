@@ -42,7 +42,7 @@
                     return next(err);
                 }
 
-                return res.send(200).end();
+                return res.status(200).end();
             });
         });
 
@@ -468,7 +468,7 @@
                         return next(err);
                     }
 
-                    return res.send(200).end();
+                    return res.status(200).end();
                 });
             });
         });
@@ -507,7 +507,7 @@
                         return next(err);
                     }
 
-                    return res.send(200).end();
+                    return res.status(200).end();
                 });
             });
         });

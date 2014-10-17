@@ -47,7 +47,7 @@
         res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
         if ('OPTIONS' === req.method) {
-            return res.send(200).end();
+            return res.status(200).end();
         }
 
         return next();
