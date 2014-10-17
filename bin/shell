@@ -4495,7 +4495,7 @@
                             }
                         });
                     } else {
-                        loadPage(file, stats, function(err, page) {
+                        loadPage(file, function(err, page) {
                             if (err) {
                                 return callback(err, null);
                             }
@@ -4514,7 +4514,7 @@
         });
     }
 
-    function loadPage(file, stats, callback) {
+    function loadPage(file, callback) {
         callback = callback || function() {
             return true;
         };
@@ -4859,7 +4859,7 @@
                             }
                         });
                     } else {
-                        loadPost(file, stats, function(err, post) {
+                        loadPost(file, function(err, post) {
                             if (err) {
                                 return callback(err, null);
                             }
@@ -4878,7 +4878,7 @@
         });
     }
 
-    function loadPost(file, stats, callback) {
+    function loadPost(file, callback) {
         callback = callback || function() {
             return true;
         };
