@@ -73,6 +73,14 @@ module.exports = function(grunt) {
         }, 500);
     });
 
+    grunt.registerTask('lint', [
+        'jshint'
+    ]);
+
+    grunt.registerTask('build', [
+        'jshint'
+    ]);
+
     grunt.registerTask('serve', function() {
         grunt.task.run([
             'build',
@@ -88,10 +96,6 @@ module.exports = function(grunt) {
             'watch'
         ]);
     });
-
-    grunt.registerTask('build', [
-        'jshint'
-    ]);
 
     grunt.registerTask('default', [
         'build'
