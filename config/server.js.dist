@@ -26,8 +26,6 @@ var config = {
 		auth: {
 			redis: {
 				socket: '/var/run/redis/redis.sock',
-				//host: 'localhost',
-				//port: 6379,
 				options: {},
 
 				database: 0,
@@ -46,12 +44,12 @@ var config = {
 			providers: {
 				local: true,
 
-                facebook: true,
-                github: true,
-                google: true,
-                linkedin: true,
-                openid: true,
-                twitter: true
+                facebook: false,
+                github: false,
+                google: false,
+                linkedin: false,
+                openid: false,
+                twitter: false
 			}
 		},
 

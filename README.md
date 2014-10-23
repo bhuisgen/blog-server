@@ -51,11 +51,18 @@ To store content in alternative storage than Redis:
 
 ## Configuration
 
+Configuration files are:
+
 - *config/server.js*: server settings
 - *config/keys.js*: API keys of external providers authentication
 - *config/database.js*: storage settings
 - *config/content.js*: local content settings
 - *config/thumbnail.js*: image thumbnails settings
+
+Before editing copy the templates files:
+
+    $ cp config/server.js.dist config/server.js
+    $ cp config/keys.js.dist config/keys.js
 
 You must choose one storage backend and copy the corresponding template file into *config/database.js*:
 
