@@ -11,7 +11,8 @@ module.exports = function(grunt) {
 
     var gruntConfig = {
         app: 'app',
-        bin: 'bin'
+        bin: 'bin',
+        config: 'config'
     };
 
     grunt.initConfig({
@@ -50,6 +51,7 @@ module.exports = function(grunt) {
                 'Gruntfile.js',
                 '<%= grunt.app %>/{,*/}*.js',
                 '<%= grunt.bin %>/{,*/}*',
+                '<%= grunt.config %>/{,*/}*.js',
             ]
         }
     });
