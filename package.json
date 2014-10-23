@@ -1,55 +1,58 @@
 {
-  "name": "blog-server",
-  "description": "REST API blog engine",
-  "version": "0.0.1",
-  "scripts": {
-    "start": "grunt serve"
-  },
-  "author": "Boris HUISGEN <bhuisgen@hbis.fr>",
-  "license": "gpl3",
-  "homepage": "https://github.com/bhuisgen/blog-server",
-  "bugs": {
-    "url": "https://github.com/bhuisgen/blog-server/issues"
-  }, 
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/bhuisgen/blog-server"
-  },
-  "dependencies": {
-    "async": "~0.9.0",
-    "bcrypt": "~0.8.0",
-    "body-parser": "~1.9.0",
-    "commander": "~2.4.0",
-    "express": "~4.9.7",
-    "front-matter": "~0.2.0",
-    "gm": "~1.16.0",
-    "hiredis": "~0.1.17",
-    "jugglingdb": "~0.3.0",
-    "jugglingdb-model-loader": "~0.0.3",
-    "jugglingdb-redis-hq": "~0.0.11",
-    "lodash": "~2.4.1",
-    "mime": "~1.2.11",
-    "morgan": "~1.4.0",
-    "node-uuid": "~1.4.1",
-    "passport": "~0.2.1",
-    "passport-facebook": "~1.0.3",
-    "passport-github": "~0.1.5",
-    "passport-google-oauth": "~0.1.5",
-    "passport-linkedin-oauth2": "~1.1.1",
-    "passport-local": "~1.0.0",
-    "passport-openid": "~0.3.1",
-    "passport-twitter": "~1.0.2",
-    "prompt": "~0.2.14",
-    "redis": "~0.12.1"
-  },
-  "devDependencies": {
-    "grunt": "~0.4.5",
-    "grunt-contrib-jshint": "~0.10.0",
-    "grunt-contrib-watch": "~0.6.1",
-    "grunt-develop": "~0.4.0",
-    "jshint-stylish": "~1.0.0",
-    "load-grunt-tasks": "~0.6.0",
-    "request": "~2.45.0",
-    "time-grunt": "~1.0.0"
-  }
+    "name": "blog-server",
+    "description": "REST API blog engine",
+    "version": "0.0.1",
+    "author": "Boris HUISGEN <bhuisgen@hbis.fr>",
+    "license": "gpl3",
+    "homepage": "https://github.com/bhuisgen/blog-server",
+    "bugs": {
+        "url": "https://github.com/bhuisgen/blog-server/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/bhuisgen/blog-server"
+    },
+    "engines": {
+        "node": "0.10.x"
+    },
+    "scripts": {
+        "start": "grunt serve"
+    },
+    "dependencies": {
+        "async": "0.9.0",
+        "bcrypt": "0.8.0",
+        "body-parser": "1.9.1",
+        "commander": "2.4.0",
+        "express": "4.9.8",
+        "front-matter": "0.2.0",
+        "gm": "1.16.0",
+        "hiredis": "0.1.17",
+        "jugglingdb": "0.3.0",
+        "jugglingdb-model-loader": "0.0.3",
+        "jugglingdb-redis-hq": "0.0.12",
+        "lodash": "2.4.1",
+        "mime": "1.2.11",
+        "morgan": "1.4.1",
+        "node-uuid": "1.4.1",
+        "passport": "0.2.1",
+        "passport-facebook": "1.0.3",
+        "passport-github": "0.1.5",
+        "passport-google-oauth": "0.1.5",
+        "passport-linkedin-oauth2": "1.1.1",
+        "passport-local": "1.0.0",
+        "passport-openid": "0.3.1",
+        "passport-twitter": "1.0.2",
+        "prompt": "0.2.14",
+        "redis": "0.12.1"
+    },
+    "devDependencies": {
+        "grunt": "0.4.5",
+        "grunt-contrib-jshint": "0.10.0",
+        "grunt-contrib-watch": "0.6.1",
+        "grunt-develop": "0.4.0",
+        "jshint-stylish": "1.0.0",
+        "load-grunt-tasks": "1.0.0",
+        "request": "2.46.0",
+        "time-grunt": "1.0.0"
+    }
 }
