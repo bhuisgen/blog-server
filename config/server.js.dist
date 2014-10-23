@@ -7,8 +7,8 @@ var config = {
 	ssl: {
 		enable: true,
 
-		certificateFile: 'config/ssl/localhost.crt',
-		keyFile: 'config/ssl/localhost.key'
+		certificateFile: 'config/ssl/server.crt',
+		keyFile: 'config/ssl/server.key'
 	},
 
 	root: path.normalize(__dirname + '/..'),
