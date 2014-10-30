@@ -1,50 +1,66 @@
 var path = require('path');
 
 var config = {
-	host: '127.0.0.1',
-	port: 3000,
+    host: '127.0.0.1',
+    port: 3000,
 
-	ssl: {
-		enable: true,
+    ssl: {
+        enable: true,
 
-		certificateFile: 'config/ssl/server.crt',
-		keyFile: 'config/ssl/server.key'
-	},
+        certificateFile: 'config/ssl/server.crt',
+        keyFile: 'config/ssl/server.key'
+    },
 
-	root: path.normalize(__dirname + '/..'),
+    errorLog: {
+        console: true,
+        file: {
+            filename: 'log/error.log',
+            json: false
+        },
+        syslog: false
+    },
 
-	publicDirectory: 'public',
-	
-	requestTimeout: 4000,
+    accessLog: {
+        console: true,
+        file: {
+            filename: 'log/access.log',
+            json: false,
+        },
+        syslog: false
+    },
 
-	api: {
-		enable: true,
+    root: path.normalize(__dirname + '/..'),
 
-		vendor: 'hbis',
-		defaultVersion: 1,
+    publicDirectory: 'public',
 
-		auth: {
-			redis: {
-				socket: '/var/run/redis/redis.sock',
-				//host: 'localhost',
-				//port: 6379,
-				options: {},
+    requestTimeout: 4000,
 
-				database: 0,
-				keyPrefix: 'blog-server:api:'
-			},
+    api: {
+        enable: true,
 
-			tokens: {
-				key: 'tokens',
-				expireTime: 600
-			},
+        vendor: 'hbis',
+        defaultVersion: 1,
 
-			users: {
-				key: 'users'
-			},
+        auth: {
+            redis: {
+                socket: '/var/run/redis/redis.sock',
+                options: {},
 
-			providers: {
-				local: true,
+                database: 0,
+                keyPrefix: 'blog-server:api:'
+            },
+
+            tokens: {
+                key: 'tokens',
+                expireTime: 600
+            },
+
+            users: {
+                key: 'users'
+            },
+
+            providers: {
+                local: true,
 
                 facebook: true,
                 github: true,
@@ -52,11 +68,11 @@ var config = {
                 linkedin: true,
                 openid: true,
                 twitter: true
-			}
-		},
+            }
+        },
 
-		maxItems: 10
-	}
+        maxItems: 10
+    }
 };
 
 module.exports = config;

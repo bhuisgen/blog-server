@@ -11,7 +11,25 @@ var config = {
 		keyFile: 'config/ssl/server.key'
 	},
 
-	root: path.normalize(__dirname + '/..'),
+    errorLog: {
+        console: true,
+        file: {
+            filename: 'log/error.log',
+            json: false
+        },
+        syslog: false
+    },
+
+    accessLog: {
+        console: true,
+        file: {
+            filename: 'log/access.log',
+            json: false,
+        },
+        syslog: false
+    },
+
+    root: path.normalize(__dirname + '/..'),
 
 	publicDirectory: 'public',
 	
