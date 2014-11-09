@@ -21,12 +21,11 @@
   "dependencies": {
     "async": "0.9.0",
     "bcrypt": "0.8.0",
-    "body-parser": "1.9.1",
+    "body-parser": "1.9.2",
     "commander": "2.5.0",
-    "express": "4.10.0",
-    "express-winston": "0.2.8",
+    "express": "4.10.1",
     "front-matter": "0.2.0",
-    "gm": "1.16.0",
+    "gm": "1.17.0",
     "hiredis": "0.1.17",
     "jugglingdb": "0.3.0",
     "jugglingdb-model-loader": "0.0.3",
@@ -44,7 +43,7 @@
     "passport-twitter": "1.0.2",
     "prompt": "0.2.14",
     "redis": "0.12.1",
-    "winston": "0.8.1",
+    "winston": "0.8.3",
     "winston-syslog-native": "0.1.0"
   },
   "devDependencies": {
@@ -54,7 +53,7 @@
     "grunt-develop": "0.4.0",
     "jshint-stylish": "1.0.0",
     "load-grunt-tasks": "1.0.0",
-    "request": "2.46.0",
+    "request": "2.47.0",
     "time-grunt": "1.0.0"
   }
 }
