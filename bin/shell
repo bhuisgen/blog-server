@@ -4682,6 +4682,37 @@
                         }
                     },
                     function(callback) {
+                        post.categories(function(err, categories) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            if (!categories.length) {
+                                return callback(null);
+                            }
+
+                            async.eachSeries(categories, function(category, callback) {
+                                if (item.categories.indexOf(category.name) !== -1) {
+                                    return callback(null);
+                                }
+
+                                post.categories.remove(category, function(err) {
+                                    if (err) {
+                                        return callback(err);
+                                    }
+
+                                    return callback(null);
+                                });
+                            }, function(err, results) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                return callback(null);
+                            });
+                        });
+                    },
+                    function(callback) {
                         if (!item.categories) {
                             return callback(null);
                         }
@@ -4734,6 +4765,37 @@
                             }
 
                             return callback(null);
+                        });
+                    },
+                    function(callback) {
+                        post.tags(function(err, tags) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            if (!tags.length) {
+                                return callback(null);
+                            }
+
+                            async.eachSeries(tags, function(tag, callback) {
+                                if (item.tags.indexOf(tag.name) !== -1) {
+                                    return callback(null);
+                                }
+
+                                post.tags.remove(tag, function(err) {
+                                    if (err) {
+                                        return callback(err);
+                                    }
+
+                                    return callback(null);
+                                });
+                            }, function(err) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                return callback(null);
+                            });
                         });
                     },
                     function(callback) {
