@@ -40,6 +40,15 @@ module.exports = function(grunt) {
                     'app/**/*.js'
                 ],
                 tasks: ['develop', 'delayed-livereload']
+            },
+            serverdebug: {
+                files: [
+                    'bin/server',
+                    'config/*.js',
+                    'app/*.js',
+                    'app/**/*.js'
+                ],
+                tasks: ['develop', 'delayed-livereload']
             }
         },
         jshint: {
@@ -79,13 +88,8 @@ module.exports = function(grunt) {
         'jshint'
     ]);
 
-    grunt.registerTask('build', [
-        'jshint'
-    ]);
-
     grunt.registerTask('serve', function() {
         grunt.task.run([
-            'build',
             'develop:release',
             'watch'
         ]);
@@ -93,7 +97,6 @@ module.exports = function(grunt) {
 
     grunt.registerTask('serve-debug', function() {
         grunt.task.run([
-            'build',
             'develop:debug',
             'watch'
         ]);
