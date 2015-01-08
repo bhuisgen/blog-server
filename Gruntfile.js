@@ -40,15 +40,6 @@ module.exports = function(grunt) {
                     'app/**/*.js'
                 ],
                 tasks: ['develop', 'delayed-livereload']
-            },
-            serverdebug: {
-                files: [
-                    'bin/server',
-                    'config/*.js',
-                    'app/*.js',
-                    'app/**/*.js'
-                ],
-                tasks: ['develop', 'delayed-livereload']
             }
         },
         jshint: {
