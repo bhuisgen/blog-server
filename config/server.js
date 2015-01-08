@@ -1,6 +1,8 @@
 var path = require('path');
 
 var config = {
+    root: path.normalize(__dirname + '/..'),
+
     host: '127.0.0.1',
     port: 3000,
 
@@ -12,28 +14,34 @@ var config = {
     },
 
     errorLog: {
-        console: true,
+        console: {
+            colorize: true,
+            json: true
+        },
         file: {
             filename: 'log/error.log',
-            json: false
+            json: true
         },
         syslog: false
     },
 
     accessLog: {
-        console: true,
+        console: false,
         file: {
             filename: 'log/access.log',
-            json: false,
+            json: true,
         },
         syslog: false
     },
 
-    root: path.normalize(__dirname + '/..'),
-
-    publicDirectory: 'public',
-
+    compress: false,
     requestTimeout: 4000,
+
+    static: {
+        enable: true,
+
+        directory: 'public'
+    },
 
     api: {
         enable: true,
@@ -43,7 +51,8 @@ var config = {
 
         auth: {
             redis: {
-                socket: '/var/run/redis/redis.sock',
+                host: '127.0.0.1',
+                port: 6379,
                 options: {},
 
                 database: 0,

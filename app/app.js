@@ -5,6 +5,7 @@
     var path = require('path');
     var express = require('express');
     var bodyParser = require('body-parser');
+    var compression = require('compression');
     var winston = require('winston');
     var winstonSyslogNative = require('winston-syslog-native').SyslogNative;
     var expressWinston = require('express-winston');
@@ -25,14 +26,18 @@
         app.set('json spaces', 2);
     }
 
+    if (config.server.compress) {
+        app.use(compression({
+            threshold: 0
+        }));
+    }
+
     if (config.server.errorLog) {
         var errorTransports = [];
 
         if (config.server.errorLog.console) {
-            errorTransports.push(new(winston.transports.Console)({
-                colorize: true,
-                json: false
-            }));
+            errorTransports.push(new(winston.transports.Console)(
+                config.server.errorLog.console));
         }
 
         if (config.server.errorLog.file) {
@@ -57,10 +62,8 @@
         var accessTransports = [];
 
         if (config.server.accessLog.console) {
-            accessTransports.push(new(winston.transports.Console)({
-                colorize: true,
-                json: false
-            }));
+            accessTransports.push(new(winston.transports.Console)(
+                config.server.accessLog.console));
         }
 
         if (config.server.accessLog.file) {
@@ -73,7 +76,7 @@
                 config.server.accessLog.syslog
             ));
         }
-        
+
         app.use(expressWinston.logger({
             transports: accessTransports,
             expressFormat: true
@@ -116,7 +119,9 @@
     app.use('/api', api(config));
     app.use('/status', status(config));
 
-    app.use(express.static(path.join(config.server.root, config.server.publicDirectory)));
+    if (config.server.static && config.server.static.enable) {
+        app.use(express.static(path.join(config.server.root, config.server.static.directory)));
+    }
 
     app.use(function error404(req, res, next) {
         var err = new Error('Not Found');
