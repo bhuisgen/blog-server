@@ -1,0 +1,12 @@
+[Unit]
+Description=blog-server
+Requires=docker.service
+After=docker.service
+
+[Service]
+ExecStartPre=-/usr/bin/docker kill blog-server
+ExecStartPre=-/usr/bin/docker rm blog-server
+ExecStartPre=/usr/bin/docker pull 1.2.3.4:5000/blog-server:latest
+ExecStart=/usr/bin/docker run --name blog-server -p 443:3000 --restart=always blog-server:latest
+ExecStop=/usr/bin/docker stop blog-server
+TimeoutStartSec=300
