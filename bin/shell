@@ -5136,6 +5136,10 @@
         .option('    --modify', 'modify role')
         .option('    --rename', 'rename role')
         .action(function(options) {
+            if (!process.argv.slice(3).length) {
+                program.help();
+            }
+
             if (options.add) {
                 roleAdd(program.verbose, function(err) {
                     if (err) {
@@ -5219,6 +5223,10 @@
         .option('    --modify', 'modify group')
         .option('    --rename', 'rename group')
         .action(function(options) {
+            if (!process.argv.slice(3).length) {
+                program.help();
+            }
+
             if (options.add) {
                 groupAdd(program.verbose, function(err) {
                     if (err) {
@@ -5304,6 +5312,10 @@
         .option('    --disable', 'disable user')
         .option('    --passwd', 'change user password')
         .action(function(options) {
+            if (!process.argv.slice(3).length) {
+                program.help();
+            }
+
             if (options.add) {
                 userAdd(program.verbose, function(err) {
                     if (err) {
@@ -5413,6 +5425,10 @@
         .option('    --encode', 'encode a key in base64')
         .option('    --decode', 'decode a key from base64')
         .action(function(options) {
+            if (!process.argv.slice(3).length) {
+                program.help();
+            }
+
             if (options.add) {
                 keyAdd(program.verbose, function(err) {
                     if (err) {
@@ -5522,6 +5538,10 @@
         .option('    --remove-name', 'remove name in blacklist')
         .option('    --list-name', 'list blacklisted names')
         .action(function(options) {
+            if (!process.argv.slice(3).length) {
+                program.help();
+            }
+
             if (options.addIp) {
                 blacklistAddIP(program.verbose, function(err) {
                     if (err) {
@@ -5636,6 +5656,10 @@
         .option('    --set', 'set variable')
         .option('    --get', 'get variable')
         .action(function(options) {
+            if (!process.argv.slice(3).length) {
+                program.help();
+            }
+
             if (options.set) {
                 variableSet(program.verbose, function(err) {
                     if (err) {
@@ -5666,6 +5690,10 @@
         .option('    --page', 'create new page')
         .option('    --post', 'create new post')
         .action(function(options) {
+            if (!process.argv.slice(3).length) {
+                program.help();
+            }
+
             if (options.page) {
                 createPage(program.verbose, function(err) {
                     if (err) {
@@ -5698,6 +5726,10 @@
         .option('    --pages', 'pages only')
         .option('    --posts', 'posts only')
         .action(function(options) {
+            if (!process.argv.slice(3).length) {
+                program.help();
+            }
+
             if (options.all || options.pages) {
                 storePages(program.verbose, function(err) {
                     if (err) {
@@ -5730,6 +5762,10 @@
         .option('    --pages', 'pages only')
         .option('    --posts', 'posts only')
         .action(function(options) {
+            if (!process.argv.slice(3).length) {
+                program.help();
+            }
+
             if (options.all || options.pages) {
                 purgePages(program.verbose, function(err) {
                     if (err) {
@@ -5756,4 +5792,8 @@
         });
 
     program.parse(process.argv);
+
+    if (!process.argv.slice(2).length) {
+        program.help();
+    }
 }());
