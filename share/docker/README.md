@@ -23,7 +23,7 @@ To initialize your blog instance:
     # cd /var/www
     # node bin/shell init
 
-You can show the anonymous user API key:
+You can show the anonymous user auth key:
 
     # node bin/shell keys --show
         Show key: email:  anonymous@localhost.localdomain
