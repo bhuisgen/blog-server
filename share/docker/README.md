@@ -33,3 +33,7 @@ You can show the anonymous user API key:
             id: 1,
             userId: 1 },
           countBeforeLimit: 1 ]
+
+To restart your instance:
+
+    # supervisorctl restart blog-server
