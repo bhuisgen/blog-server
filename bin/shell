@@ -848,7 +848,7 @@
      * Roles management
      */
 
-    function roleAdd(verbose, callback) {
+    function rolesAdd(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -1314,7 +1314,7 @@
         });
     }
 
-    function roleRemove(verbose, callback) {
+    function rolesRemove(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -1401,7 +1401,7 @@
         });
     }
 
-    function roleList(verbose, callback) {
+    function rolesList(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -1475,7 +1475,7 @@
         });
     }
 
-    function roleShow(verbose, callback) {
+    function rolesShow(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -1554,7 +1554,7 @@
         });
     }
 
-    function roleModify(verbose, callback) {
+    function rolesModify(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -1994,7 +1994,7 @@
         });
     }
 
-    function roleRename(verbose, callback) {
+    function rolesRename(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2072,7 +2072,7 @@
      * Groups management
      */
 
-    function groupAdd(verbose, callback) {
+    function groupsAdd(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2151,7 +2151,7 @@
         });
     }
 
-    function groupRemove(verbose, callback) {
+    function groupsRemove(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2216,7 +2216,7 @@
         });
     }
 
-    function groupList(verbose, callback) {
+    function groupsList(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2273,7 +2273,7 @@
         });
     }
 
-    function groupShow(verbose, callback) {
+    function groupsShow(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2332,7 +2332,7 @@
         });
     }
 
-    function groupModify(verbose, callback) {
+    function groupsModify(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2407,7 +2407,7 @@
         });
     }
 
-    function groupRename(verbose, callback) {
+    function groupsRename(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2485,7 +2485,7 @@
      * Users management
      */
 
-    function userAdd(verbose, callback) {
+    function usersAdd(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2625,7 +2625,7 @@
         });
     }
 
-    function userRemove(verbose, callback) {
+    function usersRemove(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2706,7 +2706,7 @@
         });
     }
 
-    function userList(verbose, callback) {
+    function usersList(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2775,7 +2775,7 @@
         });
     }
 
-    function userShow(verbose, callback) {
+    function usersShow(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2852,7 +2852,7 @@
         });
     }
 
-    function userModify(verbose, callback) {
+    function usersModify(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -2959,7 +2959,7 @@
         });
     }
 
-    function userEnable(verbose, callback) {
+    function usersEnable(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3016,7 +3016,7 @@
         });
     }
 
-    function userDisable(verbose, callback) {
+    function usersDisable(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3073,7 +3073,7 @@
         });
     }
 
-    function userPasswd(verbose, callback) {
+    function usersPasswd(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3148,7 +3148,7 @@
      * Keys management
      */
 
-    function keyAdd(verbose, callback) {
+    function keysAdd(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3212,7 +3212,7 @@
         });
     }
 
-    function keyRemove(verbose, callback) {
+    function keysRemove(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3263,7 +3263,7 @@
         });
     }
 
-    function keyList(verbose, callback) {
+    function keysList(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3322,7 +3322,7 @@
         });
     }
 
-    function keyShow(verbose, callback) {
+    function keysShow(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3386,7 +3386,7 @@
         });
     }
 
-    function keyEnable(verbose, callback) {
+    function keysEnable(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3441,7 +3441,7 @@
         });
     }
 
-    function keyDisable(verbose, callback) {
+    function keysDisable(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3496,7 +3496,7 @@
         });
     }
 
-    function keyEncode(verbose, callback) {
+    function keysEncode(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3522,7 +3522,7 @@
         });
     }
 
-    function keyDecode(verbose, callback) {
+    function keysDecode(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3552,7 +3552,7 @@
      * Backlist management
      */
 
-    function blacklistAddIP(verbose, callback) {
+    function blacklistsAddIP(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3613,7 +3613,7 @@
         });
     }
 
-    function blacklistRemoveIP(verbose, callback) {
+    function blacklistsRemoveIP(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3670,7 +3670,7 @@
         });
     }
 
-    function blacklistListIP(verbose, callback) {
+    function blacklistsListIP(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3704,7 +3704,7 @@
         });
     }
 
-    function blacklistAddEmail(verbose, callback) {
+    function blacklistsAddEmail(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3765,7 +3765,7 @@
         });
     }
 
-    function blacklistRemoveEmail(verbose, callback) {
+    function blacklistsRemoveEmail(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3822,7 +3822,7 @@
         });
     }
 
-    function blacklistListEmail(verbose, callback) {
+    function blacklistsListEmail(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3855,7 +3855,7 @@
         });
     }
 
-    function blacklistAddName(verbose, callback) {
+    function blacklistsAddName(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3915,7 +3915,7 @@
         });
     }
 
-    function blacklistRemoveName(verbose, callback) {
+    function blacklistsRemoveName(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -3970,7 +3970,7 @@
         });
     }
 
-    function blacklistListName(verbose, callback) {
+    function blacklistsListName(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -4007,7 +4007,7 @@
      * Variables management
      */
 
-    function variableSet(verbose, callback) {
+    function variablesSet(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -4054,7 +4054,7 @@
         });
     }
 
-    function variableGet(verbose, callback) {
+    function variablesGet(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -4102,7 +4102,7 @@
         });
     }
 
-    function variableList(verbose, callback) {
+    function variablesList(verbose, callback) {
         callback = callback || function() {
             return true;
         };
@@ -5186,7 +5186,7 @@
             }
 
             if (options.add) {
-                roleAdd(program.verbose, function(err) {
+                rolesAdd(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5198,7 +5198,7 @@
             }
 
             if (options.remove) {
-                roleRemove(program.verbose, function(err) {
+                rolesRemove(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5210,7 +5210,7 @@
             }
 
             if (options.list) {
-                roleList(program.verbose, function(err) {
+                rolesList(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5222,7 +5222,7 @@
             }
 
             if (options.show) {
-                roleShow(program.verbose, function(err) {
+                rolesShow(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5234,7 +5234,7 @@
             }
 
             if (options.modify) {
-                roleModify(program.verbose, function(err) {
+                rolesModify(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5246,7 +5246,7 @@
             }
 
             if (options.rename) {
-                roleRename(program.verbose, function(err) {
+                rolesRename(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5273,7 +5273,7 @@
             }
 
             if (options.add) {
-                groupAdd(program.verbose, function(err) {
+                groupsAdd(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5285,7 +5285,7 @@
             }
 
             if (options.remove) {
-                groupRemove(program.verbose, function(err) {
+                groupsRemove(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5297,7 +5297,7 @@
             }
 
             if (options.list) {
-                groupList(program.verbose, function(err) {
+                groupsList(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5309,7 +5309,7 @@
             }
 
             if (options.show) {
-                groupShow(program.verbose, function(err) {
+                groupsShow(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5321,7 +5321,7 @@
             }
 
             if (options.modify) {
-                groupModify(program.verbose, function(err) {
+                groupsModify(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5333,7 +5333,7 @@
             }
 
             if (options.rename) {
-                groupRename(program.verbose, function(err) {
+                groupsRename(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5362,7 +5362,7 @@
             }
 
             if (options.add) {
-                userAdd(program.verbose, function(err) {
+                usersAdd(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5374,7 +5374,7 @@
             }
 
             if (options.remove) {
-                userRemove(program.verbose, function(err) {
+                usersRemove(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5386,7 +5386,7 @@
             }
 
             if (options.list) {
-                userList(program.verbose, function(err) {
+                usersList(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5398,7 +5398,7 @@
             }
 
             if (options.show) {
-                userShow(program.verbose, function(err) {
+                usersShow(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5410,7 +5410,7 @@
             }
 
             if (options.modify) {
-                userModify(program.verbose, function(err) {
+                usersModify(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5422,7 +5422,7 @@
             }
 
             if (options.enable) {
-                userEnable(program.verbose, function(err) {
+                usersEnable(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5434,7 +5434,7 @@
             }
 
             if (options.disable) {
-                userDisable(program.verbose, function(err) {
+                usersDisable(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5446,7 +5446,7 @@
             }
 
             if (options.passwd) {
-                userPasswd(program.verbose, function(err) {
+                usersPasswd(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5475,7 +5475,7 @@
             }
 
             if (options.add) {
-                keyAdd(program.verbose, function(err) {
+                keysAdd(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5487,7 +5487,7 @@
             }
 
             if (options.remove) {
-                keyRemove(program.verbose, function(err) {
+                keysRemove(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5499,7 +5499,7 @@
             }
 
             if (options.list) {
-                keyList(program.verbose, function(err) {
+                keysList(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5511,7 +5511,7 @@
             }
 
             if (options.show) {
-                keyShow(program.verbose, function(err) {
+                keysShow(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5523,7 +5523,7 @@
             }
 
             if (options.enable) {
-                keyEnable(program.verbose, function(err) {
+                keysEnable(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5535,7 +5535,7 @@
             }
 
             if (options.disable) {
-                keyDisable(program.verbose, function(err) {
+                keysDisable(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5547,7 +5547,7 @@
             }
 
             if (options.encode) {
-                keyEncode(program.verbose, function(err) {
+                keysEncode(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5559,7 +5559,7 @@
             }
 
             if (options.decode) {
-                keyDecode(program.verbose, function(err) {
+                keysDecode(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5588,7 +5588,7 @@
             }
 
             if (options.addIp) {
-                blacklistAddIP(program.verbose, function(err) {
+                blacklistsAddIP(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5600,7 +5600,7 @@
             }
 
             if (options.removeIp) {
-                blacklistRemoveIP(program.verbose, function(err) {
+                blacklistsRemoveIP(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5612,7 +5612,7 @@
             }
 
             if (options.listIp) {
-                blacklistListIP(program.verbose, function(err) {
+                blacklistsListIP(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5624,7 +5624,7 @@
             }
 
             if (options.addEmail) {
-                blacklistAddEmail(program.verbose, function(err) {
+                blacklistsAddEmail(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5636,7 +5636,7 @@
             }
 
             if (options.removeEmail) {
-                blacklistRemoveEmail(program.verbose, function(err) {
+                blacklistsRemoveEmail(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5648,7 +5648,7 @@
             }
 
             if (options.listEmail) {
-                blacklistListEmail(program.verbose, function(err) {
+                blacklistsListEmail(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5660,7 +5660,7 @@
             }
 
             if (options.addName) {
-                blacklistAddName(program.verbose, function(err) {
+                blacklistsAddName(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5672,7 +5672,7 @@
             }
 
             if (options.removeName) {
-                blacklistRemoveName(program.verbose, function(err) {
+                blacklistsRemoveName(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5684,7 +5684,7 @@
             }
 
             if (options.listName) {
-                blacklistListName(program.verbose, function(err) {
+                blacklistsListName(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5707,7 +5707,7 @@
             }
 
             if (options.set) {
-                variableSet(program.verbose, function(err) {
+                variablesSet(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5719,7 +5719,7 @@
             }
 
             if (options.get) {
-                variableGet(program.verbose, function(err) {
+                variablesGet(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
@@ -5731,7 +5731,7 @@
             }
 
             if (options.list) {
-                variableList(program.verbose, function(err) {
+                variablesList(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
