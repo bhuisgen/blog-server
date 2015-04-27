@@ -4102,6 +4102,51 @@
         });
     }
 
+    function variableList(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var Variable = schema.loadDefinition('Variable');
+
+        var data = {};
+
+        Variable.all(function(err, variables) {
+            if (err) {
+                return callback(err);
+            }
+
+            if (!variables.length) {
+                return callback(null);
+            }
+
+            var pending = variables.length;
+
+            function iterate(variable) {
+                data[variable.name] = variable.value;
+
+                if (!--pending) {
+                    console.log(data);
+
+                    return callback(null);
+                }
+            }
+
+            for (var i = 0; i < variables.length; i++) {
+                iterate(variables[i]);
+            }
+        });
+    }
+
     /*
      * Create command
      */
@@ -5655,6 +5700,7 @@
         .description('variables management')
         .option('    --set', 'set variable')
         .option('    --get', 'get variable')
+        .option('    --list', 'list variables')
         .action(function(options) {
             if (!process.argv.slice(3).length) {
                 program.help();
@@ -5674,6 +5720,18 @@
 
             if (options.get) {
                 variableGet(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.list) {
+                variableList(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
