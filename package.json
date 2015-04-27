@@ -13,10 +13,10 @@
     "url": "git://github.com/bhuisgen/blog-server"
   },
   "engines": {
-    "node": "0.10.x"
+    "node": "0.12.x"
   },
   "scripts": {
-    "start": "grunt serve"
+    "start": "grunt"
   },
   "dependencies": {
     "async": "0.9.0",
