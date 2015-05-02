@@ -22,7 +22,7 @@ The project is under GNU GPL licence.
 
 ## Dependencies
 
-	# apt-get install redis-server
+	# apt-get install imagemagick redis-server
 
 ## Building
 
