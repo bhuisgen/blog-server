@@ -5147,6 +5147,100 @@
     }
 
     /*
+     * List
+     */
+
+    function listPages(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var Page = schema.loadDefinition('Page');
+
+        var data = {};
+
+        Page.all(function(err, pages) {
+            if (err) {
+                return callback(err);
+            }
+
+            if (!pages.length) {
+                return callback(null);
+            }
+
+            var pending = pages.length;
+
+            function iterate(page) {
+                data[page.slug] = page;
+
+                if (!--pending) {
+                    console.log(data);
+
+                    return callback(null);
+                }
+            }
+
+            for (var i = 0; i < pages.length; i++) {
+                iterate(pages[i]);
+            }
+        });
+    }
+
+    function listPosts(verbose, callback) {
+        callback = callback || function() {
+            return true;
+        };
+
+        var options = config.database.options;
+
+        options.modelLoader = {
+            rootDirectory: path.normalize(__dirname + '/..'),
+            directory: 'app/models'
+        };
+
+        var schema = new Schema(config.database.type, options);
+
+        var Post = schema.loadDefinition('Post');
+
+        var data = {};
+
+        Post.all(function(err, posts) {
+            if (err) {
+                return callback(err);
+            }
+
+            if (!posts.length) {
+                return callback(null);
+            }
+
+            var pending = posts.length;
+
+            function iterate(post) {
+                data[post.slug] = post;
+
+                if (!--pending) {
+                    console.log(data);
+
+                    return callback(null);
+                }
+            }
+
+            for (var i = 0; i < posts.length; i++) {
+                iterate(posts[i]);
+            }
+        });
+    }
+
+    /*
      * Main
      */
 
@@ -5838,6 +5932,42 @@
 
             if (options.all || options.posts) {
                 purgePosts(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+        });
+
+    program
+        .command('list')
+        .description('list content')
+        .option('    --all', 'all nodes')
+        .option('    --pages', 'pages only')
+        .option('    --posts', 'posts only')
+        .action(function(options) {
+            if (!process.argv.slice(3).length) {
+                program.help();
+            }
+
+            if (options.all || options.pages) {
+                listPages(program.verbose, function(err) {
+                    if (err) {
+                        console.error(err);
+
+                        process.exit(1);
+                    }
+
+                    process.exit(0);
+                });
+            }
+
+            if (options.all || options.posts) {
+                listPosts(program.verbose, function(err) {
                     if (err) {
                         console.error(err);
 
