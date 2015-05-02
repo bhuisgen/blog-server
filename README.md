@@ -202,6 +202,20 @@ To purge all posts in database:
 
 	$ node bin/shell purge --posts
 
+##### List content in database
+
+Command help:
+
+    $ node bin/shell list --help
+
+To list all pages in database:
+
+    $ node bin/shell list --pages
+
+To list all posts in database:
+
+    $ node bin/shell list --posts
+
 ### Thumbnail command reference
 
 To show available commands:
