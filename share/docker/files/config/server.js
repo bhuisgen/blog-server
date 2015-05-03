@@ -28,7 +28,7 @@ var config = {
 	api: {
 		enable: true,
 
-		vendor: 'hbis',
+		vendor: 'name',
 		defaultVersion: 1,
 
 		auth: {
