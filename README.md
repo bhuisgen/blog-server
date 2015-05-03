@@ -94,7 +94,7 @@ You need to initialize your instance before adding any content:
 
 This process will ask you the administrator credentials.
 
-It will give you the API key of the user *Anonymous* which is needed for the client side application. 
+It will give you the API key of the user *Anonymous* which is needed for the client side application.
 
 ### Running
 
@@ -102,13 +102,30 @@ To run the server:
 
 	$ grunt serve
 
-### Shell command reference
+To check the status of the REST API server you can use *curl* like this:
+
+    $ curl --insecure https://127.0.0.1:3000/status
+
+Some REST API calls:
+
+    $ curl --insecure -H "Content-Type: application/json" -H "Authorization: Basic ZDJmNTI1MzctMDY0YS00NTQzLWExNDctMzVjMjRiZTYwNzVj" https://127.0.0.1:3000/api/pages/1
+
+    $ curl --insecure -H "Content-Type: application/json" -H "Authorization: Basic ZDJmNTI1MzctMDY0YS00NTQzLWExNDctMzVjMjRiZTYwNzVj" https://127.0.0.1:3000/api/posts/1
+
+To set offline the API server:
+
+    $ node bin/shell variables --set
+
+    Set variable: Name:  api.offline
+    Set variable: Value:  true
+
+## Shell command reference
 
 To show available commands:
 
 	$ node bin/shell --help
 
-#### Roles management
+### Roles management
 
 Command help:
 
@@ -126,39 +143,39 @@ To display all existing roles:
 
 	$ node bin/shell roles --list
 
-#### Groups management
+### Groups management
 
 Command help:
 
 	$ node bin/shell groups --help
 
-#### Users management
+### Users management
 
 Command help:
 
 	$ node bin/shell users --help
 
-#### Keys management
+### Keys management
 
 Command help:
 
 	$ node bin/shell keys --help
 
-#### Blacklists management
+### Blacklists management
 
 Command help:
 
 	$node bin/shell blacklists --help
 
-#### Variables management
+### Variables management
 
 Command help:
 
 	$node bin/shell variables --help
 
-#### Content mangement
+### Content mangement
 
-##### Create new content
+#### Create new content
 
 Command help:
 
@@ -174,7 +191,7 @@ To create a new post:
 	$ node bin/shell create --post
 	$ vim content/pages/newpost.md
 
-##### Store content in database
+#### Store content in database
 
 Command help:
 
@@ -188,7 +205,7 @@ To store/update all posts in database:
 
 	$ node bin/shell store --posts --verbose
 
-##### Purge content in database
+#### Purge content in database
 
 Command help:
 
@@ -202,7 +219,7 @@ To purge all posts in database:
 
 	$ node bin/shell purge --posts
 
-##### List content in database
+#### List content in database
 
 Command help:
 
@@ -216,7 +233,7 @@ To list all posts in database:
 
     $ node bin/shell list --posts
 
-### Thumbnail command reference
+## Thumbnail command reference
 
 To show available commands:
 
