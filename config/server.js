@@ -17,21 +17,11 @@ var config = {
         console: {
             colorize: true,
             json: true
-        },
-        file: {
-            filename: 'log/error.log',
-            json: true
-        },
-        syslog: false
+        }
     },
 
     accessLog: {
-        console: false,
-        file: {
-            filename: 'log/access.log',
-            json: true,
-        },
-        syslog: false
+        console: true
     },
 
     compress: false,
