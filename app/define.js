@@ -28,6 +28,7 @@
     var VARIABLE = {
         INSTANCE_VERSION: 'instance.version',
         INSTANCE_DATE: 'instance.date',
+        API_OFFLINE: 'api.offline'
     };
     module.exports.VARIABLE = VARIABLE;
 

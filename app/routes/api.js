@@ -14,6 +14,7 @@
     });
 
     var Schema = require('jugglingdb-model-loader');
+    var Define = require('../define');
 
     var auth = require('./api/auth');
     var roles = require('./api/roles');
@@ -52,6 +53,7 @@
         var Key = schema.loadDefinition('Key');
         var Route = schema.loadDefinition('Route');
         var User = schema.loadDefinition('User');
+        var Variable = schema.loadDefinition('Variable');
 
         var r;
 
@@ -114,7 +116,18 @@
                 });
             }
 
-            return next();
+            Variable.get(Define.VARIABLE.API_OFFLINE, function(err, value) {
+                if (!err && (value === 'true')) {
+                    res.status(503);
+
+                    return res.json({
+                        success: false,
+                        message: 'Service Unavailable'
+                    });
+                }
+
+                return next();
+            });
         });
 
         router.use(function checkIP(req, res, next) {
@@ -353,7 +366,8 @@
                                         }
 
                                         r.expire(config.server.api.auth.redis.keyPrefix + config.server.api.auth.tokens.key + ':' + token,
-                                            config.server.api.auth.tokens.expireTime, function(err) {
+                                            config.server.api.auth.tokens.expireTime,
+                                            function(err) {
                                                 if (err) {
                                                     return next(err);
                                                 }
