@@ -26,7 +26,6 @@ The project is under GNU GPL licence.
 
 ## Building
 
-	$ bower install
 	$ npm install
 
 To store content in alternative storage than Redis:
