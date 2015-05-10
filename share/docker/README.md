@@ -8,7 +8,7 @@ The instance is installed in the directory */var/www* and the REST API server is
 
 ### Build the image
 
-    # docker build -t bhuisgen/blog-server:latest .
+    # make
 
 ### Run the container
 
