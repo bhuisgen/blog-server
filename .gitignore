@@ -6,3 +6,4 @@ content/pages/
 content/posts/
 public/
 log/
+share/docker/Dockerfile

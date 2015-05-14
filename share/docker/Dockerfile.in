@@ -3,39 +3,55 @@ MAINTAINER Boris HUISGEN <bhuisgen@hbis.fr>
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update && apt-get -y install locales
-RUN dpkg-reconfigure locales && locale-gen C.UTF-8 && /usr/sbin/update-locale LANG=C.UTF-8
-RUN echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
+RUN apt-get update && \
+    apt-get -y install locales && \
+    dpkg-reconfigure locales && \
+    locale-gen C.UTF-8 && \
+    /usr/sbin/update-locale LANG=C.UTF-8 && \
+    echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && \
+    locale-gen
 ENV LC_ALL C.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 
-RUN apt-get update && apt-get -y install ucf procps iproute
-
-RUN apt-get update && apt-get -y install supervisor
+RUN apt-get update && \
+    apt-get -y install \
+        ucf \
+        procps \
+        iproute \
+        supervisor
 COPY etc/supervisor/ /etc/supervisor/
 
-RUN apt-get update && apt-get -y install build-essential curl git imagemagick jq redis-server
+RUN apt-get update && \
+    apt-get -y install --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        curl \
+        git \
+        imagemagick \
+        jq \
+        redis-server
 
 COPY etc/redis/ /etc/redis/
 COPY files/n/bin/n /usr/local/bin/n
 
 WORKDIR /var/www
-RUN git clone https://github.com/bhuisgen/blog-server.git -b $GIT_BRANCH .
-RUN git reset --hard $GIT_COMMIT
 
-RUN n \$(jq ".engines.node" package.json|sed -ne 's/[^0-9]*\(\([0-9]\.\)\{0,4\}[0-9][^.]\).*/\\\\1/p')
-RUN npm update npm -g
-
+RUN git clone https://github.com/bhuisgen/blog-server.git -b $GIT_BRANCH . && \
+    git reset --hard $GIT_COMMIT
 COPY files/config /var/www/config/
-RUN npm install
-RUN npm install jugglingdb-redis
+
+RUN n $(jq ".engines.node" package.json|sed -ne 's/[^0-9]*\(\([0-9]\{1,4\}\)\(\.\([0-9]\{1,4\}\)\)\{0,2\}\)[^0-9]*/\1/p') && \
+    npm update npm -g && \
+    npm install && \
+    npm install jugglingdb-redis
+
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY run.sh /
 RUN chmod +x /run.sh
 
-ENV NODE_ENV production
-ENV PORT 3000
 EXPOSE 3000
 ENTRYPOINT ["/run.sh"]
 CMD [""]
