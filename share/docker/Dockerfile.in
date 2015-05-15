@@ -38,13 +38,12 @@ COPY files/n/bin/n /usr/local/bin/n
 WORKDIR /var/www
 
 RUN git clone https://github.com/bhuisgen/blog-server.git -b $GIT_BRANCH . && \
-    git reset --hard $GIT_COMMIT
-COPY files/config /var/www/config/
-
-RUN n $(jq ".engines.node" package.json|sed -ne 's/[^0-9]*\(\([0-9]\{1,4\}\)\(\.\([0-9]\{1,4\}\)\)\{0,2\}\)[^0-9]*/\1/p') && \
+    git reset --hard $GIT_COMMIT && \
+    n $(jq ".engines.node" package.json|sed -ne 's/[^0-9]*\(\([0-9]\{1,4\}\)\(\.\([0-9]\{1,4\}\)\)\{0,2\}\)[^0-9]*/\1/p') && \
     npm update npm -g && \
     npm install && \
     npm install jugglingdb-redis
+COPY files/config /var/www/config/
 
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
