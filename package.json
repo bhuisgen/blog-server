@@ -25,7 +25,7 @@
     "commander": "2.8.1",
     "compression": "1.4.4",
     "express": "4.12.3",
-    "express-winston": "0.3.0",
+    "express-winston": "0.3.1",
     "front-matter": "1.0.0",
     "gm": "1.17.0",
     "hiredis": "0.3.0",
