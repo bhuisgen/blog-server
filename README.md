@@ -67,23 +67,23 @@ You must choose one storage backend and copy the corresponding template file int
 
 - for Redis storage:
 
-		$ cp config/database.js.redis config/database.js
+		$ cp config/database.js.dist.redis config/database.js
 
 - for SQLite storage:
 
-		$ cp config/database.js.sqlite config/database.js
+		$ cp config/database.js.dist.sqlite config/database.js
 
 - for PostgreSQL storage:
 
-		$ cp config/database.js.pgsql config/database.js
+		$ cp config/database.js.dist.pgsql config/database.js
 
 - for MySQL storage:
 
-		$ cp config/database.js.mysql config/database.js
+		$ cp config/database.js.dist.mysql config/database.js
 
 - for MongoDB storage:
 
-		$ cp config/database.js.mongodb config/database.js
+		$ cp config/database.js.dist.mongodb config/database.js
 
 ## Use
 
