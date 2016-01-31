@@ -1,0 +1,23 @@
+var env = process.env.NODE_ENV || 'development';
+
+var config = {
+  development: {
+    type: 'mongo',
+    options: {
+      url: 'mongodb://localhost/blog_development',
+      w: 1,
+      j: 1
+    }
+  },
+
+  production: {
+    type: 'mongo',
+    options: {
+      url: 'mongodb://localhost/blog_production',
+      w: 1,
+      j: 1
+    }
+  }
+};
+
+module.exports = config[env];

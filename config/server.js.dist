@@ -1,86 +1,90 @@
 var path = require('path');
 
 var config = {
-    root: path.normalize(__dirname + '/..'),
+  root: path.normalize(__dirname + '/..'),
 
-	host: '127.0.0.1',
-	port: 3000,
+  host: '127.0.0.1',
+  port: 3000,
 
-	ssl: {
-		enable: true,
+  // ssl: {
+  //   enable: true,
+  //
+  //   certificateFile: 'config/ssl/server.crt',
+  //   keyFile: 'config/ssl/server.key'
+  // },
 
-		certificateFile: 'config/ssl/server.crt',
-		keyFile: 'config/ssl/server.key'
-	},
+  errorLog: {
+    console: {
+      colorize: true,
+      json: true
+    },
+    file: {
+      filename: 'log/error.log',
+      json: true
+    },
+    syslog: false
+  },
 
-    errorLog: {
-        console: {
-            colorize: true,
-            json: true
-        },
-        file: {
-            filename: 'log/error.log',
-            json: true
-        },
-        syslog: false
+  accessLog: {
+    console: false,
+    file: {
+      filename: 'log/access.log',
+      json: true
+    },
+    syslog: false
+  },
+
+  compress: false,
+  requestTimeout: 4000,
+
+  status: {
+    enable: true
+  },
+
+  static: {
+    enable: false,
+
+    directory: 'public'
+  },
+
+  api: {
+    enable: true,
+
+    vendor: 'name',
+    defaultVersion: 1,
+
+    auth: {
+      redis: {
+        socket: '/var/run/redis/redis.sock',
+        options: {},
+
+        database: 0,
+        keyPrefix: 'blog-server:api:'
+      },
+
+      tokens: {
+        key: 'tokens',
+        expireTime: 600
+      },
+
+      users: {
+        key: 'users'
+      },
+
+      providers: {
+        local: true,
+
+        facebook: false,
+        github: false,
+        google: false,
+        linkedin: false,
+        openid: false,
+        twitter: false
+      }
     },
 
-    accessLog: {
-        console: false,
-        file: {
-            filename: 'log/access.log',
-            json: true,
-        },
-        syslog: false
-    },
-
-    compress: false,
-    requestTimeout: 4000,
-
-    static: {
-        enable: false,
-        
-        directory: 'public'
-    },
-
-	api: {
-		enable: true,
-
-		vendor: 'name',
-		defaultVersion: 1,
-
-		auth: {
-			redis: {
-				socket: '/var/run/redis/redis.sock',
-				options: {},
-
-				database: 0,
-				keyPrefix: 'blog-server:api:'
-			},
-
-			tokens: {
-				key: 'tokens',
-				expireTime: 600
-			},
-
-			users: {
-				key: 'users'
-			},
-
-			providers: {
-				local: true,
-
-                facebook: false,
-                github: false,
-                google: false,
-                linkedin: false,
-                openid: false,
-                twitter: false
-			}
-		},
-
-		maxItems: 10
-	}
+    maxItems: 10
+  }
 };
 
 module.exports = config;

@@ -1,0 +1,9 @@
+var config = {
+  type: 'redis',
+  options: {
+    host: '127.0.0.1',
+    database: 0
+  }
+};
+
+module.exports = config;
