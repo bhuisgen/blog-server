@@ -1,365 +1,365 @@
 (function() {
-    'use strict';
+  'use strict';
 
-    var path = require('path');
-    var Schema = require('jugglingdb-model-loader');
+  var path = require('path');
+  var Schema = require('jugglingdb-model-loader');
 
-    module.exports = function(config, router) {
-        var options = config.database.options;
+  module.exports = function(config, router) {
+    var options = config.database.options;
 
-        options.modelLoader = {
-            rootDirectory: path.normalize(__dirname + '/../../..'),
-            directory: 'app/models'
+    options.modelLoader = {
+      rootDirectory: path.normalize(__dirname + '/../../..'),
+      directory: 'app/models'
+    };
+
+    var schema = new Schema(config.database.type, options);
+
+    var Page = schema.loadDefinition('Page');
+
+    router.post('/pages', function createPage(req, res, next) {
+      var err;
+
+      if (!req.user.admin && req.permission.isReadOnly()) {
+        err = new Error('Forbidden');
+        err.status = 403;
+
+        return next(err);
+      }
+
+      var page = new Page(req.body.page);
+
+      if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && page.userId && (page.userId !== req.user.id)) {
+        err = new Error('Forbidden');
+        err.status = 403;
+
+        return next(err);
+      }
+
+      page.save(function(err) {
+        if (err) {
+          return next(err);
+        }
+
+        return res.status(200).end();
+      });
+    });
+
+    router.get('/pages/:id', function readPage(req, res, next) {
+      var data = {};
+
+      Page.find(req.params.id, function(err, page) {
+        if (err) {
+          return next(err);
+        }
+
+        if (!req.user.admin &&
+          (req.permission.isPrivate() && page && page.userId && (page.userId !== req.user.id)) ||
+          (!req.user.admin && !req.role.pagesReadNotPublished && page && !page.published)) {
+          err = new Error('Forbidden');
+          err.status = 403;
+
+          return next(err);
+        }
+
+        if (!page) {
+          err = new Error('Not Found');
+          err.status = 404;
+
+          return next(err);
+        }
+
+        data.page = {
+          id: page.id,
+          slug: page.slug,
+          layout: page.layout,
+          title: page.title,
+          image: page.image,
+          content: page.content,
+          created: page.created,
+          updated: page.updated,
+          published: page.published,
+          views: page.views++,
+          user: page.userId
         };
 
-        var schema = new Schema(config.database.type, options);
+        page.updateAttribute('views', page.views, function(err) {
+          if (err) {
+            return next(err);
+          }
 
-        var Page = schema.loadDefinition('Page');
+          return res.json(data);
+        });
+      });
+    });
 
-        router.post('/pages', function createPage(req, res, next) {
-            var err;
+    router.get('/pages', function readPages(req, res, next) {
+      var data = {};
+      var err;
 
-            if (!req.user.admin && req.permission.isReadOnly()) {
+      if (req.query.ids) {
+        var pending = req.query.ids.length;
+
+        data.page = [];
+
+        var iterate = function(id) {
+          Page.find(id, function(err, page) {
+            if (err) {
+              return next(err);
+            }
+
+            if (!req.user.admin &&
+              (req.permission.isPrivate() && page && page.userId && (page.userId !== req.user.id)) ||
+              (!req.user.admin && !req.role.pagesReadNotPublished && page && !page.published)) {
+              err = new Error('Forbidden');
+              err.status = 403;
+
+              return next(err);
+            }
+
+            if (!page) {
+              err = new Error('Not Found');
+              err.status = 404;
+
+              return next(err);
+            }
+
+            data.page.push({
+              id: page.id,
+              slug: page.slug,
+              layout: page.layout,
+              title: page.title,
+              image: page.image,
+              content: page.content,
+              created: page.created,
+              updated: page.updated,
+              published: page.published,
+              views: page.views++,
+              user: page.userId
+            });
+
+            page.updateAttribute('views', page.views, function(err) {
+              if (err) {
+                return next(err);
+              }
+
+              if (!--pending) {
+                return res.json(data);
+              }
+            });
+          });
+        };
+
+        for (var i = 0; i < req.query.ids.length; i++) {
+          iterate(req.query.ids[i]);
+        }
+      } else {
+        var filter = {};
+
+        if (req.query.id) {
+          filter.id = req.query.id;
+        }
+
+        if (req.query.slug) {
+          filter.slug = req.query.slug;
+        }
+
+        if (req.query.created) {
+          filter.created = req.query.created;
+        }
+
+        if (req.query.published) {
+          filter.published = req.query.published;
+        }
+
+        if (req.query.views) {
+          filter.views = req.query.views;
+        }
+
+        if (!req.user.admin && req.permission.isPrivate()) {
+          filter.userId = req.user.id;
+        }
+
+        if (!req.user.admin && !req.role.pagesReadNotPublished) {
+          filter.published = true;
+        }
+
+        if (Object.keys(filter).length === 0) {
+          filter = null;
+        }
+
+        var order = req.query.order || 'id';
+        var sort = req.query.sort || 'ASC';
+        var offset = parseInt(req.query.offset, 10) || 0;
+        var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
+        if ((offset < 0) || (limit < 0)) {
+          err = new Error('Bad Request');
+          err.status = 400;
+
+          return next(err);
+        }
+
+        Page.count(filter, function(err, count) {
+          if (err) {
+            return next(err);
+          }
+
+          if (!count) {
+            err = new Error('Not Found');
+            err.status = 404;
+
+            return next(err);
+          }
+
+          if (offset >= count) {
+            err = new Error('Bad Request');
+            err.status = 400;
+
+            return next(err);
+          }
+
+          Page.all({
+            where: filter,
+            order: order + ' ' + sort,
+            skip: offset,
+            limit: limit
+          }, function(err, pages) {
+            if (err) {
+              return next(err);
+            }
+
+            if (!pages.length) {
+              err = new Error('Not Found');
+              err.status = 404;
+
+              return next(err);
+            }
+
+            data.page = [];
+            data.meta = {
+              count: count
+            };
+
+            var pending = pages.length;
+
+            var iterate = function(page) {
+              if (!req.user.admin && req.permission.isPrivate() && page.userId && (page.userId !== req.user.id)) {
                 err = new Error('Forbidden');
                 err.status = 403;
 
                 return next(err);
-            }
+              }
 
-            var page = new Page(req.body.page);
+              data.page.push({
+                id: page.id,
+                slug: page.slug,
+                layout: page.layout,
+                title: page.title,
+                image: page.image,
+                content: page.content,
+                created: page.created,
+                updated: page.updated,
+                published: page.published,
+                views: page.views++,
+                user: page.userId
+              });
 
-            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && page.userId && (page.userId !== req.user.id)) {
-                err = new Error('Forbidden');
-                err.status = 403;
-
-                return next(err);
-            }
-
-            page.save(function(err) {
+              page.updateAttribute('views', page.views, function(err) {
                 if (err) {
-                    return next(err);
+                  return next(err);
                 }
 
-                return res.status(200).end();
-            });
-        });
-
-        router.get('/pages/:id', function readPage(req, res, next) {
-            var data = {};
-
-            Page.find(req.params.id, function(err, page) {
-                if (err) {
-                    return next(err);
+                if (!--pending) {
+                  return res.json(data);
                 }
+              });
+            };
 
-                if (!req.user.admin &&
-                    (req.permission.isPrivate() && page && page.userId && (page.userId !== req.user.id)) ||
-                    (!req.user.admin && !req.role.pagesReadNotPublished && page && !page.published)) {
-                    err = new Error('Forbidden');
-                    err.status = 403;
-
-                    return next(err);
-                }
-
-                if (!page) {
-                    err = new Error('Not Found');
-                    err.status = 404;
-
-                    return next(err);
-                }
-
-                data.page = {
-                    id: page.id,
-                    slug: page.slug,
-                    layout: page.layout,
-                    title: page.title,
-                    image: page.image,
-                    content: page.content,
-                    created: page.created,
-                    updated: page.updated,
-                    published: page.published,
-                    views: page.views++,
-                    user: page.userId
-                };
-
-                page.updateAttribute('views', page.views, function(err) {
-                    if (err) {
-                        return next(err);
-                    }
-
-                    return res.json(data);
-                });
-            });
-        });
-
-        router.get('/pages', function readPages(req, res, next) {
-            var data = {};
-            var err;
-
-            if (req.query.ids) {
-                var pending = req.query.ids.length;
-
-                data.page = [];
-
-                var iterate = function(id) {
-                    Page.find(id, function(err, page) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        if (!req.user.admin &&
-                            (req.permission.isPrivate() && page && page.userId && (page.userId !== req.user.id)) ||
-                            (!req.user.admin && !req.role.pagesReadNotPublished && page && !page.published)) {
-                            err = new Error('Forbidden');
-                            err.status = 403;
-
-                            return next(err);
-                        }
-
-                        if (!page) {
-                            err = new Error('Not Found');
-                            err.status = 404;
-
-                            return next(err);
-                        }
-
-                        data.page.push({
-                            id: page.id,
-                            slug: page.slug,
-                            layout: page.layout,
-                            title: page.title,
-                            image: page.image,
-                            content: page.content,
-                            created: page.created,
-                            updated: page.updated,
-                            published: page.published,
-                            views: page.views++,
-                            user: page.userId
-                        });
-
-                        page.updateAttribute('views', page.views, function(err) {
-                            if (err) {
-                                return next(err);
-                            }
-
-                            if (!--pending) {
-                                return res.json(data);
-                            }
-                        });
-                    });
-                };
-
-                for (var i = 0; i < req.query.ids.length; i++) {
-                    iterate(req.query.ids[i]);
-                }
-            } else {
-                var filter = {};
-
-                if (req.query.id) {
-                    filter.id = req.query.id;
-                }
-
-                if (req.query.slug) {
-                    filter.slug = req.query.slug;
-                }
-
-                if (req.query.created) {
-                    filter.created = req.query.created;
-                }
-
-                if (req.query.published) {
-                    filter.published = req.query.published;
-                }
-
-                if (req.query.views) {
-                    filter.views = req.query.views;
-                }
-
-                if (!req.user.admin && req.permission.isPrivate()) {
-                    filter.userId = req.user.id;
-                }
-
-                if (!req.user.admin && !req.role.pagesReadNotPublished) {
-                    filter.published = true;
-                }
-
-                if (Object.keys(filter).length === 0) {
-                    filter = null;
-                }
-
-                var order = req.query.order || 'id';
-                var sort = req.query.sort || 'ASC';
-                var offset = parseInt(req.query.offset, 10) || 0;
-                var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
-                if ((offset < 0) || (limit < 0)) {
-                    err = new Error('Bad Request');
-                    err.status = 400;
-
-                    return next(err);
-                }
-
-                Page.count(filter, function(err, count) {
-                    if (err) {
-                        return next(err);
-                    }
-
-                    if (!count) {
-                        err = new Error('Not Found');
-                        err.status = 404;
-
-                        return next(err);
-                    }
-
-                    if (offset >= count) {
-                        err = new Error('Bad Request');
-                        err.status = 400;
-
-                        return next(err);
-                    }
-
-                    Page.all({
-                        where: filter,
-                        order: order + ' ' + sort,
-                        skip: offset,
-                        limit: limit
-                    }, function(err, pages) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        if (!pages.length) {
-                            err = new Error('Not Found');
-                            err.status = 404;
-
-                            return next(err);
-                        }
-
-                        data.page = [];
-                        data.meta = {
-                            count: count
-                        };
-                        
-                        var pending = pages.length;
-
-                        var iterate = function(page) {
-                            if (!req.user.admin && req.permission.isPrivate() && page.userId && (page.userId !== req.user.id)) {
-                                err = new Error('Forbidden');
-                                err.status = 403;
-
-                                return next(err);
-                            }
-
-                            data.page.push({
-                                id: page.id,
-                                slug: page.slug,
-                                layout: page.layout,
-                                title: page.title,
-                                image: page.image,
-                                content: page.content,
-                                created: page.created,
-                                updated: page.updated,
-                                published: page.published,
-                                views: page.views++,
-                                user: page.userId
-                            });
-
-                            page.updateAttribute('views', page.views, function(err) {
-                                if (err) {
-                                    return next(err);
-                                }
-
-                                if (!--pending) {
-                                    return res.json(data);
-                                }
-                            });
-                        };
-
-                        for (var i = 0; i < pages.length; i++) {
-                            iterate(pages[i]);
-                        }
-                    });
-                });
+            for (var i = 0; i < pages.length; i++) {
+              iterate(pages[i]);
             }
+          });
         });
+      }
+    });
 
-        router.put('/pages/:id', function updatePage(req, res, next) {
-            var err;
+    router.put('/pages/:id', function updatePage(req, res, next) {
+      var err;
 
-            if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Forbidden');
-                err.status = 403;
+      if (!req.user.admin && req.permission.isReadOnly()) {
+        err = new Error('Forbidden');
+        err.status = 403;
 
-                return next(err);
-            }
+        return next(err);
+      }
 
-            Page.find(req.params.id, function(err, page) {
-                if (err) {
-                    return next(err);
-                }
+      Page.find(req.params.id, function(err, page) {
+        if (err) {
+          return next(err);
+        }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && page && page.userId && (page.userId !== req.user.id)) {
-                    err = new Error('Forbidden');
-                    err.status = 403;
+        if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && page && page.userId && (page.userId !== req.user.id)) {
+          err = new Error('Forbidden');
+          err.status = 403;
 
-                    return next(err);
-                }
+          return next(err);
+        }
 
-                if (!page) {
-                    err = new Error('Not Found');
-                    err.status = 404;
+        if (!page) {
+          err = new Error('Not Found');
+          err.status = 404;
 
-                    return next(err);
-                }
+          return next(err);
+        }
 
-                req.body.page.updated = new Date();
+        req.body.page.updated = new Date();
 
-                page.updateAttributes(req.body.page, function(err) {
-                    if (err) {
-                        return next(err);
-                    }
+        page.updateAttributes(req.body.page, function(err) {
+          if (err) {
+            return next(err);
+          }
 
-                    return res.status(200).end();
-                });
-            });
+          return res.status(200).end();
         });
+      });
+    });
 
-        router.delete('/pages/:id', function deletePage(req, res, next) {
-            var err;
+    router.delete('/pages/:id', function deletePage(req, res, next) {
+      var err;
 
-            if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Forbidden');
-                err.status = 403;
+      if (!req.user.admin && req.permission.isReadOnly()) {
+        err = new Error('Forbidden');
+        err.status = 403;
 
-                return next(err);
-            }
+        return next(err);
+      }
 
-            Page.find(req.params.id, function(err, page) {
-                if (err) {
-                    return next(err);
-                }
+      Page.find(req.params.id, function(err, page) {
+        if (err) {
+          return next(err);
+        }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && page && page.userId && (page.userId !== req.user.id)) {
-                    err = new Error('Forbidden');
-                    err.status = 403;
+        if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && page && page.userId && (page.userId !== req.user.id)) {
+          err = new Error('Forbidden');
+          err.status = 403;
 
-                    return next(err);
-                }
+          return next(err);
+        }
 
-                if (!page) {
-                    err = new Error('Not Found');
-                    err.status = 404;
+        if (!page) {
+          err = new Error('Not Found');
+          err.status = 404;
 
-                    return next(err);
-                }
+          return next(err);
+        }
 
-                page.destroy(function(err) {
-                    if (err) {
-                        return next(err);
-                    }
+        page.destroy(function(err) {
+          if (err) {
+            return next(err);
+          }
 
-                    return res.status(200).end();
-                });
-            });
+          return res.status(200).end();
         });
-    };
+      });
+    });
+  };
 }());

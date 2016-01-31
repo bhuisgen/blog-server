@@ -1,295 +1,295 @@
 (function() {
-    'use strict';
+  'use strict';
 
-    var path = require('path');
+  var path = require('path');
 
-    var Schema = require('jugglingdb-model-loader');
+  var Schema = require('jugglingdb-model-loader');
 
-    module.exports = function(config, router) {
-        var options = config.database.options;
+  module.exports = function(config, router) {
+    var options = config.database.options;
 
-        options.modelLoader = {
-            rootDirectory: path.normalize(__dirname + '/../../..'),
-            directory: 'app/models'
+    options.modelLoader = {
+      rootDirectory: path.normalize(__dirname + '/../../..'),
+      directory: 'app/models'
+    };
+
+    var schema = new Schema(config.database.type, options);
+
+    var BlacklistIP = schema.loadDefinition('BlacklistIp');
+
+    router.post('/blacklistIPs', function createBlacklistIP(req, res, next) {
+      var err;
+
+      if (!req.user.admin && req.permission.isReadOnly()) {
+        err = new Error('Forbidden');
+        err.status = 403;
+
+        return next(err);
+      }
+
+      var blacklistIP = new BlacklistIP(req.body.blacklistIP);
+
+      if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
+        err = new Error('Forbidden');
+        err.status = 403;
+
+        return next(err);
+      }
+
+      blacklistIP.save(function(err) {
+        if (err) {
+          return next(err);
+        }
+
+        return res.status(200).end();
+      });
+    });
+
+    router.get('/blacklistIPs/:id', function readBlacklistIP(req, res, next) {
+      var data = {};
+
+      BlacklistIP.find(req.params.id, function(err, blacklistIP) {
+        if (err) {
+          return next(err);
+        }
+
+        if (!req.user.admin && req.permission.isPrivate() && blacklistIP && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
+          err = new Error('Forbidden');
+          err.status = 403;
+
+          return next(err);
+        }
+
+        if (!blacklistIP) {
+          err = new Error('Not Found');
+          err.status = 404;
+
+          return next(err);
+        }
+
+        data.blacklistIP = {
+          id: blacklistIP.id,
+          ip: blacklistIP.ip
         };
 
-        var schema = new Schema(config.database.type, options);
+        return res.json(data);
+      });
+    });
 
-        var BlacklistIP = schema.loadDefinition('BlacklistIp');
+    router.get('/blacklistIPs', function readBlacklistIPs(req, res, next) {
+      var data = {};
+      var err;
 
-        router.post('/blacklistIPs', function createBlacklistIP(req, res, next) {
-            var err;
+      if (req.query.ids) {
+        var pending = req.query.ids.length;
 
-            if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Forbidden');
-                err.status = 403;
+        data.blacklistIP = [];
 
-                return next(err);
+        var iterate = function(id) {
+          BlacklistIP.find(id, function(err, blacklistIP) {
+            if (err) {
+              return next(err);
             }
 
-            var blacklistIP = new BlacklistIP(req.body.blacklistIP);
+            if (!req.user.admin && req.permission.isPrivate() && blacklistIP && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
+              err = new Error('Forbidden');
+              err.status = 403;
 
-            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
-                err = new Error('Forbidden');
-                err.status = 403;
-
-                return next(err);
+              return next(err);
             }
 
-            blacklistIP.save(function(err) {
-                if (err) {
-                    return next(err);
-                }
+            if (!blacklistIP) {
+              err = new Error('Not Found');
+              err.status = 404;
 
-                return res.status(200).end();
+              return next(err);
+            }
+
+            data.blacklistIP.push({
+              id: blacklistIP.id,
+              ip: blacklistIP.ip
             });
-        });
 
-        router.get('/blacklistIPs/:id', function readBlacklistIP(req, res, next) {
-            var data = {};
+            if (!--pending) {
+              return res.json(data);
+            }
+          });
+        };
 
-            BlacklistIP.find(req.params.id, function(err, blacklistIP) {
-                if (err) {
-                    return next(err);
-                }
+        for (var i = 0; i < req.query.ids.length; i++) {
+          iterate(req.query.ids[i]);
+        }
+      } else {
+        var filter = {};
 
-                if (!req.user.admin && req.permission.isPrivate() && blacklistIP && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
-                    err = new Error('Forbidden');
-                    err.status = 403;
+        if (req.query.id) {
+          filter.id = req.query.id;
+        }
 
-                    return next(err);
-                }
+        if (req.query.ip) {
+          filter.ip = req.query.ip;
+        }
 
-                if (!blacklistIP) {
-                    err = new Error('Not Found');
-                    err.status = 404;
+        if (Object.keys(filter).length === 0) {
+          filter = null;
+        }
 
-                    return next(err);
-                }
+        var order = req.query.order || 'id';
+        var sort = req.query.sort || 'ASC';
+        var offset = parseInt(req.query.offset, 10) || 0;
+        var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
+        if ((offset < 0) || (limit < 0)) {
+          err = new Error('Bad Request');
+          err.status = 400;
 
-                data.blacklistIP = {
-                    id: blacklistIP.id,
-                    ip: blacklistIP.ip
-                };
+          return next(err);
+        }
 
+        BlacklistIP.count(filter, function(err, count) {
+          if (err) {
+            return next(err);
+          }
+
+          if (!count) {
+            err = new Error('Not Found');
+            err.status = 404;
+
+            return next(err);
+          }
+
+          if (offset >= count) {
+            err = new Error('Bad Request');
+            err.status = 400;
+
+            return next(err);
+          }
+
+          BlacklistIP.all({
+            where: filter,
+            order: order + ' ' + sort,
+            skip: offset,
+            limit: limit
+          }, function(err, blacklistIPs) {
+            if (err) {
+              return next(err);
+            }
+
+            if (!blacklistIPs.length) {
+              err = new Error('Not Found');
+              err.status = 404;
+
+              return next(err);
+            }
+
+            data.blacklistIP = [];
+            data.meta = {
+              count: count
+            };
+
+            var pending = blacklistIPs.length;
+
+            var iterate = function(blacklistIP) {
+              if (!req.user.admin && req.permission.isPrivate() && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
+                err = new Error('Forbidden');
+                err.status = 403;
+
+                return next(err);
+              }
+
+              data.blacklistIP.push({
+                id: blacklistIP.id,
+                ip: blacklistIP.ip
+              });
+
+              if (!--pending) {
                 return res.json(data);
-            });
-        });
+              }
+            };
 
-        router.get('/blacklistIPs', function readBlacklistIPs(req, res, next) {
-            var data = {};
-            var err;
-
-            if (req.query.ids) {
-                var pending = req.query.ids.length;
-
-                data.blacklistIP = [];
-
-                var iterate = function(id) {
-                    BlacklistIP.find(id, function(err, blacklistIP) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        if (!req.user.admin && req.permission.isPrivate() && blacklistIP && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
-                            err = new Error('Forbidden');
-                            err.status = 403;
-
-                            return next(err);
-                        }
-
-                        if (!blacklistIP) {
-                            err = new Error('Not Found');
-                            err.status = 404;
-
-                            return next(err);
-                        }
-
-                        data.blacklistIP.push({
-                            id: blacklistIP.id,
-                            ip: blacklistIP.ip
-                        });
-
-                        if (!--pending) {
-                            return res.json(data);
-                        }
-                    });
-                };
-
-                for (var i = 0; i < req.query.ids.length; i++) {
-                    iterate(req.query.ids[i]);
-                }
-            } else {
-                var filter = {};
-
-                if (req.query.id) {
-                    filter.id = req.query.id;
-                }
-
-                if (req.query.ip) {
-                    filter.ip = req.query.ip;
-                }
-
-                if (Object.keys(filter).length === 0) {
-                    filter = null;
-                }
-
-                var order = req.query.order || 'id';
-                var sort = req.query.sort || 'ASC';
-                var offset = parseInt(req.query.offset, 10) || 0;
-                var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
-                if ((offset < 0) || (limit < 0)) {
-                    err = new Error('Bad Request');
-                    err.status = 400;
-
-                    return next(err);
-                }
-
-                BlacklistIP.count(filter, function(err, count) {
-                    if (err) {
-                        return next(err);
-                    }
-
-                    if (!count) {
-                        err = new Error('Not Found');
-                        err.status = 404;
-
-                        return next(err);
-                    }
-
-                    if (offset >= count) {
-                        err = new Error('Bad Request');
-                        err.status = 400;
-
-                        return next(err);
-                    }
-
-                    BlacklistIP.all({
-                        where: filter,
-                        order: order + ' ' + sort,
-                        skip: offset,
-                        limit: limit
-                    }, function(err, blacklistIPs) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        if (!blacklistIPs.length) {
-                            err = new Error('Not Found');
-                            err.status = 404;
-
-                            return next(err);
-                        }
-
-                        data.blacklistIP = [];
-                        data.meta = {
-                            count: count
-                        };
-
-                        var pending = blacklistIPs.length;
-
-                        var iterate = function(blacklistIP) {
-                            if (!req.user.admin && req.permission.isPrivate() && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
-                                err = new Error('Forbidden');
-                                err.status = 403;
-
-                                return next(err);
-                            }
-
-                            data.blacklistIP.push({
-                                id: blacklistIP.id,
-                                ip: blacklistIP.ip
-                            });
-
-                            if (!--pending) {
-                                return res.json(data);
-                            }
-                        };
-
-                        for (var i = 0; i < blacklistIPs.length; i++) {
-                            iterate(blacklistIPs[i]);
-                        }
-                    });
-                });
+            for (var i = 0; i < blacklistIPs.length; i++) {
+              iterate(blacklistIPs[i]);
             }
+          });
         });
+      }
+    });
 
-        router.put('/blacklistIPs/:id', function updateBlacklistIP(req, res, next) {
-            var err;
+    router.put('/blacklistIPs/:id', function updateBlacklistIP(req, res, next) {
+      var err;
 
-            if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Forbidden');
-                err.status = 403;
+      if (!req.user.admin && req.permission.isReadOnly()) {
+        err = new Error('Forbidden');
+        err.status = 403;
 
-                return next(err);
-            }
+        return next(err);
+      }
 
-            BlacklistIP.find(req.params.id, function(err, blacklistIP) {
-                if (err) {
-                    return next(err);
-                }
+      BlacklistIP.find(req.params.id, function(err, blacklistIP) {
+        if (err) {
+          return next(err);
+        }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistIP && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
-                    err = new Error('Forbidden');
-                    err.status = 403;
+        if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistIP && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
+          err = new Error('Forbidden');
+          err.status = 403;
 
-                    return next(err);
-                }
+          return next(err);
+        }
 
-                if (!blacklistIP) {
-                    err = new Error('Not Found');
-                    err.status = 404;
+        if (!blacklistIP) {
+          err = new Error('Not Found');
+          err.status = 404;
 
-                    return next(err);
-                }
+          return next(err);
+        }
 
-                blacklistIP.updateAttributes(req.body.blacklistIP, function(err) {
-                    if (err) {
-                        return next(err);
-                    }
+        blacklistIP.updateAttributes(req.body.blacklistIP, function(err) {
+          if (err) {
+            return next(err);
+          }
 
-                    return res.status(200).end();
-                });
-            });
+          return res.status(200).end();
         });
+      });
+    });
 
-        router.delete('/blacklistIPs/:id', function deleteBlacklistIP(req, res, next) {
-            var err;
+    router.delete('/blacklistIPs/:id', function deleteBlacklistIP(req, res, next) {
+      var err;
 
-            if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Forbidden');
-                err.status = 403;
+      if (!req.user.admin && req.permission.isReadOnly()) {
+        err = new Error('Forbidden');
+        err.status = 403;
 
-                return next(err);
-            }
+        return next(err);
+      }
 
-            BlacklistIP.find(req.params.id, function(err, blacklistIP) {
-                if (err) {
-                    return next(err);
-                }
+      BlacklistIP.find(req.params.id, function(err, blacklistIP) {
+        if (err) {
+          return next(err);
+        }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistIP && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
-                    err = new Error('Forbidden');
-                    err.status = 403;
+        if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistIP && blacklistIP.userId && (blacklistIP.userId !== req.user.id)) {
+          err = new Error('Forbidden');
+          err.status = 403;
 
-                    return next(err);
-                }
+          return next(err);
+        }
 
-                if (!blacklistIP) {
-                    err = new Error('Not Found');
-                    err.status = 404;
+        if (!blacklistIP) {
+          err = new Error('Not Found');
+          err.status = 404;
 
-                    return next(err);
-                }
+          return next(err);
+        }
 
-                blacklistIP.destroy(function(err) {
-                    if (err) {
-                        return next(err);
-                    }
+        blacklistIP.destroy(function(err) {
+          if (err) {
+            return next(err);
+          }
 
-                    return res.status(200).end();
-                });
-            });
+          return res.status(200).end();
         });
-    };
+      });
+    });
+  };
 }());

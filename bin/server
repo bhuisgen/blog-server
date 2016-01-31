@@ -1,44 +1,44 @@
 #!/usr/bin/env node
 
 (function() {
-    'use strict';
+  'use strict';
 
-    var fs = require('fs');
-    var http = require('http');
-    var https = require('https');
-    var path = require('path');
+  var fs = require('fs');
+  var http = require('http');
+  var https = require('https');
+  var path = require('path');
 
-    var pkg = require('../package.json');
+  var pkg = require('../package.json');
 
-    var config = {};
-    config.server = require('../config/server');
+  var config = {};
+  config.server = require('../config/server');
 
-    var app = require('../app/app');
+  var app = require('../app/app');
 
-    process.title = pkg.name;
+  process.title = pkg.name;
 
-    process.on('uncaughtException', function(err) {
-        console.error(err.stack);
+  process.on('uncaughtException', function(err) {
+    console.error(err.stack);
 
-        process.exit(1);
-    });
+    process.exit(1);
+  });
 
-    if (config.server.ssl && config.server.ssl.enable) {
-        var opts = {
-            cert: fs.readFileSync(path.resolve(config.server.root, config.server.ssl.certificateFile)),
-            key: fs.readFileSync(path.resolve(config.server.root, config.server.ssl.keyFile))
-        };
+  if (config.server.ssl && config.server.ssl.enable) {
+    var opts = {
+      cert: fs.readFileSync(path.resolve(config.server.root, config.server.ssl.certificateFile)),
+      key: fs.readFileSync(path.resolve(config.server.root, config.server.ssl.keyFile))
+    };
 
-        if (config.server.ssl.caFile) {
-            opts.ca = fs.readFileSync(path.resolve(config.server.root, config.server.ssl.caFile));
-        }
-
-        https.createServer(opts, app).listen(config.server.port, config.server.host, function() {
-            console.log('HTTPS server listening on ' + config.server.host + ':' + config.server.port);
-        });
-    } else {
-        http.createServer(app).listen(config.server.port, config.server.host, function() {
-            console.log('HTTP server listening on ' + config.server.host + ':' + config.server.port);
-        });
+    if (config.server.ssl.caFile) {
+      opts.ca = fs.readFileSync(path.resolve(config.server.root, config.server.ssl.caFile));
     }
+
+    https.createServer(opts, app).listen(config.server.port, config.server.host, function() {
+      console.log('HTTPS server listening on ' + config.server.host + ':' + config.server.port);
+    });
+  } else {
+    http.createServer(app).listen(config.server.port, config.server.host, function() {
+      console.log('HTTP server listening on ' + config.server.host + ':' + config.server.port);
+    });
+  }
 }());

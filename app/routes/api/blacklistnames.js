@@ -1,295 +1,295 @@
 (function() {
-    'use strict';
+  'use strict';
 
-    var path = require('path');
+  var path = require('path');
 
-    var Schema = require('jugglingdb-model-loader');
+  var Schema = require('jugglingdb-model-loader');
 
-    module.exports = function(config, router) {
-        var options = config.database.options;
+  module.exports = function(config, router) {
+    var options = config.database.options;
 
-        options.modelLoader = {
-            rootDirectory: path.normalize(__dirname + '/../../..'),
-            directory: 'app/models'
+    options.modelLoader = {
+      rootDirectory: path.normalize(__dirname + '/../../..'),
+      directory: 'app/models'
+    };
+
+    var schema = new Schema(config.database.type, options);
+
+    var BlacklistName = schema.loadDefinition('BlacklistName');
+
+    router.post('/blacklistNames', function createBlacklistName(req, res, next) {
+      var err;
+
+      if (!req.user.admin && req.permission.isReadOnly()) {
+        err = new Error('Forbidden');
+        err.status = 403;
+
+        return next(err);
+      }
+
+      var blacklistName = new BlacklistName(req.body.blacklistName);
+
+      if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
+        err = new Error('Forbidden');
+        err.status = 403;
+
+        return next(err);
+      }
+
+      blacklistName.save(function(err) {
+        if (err) {
+          return next(err);
+        }
+
+        return res.status(200).end();
+      });
+    });
+
+    router.get('/blacklistNames/:id', function readBlacklistName(req, res, next) {
+      var data = {};
+
+      BlacklistName.find(req.params.id, function(err, blacklistName) {
+        if (err) {
+          return next(err);
+        }
+
+        if (!req.user.admin && req.permission.isPrivate() && blacklistName && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
+          err = new Error('Forbidden');
+          err.status = 403;
+
+          return next(err);
+        }
+
+        if (!blacklistName) {
+          err = new Error('Not Found');
+          err.status = 404;
+
+          return next(err);
+        }
+
+        data.blacklistName = {
+          id: blacklistName.id,
+          name: blacklistName.name
         };
 
-        var schema = new Schema(config.database.type, options);
+        return res.json(data);
+      });
+    });
 
-        var BlacklistName = schema.loadDefinition('BlacklistName');
+    router.get('/blacklistNames', function readBlacklistNames(req, res, next) {
+      var data = {};
+      var err;
 
-        router.post('/blacklistNames', function createBlacklistName(req, res, next) {
-            var err;
+      if (req.query.ids) {
+        var pending = req.query.ids.length;
 
-            if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Forbidden');
-                err.status = 403;
+        data.blacklistName = [];
 
-                return next(err);
+        var iterate = function(id) {
+          BlacklistName.find(id, function(err, blacklistName) {
+            if (err) {
+              return next(err);
             }
 
-            var blacklistName = new BlacklistName(req.body.blacklistName);
+            if (!req.user.admin && req.permission.isPrivate() && blacklistName && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
+              err = new Error('Forbidden');
+              err.status = 403;
 
-            if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                err = new Error('Forbidden');
-                err.status = 403;
-
-                return next(err);
+              return next(err);
             }
 
-            blacklistName.save(function(err) {
-                if (err) {
-                    return next(err);
-                }
+            if (!blacklistName) {
+              err = new Error('Not Found');
+              err.status = 404;
 
-                return res.status(200).end();
+              return next(err);
+            }
+
+            data.blacklistName.push({
+              id: blacklistName.id,
+              name: blacklistName.name
             });
-        });
 
-        router.get('/blacklistNames/:id', function readBlacklistName(req, res, next) {
-            var data = {};
+            if (!--pending) {
+              return res.json(data);
+            }
+          });
+        };
 
-            BlacklistName.find(req.params.id, function(err, blacklistName) {
-                if (err) {
-                    return next(err);
-                }
+        for (var i = 0; i < req.query.ids.length; i++) {
+          iterate(req.query.ids[i]);
+        }
+      } else {
+        var filter = {};
 
-                if (!req.user.admin && req.permission.isPrivate() && blacklistName && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                    err = new Error('Forbidden');
-                    err.status = 403;
+        if (req.query.id) {
+          filter.id = req.query.id;
+        }
 
-                    return next(err);
-                }
+        if (req.query.name) {
+          filter.name = req.query.name;
+        }
 
-                if (!blacklistName) {
-                    err = new Error('Not Found');
-                    err.status = 404;
+        if (Object.keys(filter).length === 0) {
+          filter = null;
+        }
 
-                    return next(err);
-                }
+        var order = req.query.order || 'id';
+        var sort = req.query.sort || 'ASC';
+        var offset = parseInt(req.query.offset, 10) || 0;
+        var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
+        if ((offset < 0) || (limit < 0)) {
+          err = new Error('Bad Request');
+          err.status = 400;
 
-                data.blacklistName = {
-                    id: blacklistName.id,
-                    name: blacklistName.name
-                };
+          return next(err);
+        }
 
+        BlacklistName.count(filter, function(err, count) {
+          if (err) {
+            return next(err);
+          }
+
+          if (!count) {
+            err = new Error('Not Found');
+            err.status = 404;
+
+            return next(err);
+          }
+
+          if (offset >= count) {
+            err = new Error('Bad Request');
+            err.status = 400;
+
+            return next(err);
+          }
+
+          BlacklistName.all({
+            where: filter,
+            order: order + ' ' + sort,
+            skip: offset,
+            limit: limit
+          }, function(err, blacklistNames) {
+            if (err) {
+              return next(err);
+            }
+
+            if (!blacklistNames.length) {
+              err = new Error('Not Found');
+              err.status = 404;
+
+              return next(err);
+            }
+
+            data.blacklistName = [];
+            data.meta = {
+              count: count
+            };
+
+            var pending = blacklistNames.length;
+
+            var iterate = function(blacklistName) {
+              if (!req.user.admin && req.permission.isPrivate() && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
+                err = new Error('Forbidden');
+                err.status = 403;
+
+                return next(err);
+              }
+
+              data.blacklistName.push({
+                id: blacklistName.id,
+                name: blacklistName.name
+              });
+
+              if (!--pending) {
                 return res.json(data);
-            });
-        });
+              }
+            };
 
-        router.get('/blacklistNames', function readBlacklistNames(req, res, next) {
-            var data = {};
-            var err;
-
-            if (req.query.ids) {
-                var pending = req.query.ids.length;
-
-                data.blacklistName = [];
-
-                var iterate = function(id) {
-                    BlacklistName.find(id, function(err, blacklistName) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        if (!req.user.admin && req.permission.isPrivate() && blacklistName && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                            err = new Error('Forbidden');
-                            err.status = 403;
-
-                            return next(err);
-                        }
-
-                        if (!blacklistName) {
-                            err = new Error('Not Found');
-                            err.status = 404;
-
-                            return next(err);
-                        }
-
-                        data.blacklistName.push({
-                            id: blacklistName.id,
-                            name: blacklistName.name
-                        });
-
-                        if (!--pending) {
-                            return res.json(data);
-                        }
-                    });
-                };
-
-                for (var i = 0; i < req.query.ids.length; i++) {
-                    iterate(req.query.ids[i]);
-                }
-            } else {
-                var filter = {};
-
-                if (req.query.id) {
-                    filter.id = req.query.id;
-                }
-
-                if (req.query.name) {
-                    filter.name = req.query.name;
-                }
-
-                if (Object.keys(filter).length === 0) {
-                    filter = null;
-                }
-
-                var order = req.query.order || 'id';
-                var sort = req.query.sort || 'ASC';
-                var offset = parseInt(req.query.offset, 10) || 0;
-                var limit = parseInt(req.query.limit, 10) || config.server.api.maxItems;
-                if ((offset < 0) || (limit < 0)) {
-                    err = new Error('Bad Request');
-                    err.status = 400;
-
-                    return next(err);
-                }
-
-                BlacklistName.count(filter, function(err, count) {
-                    if (err) {
-                        return next(err);
-                    }
-
-                    if (!count) {
-                        err = new Error('Not Found');
-                        err.status = 404;
-
-                        return next(err);
-                    }
-
-                    if (offset >= count) {
-                        err = new Error('Bad Request');
-                        err.status = 400;
-
-                        return next(err);
-                    }
-
-                    BlacklistName.all({
-                        where: filter,
-                        order: order + ' ' + sort,
-                        skip: offset,
-                        limit: limit
-                    }, function(err, blacklistNames) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        if (!blacklistNames.length) {
-                            err = new Error('Not Found');
-                            err.status = 404;
-
-                            return next(err);
-                        }
-
-                        data.blacklistName = [];
-                        data.meta = {
-                            count: count
-                        };
-
-                        var pending = blacklistNames.length;
-
-                        var iterate = function(blacklistName) {
-                            if (!req.user.admin && req.permission.isPrivate() && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                                err = new Error('Forbidden');
-                                err.status = 403;
-
-                                return next(err);
-                            }
-
-                            data.blacklistName.push({
-                                id: blacklistName.id,
-                                name: blacklistName.name
-                            });
-
-                            if (!--pending) {
-                                return res.json(data);
-                            }
-                        };
-
-                        for (var i = 0; i < blacklistNames.length; i++) {
-                            iterate(blacklistNames[i]);
-                        }
-                    });
-                });
+            for (var i = 0; i < blacklistNames.length; i++) {
+              iterate(blacklistNames[i]);
             }
+          });
         });
+      }
+    });
 
-        router.put('/blacklistNames/:id', function updateBlacklistName(req, res, next) {
-            var err;
+    router.put('/blacklistNames/:id', function updateBlacklistName(req, res, next) {
+      var err;
 
-            if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Forbidden');
-                err.status = 403;
+      if (!req.user.admin && req.permission.isReadOnly()) {
+        err = new Error('Forbidden');
+        err.status = 403;
 
-                return next(err);
-            }
+        return next(err);
+      }
 
-            BlacklistName.find(req.params.id, function(err, blacklistName) {
-                if (err) {
-                    return next(err);
-                }
+      BlacklistName.find(req.params.id, function(err, blacklistName) {
+        if (err) {
+          return next(err);
+        }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistName && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                    err = new Error('Forbidden');
-                    err.status = 403;
+        if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistName && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
+          err = new Error('Forbidden');
+          err.status = 403;
 
-                    return next(err);
-                }
+          return next(err);
+        }
 
-                if (!blacklistName) {
-                    err = new Error('Not Found');
-                    err.status = 404;
+        if (!blacklistName) {
+          err = new Error('Not Found');
+          err.status = 404;
 
-                    return next(err);
-                }
+          return next(err);
+        }
 
-                blacklistName.updateAttributes(req.body.blacklistName, function(err) {
-                    if (err) {
-                        return next(err);
-                    }
+        blacklistName.updateAttributes(req.body.blacklistName, function(err) {
+          if (err) {
+            return next(err);
+          }
 
-                    return res.status(200).end();
-                });
-            });
+          return res.status(200).end();
         });
+      });
+    });
 
-        router.delete('/blacklistNames/:id', function deleteBlacklistName(req, res, next) {
-            var err;
+    router.delete('/blacklistNames/:id', function deleteBlacklistName(req, res, next) {
+      var err;
 
-            if (!req.user.admin && req.permission.isReadOnly()) {
-                err = new Error('Forbidden');
-                err.status = 403;
+      if (!req.user.admin && req.permission.isReadOnly()) {
+        err = new Error('Forbidden');
+        err.status = 403;
 
-                return next(err);
-            }
+        return next(err);
+      }
 
-            BlacklistName.find(req.params.id, function(err, blacklistName) {
-                if (err) {
-                    return next(err);
-                }
+      BlacklistName.find(req.params.id, function(err, blacklistName) {
+        if (err) {
+          return next(err);
+        }
 
-                if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistName && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
-                    err = new Error('Forbidden');
-                    err.status = 403;
+        if (!req.user.admin && (req.permission.isShared() || req.permission.isPrivate()) && blacklistName && blacklistName.userId && (blacklistName.userId !== req.user.id)) {
+          err = new Error('Forbidden');
+          err.status = 403;
 
-                    return next(err);
-                }
+          return next(err);
+        }
 
-                if (!blacklistName) {
-                    err = new Error('Not Found');
-                    err.status = 404;
+        if (!blacklistName) {
+          err = new Error('Not Found');
+          err.status = 404;
 
-                    return next(err);
-                }
+          return next(err);
+        }
 
-                blacklistName.destroy(function(err) {
-                    if (err) {
-                        return next(err);
-                    }
+        blacklistName.destroy(function(err) {
+          if (err) {
+            return next(err);
+          }
 
-                    return res.status(200).end();
-                });
-            });
+          return res.status(200).end();
         });
-    };
+      });
+    });
+  };
 }());

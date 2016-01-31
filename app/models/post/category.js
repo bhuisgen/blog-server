@@ -1,11 +1,11 @@
 (function() {
-	'use strict';
+  'use strict';
 
-	var Schema = require('jugglingdb').Schema;
+  var Schema = require('jugglingdb').Schema; // eslint-disable-line
 
-	module.exports = function(schema) {
-		var PostCategory = schema.define('PostCategory', {});
+  module.exports = function(schema) {
+    var PostCategory = schema.define('PostCategory', {});
 
-		return PostCategory;
-	};
+    return PostCategory;
+  };
 }());
